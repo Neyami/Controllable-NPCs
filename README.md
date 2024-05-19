@@ -13,7 +13,6 @@ A work in progress.
 
 # ALIEN GRUNT #  
 `weapon_agrunt` - Give this to the player  
-`cnpc_agrunt` - The entity that moves with the player  
 
 Primary Attack: Shoot Hornets  
 Secondary Attack: Melee  
