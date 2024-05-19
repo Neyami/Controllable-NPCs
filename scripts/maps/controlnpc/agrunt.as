@@ -469,10 +469,10 @@ class cnpc_agrunt : ScriptBaseAnimating//ScriptBaseMonsterEntity
 
 		CBasePlayer@ pOwner = cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) );
 
-		if( pOwner.IsOnLadder() or  pOwner.pev.waterlevel > WATERLEVEL_FEET )
+		//if( pOwner.IsOnLadder() or  pOwner.pev.waterlevel > WATERLEVEL_FEET )
 		{
 			Vector vecOrigin = pOwner.pev.origin;
-			vecOrigin.z -= 24.0;
+			vecOrigin.z -= 32.0;
 			g_EntityFuncs.SetOrigin( self, vecOrigin );
 		}
 
