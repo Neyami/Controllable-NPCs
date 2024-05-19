@@ -7,7 +7,9 @@ A work in progress.
 4) Either add weapon_name to the map.cfg or `.player_give @me weapon_name` or any other way of giving stuff
 5) Press the primary attack to turn into the monster
 6) ????
-7) PROFIT  
+7) PROFIT
+
+The only way to revert to a normal player is to die :ayaya:
 
 <BR>
 
