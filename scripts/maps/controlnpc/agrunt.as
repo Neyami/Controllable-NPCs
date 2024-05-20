@@ -438,7 +438,7 @@ class cnpc_agrunt : ScriptBaseAnimating//ScriptBaseMonsterEntity
 		g_EntityFuncs.SetOrigin( self, pev.origin );
 		g_EngineFuncs.DropToFloor( self.edict() );
 
-		pev.solid = SOLID_SLIDEBOX;
+		pev.solid = SOLID_NOT;
 		pev.movetype = MOVETYPE_NOCLIP;
 
 		pev.sequence = self.LookupSequence("idle1");
