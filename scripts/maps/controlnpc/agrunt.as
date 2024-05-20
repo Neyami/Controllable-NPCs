@@ -52,6 +52,7 @@ enum states_e
 class weapon_agrunt : CBaseDriveWeapon
 {
 	private int m_iState;
+	private int m_iAgruntMuzzleFlash;
 	private int m_iRandomAttack;
 	private float m_flStopHornetAttack;
 
@@ -70,6 +71,7 @@ class weapon_agrunt : CBaseDriveWeapon
 	void Precache()
 	{
 		g_Game.PrecacheModel( "models/agrunt.mdl" );
+		m_iAgruntMuzzleFlash = g_Game.PrecacheModel( "sprites/muz4.spr" );
 
 		for( uint i = 0; i < pAttackHitSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pAttackHitSounds[i] );
@@ -259,9 +261,28 @@ class weapon_agrunt : CBaseDriveWeapon
 	{
 		if( m_pDriveEnt !is null and m_pPlayer.IsAlive() )
 		{
-			Math.MakeVectors( m_pPlayer.pev.v_angle );
-			Vector vecOrigin;
+			Vector vecAngle, vecOrigin, vecMuzzle;
+			vecAngle = m_pPlayer.pev.v_angle;
+
+			if( vecAngle.x < -44.5 ) vecAngle.x = -44.5;
+			if( vecAngle.x > 32.0 ) vecAngle.x = 32.0;
+
+			Math.MakeVectors( vecAngle );
 			m_pDriveEnt.GetAttachment( 0, vecOrigin, void );
+
+			m_pDriveEnt.pev.effects = EF_MUZZLEFLASH;
+
+			vecMuzzle = vecOrigin + g_Engine.v_forward * 32;
+
+			NetworkMessage m1( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecMuzzle );
+				m1.WriteByte( TE_SPRITE );
+				m1.WriteCoord( vecMuzzle.x );
+				m1.WriteCoord( vecMuzzle.y );
+				m1.WriteCoord( vecMuzzle.z );
+				m1.WriteShort( m_iAgruntMuzzleFlash );
+				m1.WriteByte( 6 ); // size * 10
+				m1.WriteByte( 128 ); // brightness
+			m1.End();
 
 			CBaseEntity@ pHornet = g_EntityFuncs.Create( "hornet", vecOrigin, m_pPlayer.pev.v_angle, false, m_pPlayer.edict() );
 			pHornet.pev.velocity = g_Engine.v_forward * 300;
@@ -400,7 +421,6 @@ class weapon_agrunt : CBaseDriveWeapon
 
 		g_EntityFuncs.DispatchSpawn( m_pDriveEnt.edict() );
 
-		m_pPlayer.pev.solid = SOLID_NOT;
 		m_pPlayer.pev.effects |= EF_NODRAW;
 		m_pPlayer.pev.fuser4 = 1; //disable jump
 		self.m_bExclusiveHold = true;
@@ -417,7 +437,6 @@ class weapon_agrunt : CBaseDriveWeapon
 
 	void ResetPlayer()
 	{
-		m_pPlayer.pev.solid = SOLID_SLIDEBOX;
 		m_pPlayer.pev.effects &= ~EF_NODRAW;
 		m_pPlayer.pev.fuser4 = 0; //enable jump
 
@@ -568,7 +587,6 @@ void Register()
 
 /* FIXME
 Holding any button after attacking will cause the animation to freeze at the last frame until released
-Climbing or swimming causes the model to get slightly offset on the z-axis
 */
 
 /* TODO
