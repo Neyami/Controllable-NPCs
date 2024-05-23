@@ -2,10 +2,13 @@ namespace cnpc_agrunt
 {
 	
 const string sWeaponName	= "weapon_agrunt";
+
+const float CNPC_HEALTH				= 150.0;
+
 const float CD_HORNET			= 2.0;
 const float CD_MELEE				= 1.0;
 
-const float DMG_MELEE			= 20.0;
+const float MELEE_DAMAGE		= 20.0;
 const float MELEE_RANGE		= 100.0;
 
 const float HORNET_REFIRE		= 0.2;
@@ -37,6 +40,14 @@ const array<string> pDieSounds =
 	"agrunt/ag_die1.wav",
 	"agrunt/ag_die4.wav",
 	"agrunt/ag_die5.wav"
+};
+
+const array<string> pStepSounds = 
+{
+	"player/pl_ladder1.wav",
+	"player/pl_ladder2.wav",
+	"player/pl_ladder3.wav",
+	"player/pl_ladder4.wav"
 };
 
 enum states_e
@@ -84,6 +95,9 @@ class weapon_agrunt : CBaseDriveWeapon
 
 		for( uint i = 0; i < pDieSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pDieSounds[i] );
+
+		for( uint i = 0; i < pStepSounds.length(); i++ )
+			g_SoundSystem.PrecacheSound( pStepSounds[i] );
 	}
 
 	bool GetItemInfo( ItemInfo& out info )
@@ -170,7 +184,7 @@ class weapon_agrunt : CBaseDriveWeapon
 
 	void SecondaryAttack()
 	{
-		if( m_pPlayer.pev.velocity.Length() > 0 )
+		if( m_pPlayer.pev.velocity.Length() > 10.0 )
 		{
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.3;
 			return;
@@ -225,12 +239,11 @@ class weapon_agrunt : CBaseDriveWeapon
 				{
 					m_pPlayer.SetMaxSpeedOverride( -1 );
 					DoMovementAnimation();
+					self.m_flTimeWeaponIdle = g_Engine.time + 0.1;
 				}
-
-				self.m_flTimeWeaponIdle = g_Engine.time + 0.1;
 			}
 
-			if( m_pPlayer.pev.velocity.Length() <= 0 and m_iState != STATE_ATTACK_MELEE and m_iState != STATE_ATTACK_HORNET )
+			if( m_pPlayer.pev.velocity.Length() <= 10.0 and m_iState != STATE_ATTACK_MELEE and m_iState != STATE_ATTACK_HORNET )
 				DoIdleAnimation();
 
 			if( m_iState == STATE_ATTACK_HORNET )
@@ -298,13 +311,13 @@ class weapon_agrunt : CBaseDriveWeapon
 
 	void MeleeAttackThink()
 	{
-		if( m_pPlayer is null or m_pDriveEnt is null )
+		if( m_pPlayer is null or !m_pPlayer.IsAlive() or m_pDriveEnt is null )
 		{
 			SetThink( null );
 			return;
 		}
 
-		CBaseEntity@ pHurt = CheckTraceHullAttack( MELEE_RANGE, DMG_MELEE, DMG_CLUB );
+		CBaseEntity@ pHurt = CheckTraceHullAttack( MELEE_RANGE, MELEE_DAMAGE, DMG_CLUB );
 		
 		if( pHurt !is null )
 		{
@@ -346,16 +359,16 @@ class weapon_agrunt : CBaseDriveWeapon
 				{
 					switch( Math.RandomLong(0, 1) )
 					{
-						case 0:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, "player/pl_ladder2.wav", VOL_NORM, ATTN_NORM, 0, 70 ); break;
-						case 1:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, "player/pl_ladder4.wav", VOL_NORM, ATTN_NORM, 0, 70 ); break;
+						case 0:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, pStepSounds[1], VOL_NORM, ATTN_NORM, 0, 70 ); break;
+						case 1:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, pStepSounds[3], VOL_NORM, ATTN_NORM, 0, 70 ); break;
 					}
 				}
 				else if( GetFrame(20) == 19 )
 				{
 					switch( Math.RandomLong(0, 1) )
 					{
-						case 0:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, "player/pl_ladder1.wav", VOL_NORM, ATTN_NORM, 0, 70 ); break;
-						case 1:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, "player/pl_ladder3.wav", VOL_NORM, ATTN_NORM, 0, 70 ); break;
+						case 0:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, pStepSounds[0], VOL_NORM, ATTN_NORM, 0, 70 ); break;
+						case 1:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, pStepSounds[2], VOL_NORM, ATTN_NORM, 0, 70 ); break;
 					}
 				}
 			}
@@ -375,20 +388,20 @@ class weapon_agrunt : CBaseDriveWeapon
 				{
 					switch( Math.RandomLong(0, 1) )
 					{
-						case 0:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, "player/pl_ladder2.wav", VOL_NORM, ATTN_NORM, 0, 70 ); break;
-						case 1:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, "player/pl_ladder4.wav", VOL_NORM, ATTN_NORM, 0, 70 ); break;
+						case 0:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, pStepSounds[1], VOL_NORM, ATTN_NORM, 0, 70 ); break;
+						case 1:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, pStepSounds[3], VOL_NORM, ATTN_NORM, 0, 70 ); break;
 					}
 				}
 				else if( GetFrame(26) == 23 )
 				{
 					switch( Math.RandomLong(0, 1) )
 					{
-						case 0:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, "player/pl_ladder1.wav", VOL_NORM, ATTN_NORM, 0, 70 ); break;
-						case 1:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, "player/pl_ladder3.wav", VOL_NORM, ATTN_NORM, 0, 70 ); break;
+						case 0:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, pStepSounds[0], VOL_NORM, ATTN_NORM, 0, 70 ); break;
+						case 1:	g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, pStepSounds[2], VOL_NORM, ATTN_NORM, 0, 70 ); break;
 					}
 				}
 
-				m_pPlayer.pev.flTimeStepSound = 0; //prevents normal footsteps from playing, kinda? :hehe:
+				m_pPlayer.pev.flTimeStepSound = 9999; //prevents normal footsteps from playing
 			}
 		}
 	}
@@ -423,6 +436,9 @@ class weapon_agrunt : CBaseDriveWeapon
 
 		m_pPlayer.pev.effects |= EF_NODRAW;
 		m_pPlayer.pev.fuser4 = 1; //disable jump
+		m_pPlayer.pev.max_health = CNPC_HEALTH;
+		m_pPlayer.pev.health = CNPC_HEALTH;
+
 		self.m_bExclusiveHold = true;
 
 		m_pPlayer.SetViewMode( ViewMode_ThirdPerson );
@@ -439,6 +455,7 @@ class weapon_agrunt : CBaseDriveWeapon
 	{
 		m_pPlayer.pev.effects &= ~EF_NODRAW;
 		m_pPlayer.pev.fuser4 = 0; //enable jump
+		m_pPlayer.pev.max_health = 100;
 
 		m_pPlayer.SetViewMode( ViewMode_FirstPerson );
 		m_pPlayer.SetMaxSpeedOverride( -1 );
