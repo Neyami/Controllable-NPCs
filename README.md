@@ -29,4 +29,4 @@ Primary Attack: Shoot Spikes
 Secondary Attack: Melee  
 Reload: Reload spikes  
 Jump: Short hop  
-Longjump (duck, quickly followed by jump): Leap
+Longjump (duck-key, quickly followed by jump): Leap
