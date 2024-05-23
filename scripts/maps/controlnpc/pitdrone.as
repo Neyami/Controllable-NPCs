@@ -595,8 +595,6 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 		@m_pDriveEnt = cast<CBaseAnimating@>( g_EntityFuncs.Create("cnpc_pitdrone", m_pPlayer.pev.origin, m_pPlayer.pev.angles, true, m_pPlayer.edict()) );
 
-		m_pDriveEnt.pev.set_controller( 0,  127 );
-
 		g_EntityFuncs.DispatchSpawn( m_pDriveEnt.edict() );
 
 		m_pPlayer.pev.effects |= EF_NODRAW;
