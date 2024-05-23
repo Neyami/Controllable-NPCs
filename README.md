@@ -18,3 +18,14 @@ The only way to revert to a normal player is to die :ayaya:
 
 Primary Attack: Shoot Hornets  
 Secondary Attack: Melee  
+
+
+<BR>
+
+# PIT DRONE #  
+`weapon_pitdrone` - Give this to the player  
+
+Primary Attack: Shoot Spikes  
+Secondary Attack: Melee  
+Jump: Short hop
+Longjump (duck, quickly followed by jump): Leap
