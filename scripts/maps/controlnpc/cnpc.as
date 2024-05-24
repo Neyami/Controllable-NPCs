@@ -1,5 +1,5 @@
 #include "CBaseDriveWeapon"
-#include "headcrab"
+//#include "headcrab"
 #include "agrunt"
 #include "pitdrone"
 
@@ -9,7 +9,7 @@ void MapInit()
 	g_Hooks.RegisterHook( Hooks::Player::PlayerKilled, @CNPC::PlayerKilled );
 	g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @CNPC::PlayerTakeDamage );
 
-	cnpc_headcrab::Register();
+	//cnpc_headcrab::Register();
 	cnpc_agrunt::Register();
 	cnpc_pitdrone::Register();
 }
@@ -44,7 +44,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 
 	switch( pCustom.GetKeyvalue(sCNPCKV).GetInteger() )
 	{
-		case CNPC_HEADCRAB:
+		/*case CNPC_HEADCRAB:
 		{
 			
 			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
@@ -56,7 +56,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_headcrab::pPainSounds[Math.RandomLong(0,(cnpc_headcrab::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM ); 
 
 			break;
-		}
+		}*/
 
 		case CNPC_AGRUNT:
 		{
