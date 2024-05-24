@@ -236,10 +236,6 @@ class weapon_headcrab : CBaseDriveWeapon
 		pDriveEnt.SetTouch( TouchFunction(pDriveEnt.LeapTouch) );
 	}
 
-	void SecondaryAttack()
-	{
-	}
-
 	void Reload()
 	{
 	}
