@@ -231,6 +231,8 @@ class weapon_agrunt : CBaseDriveWeapon
 	{
 		if( m_pDriveEnt !is null )
 		{
+			m_pPlayer.pev.friction = 2; //no sliding!
+
 			if( m_pPlayer.pev.button & (IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 )
 				m_pPlayer.SetMaxSpeedOverride( 0 );
 			else if( m_pPlayer.pev.button & IN_FORWARD != 0 )
@@ -438,6 +440,7 @@ class weapon_agrunt : CBaseDriveWeapon
 		m_pPlayer.pev.fuser4 = 1; //disable jump
 		m_pPlayer.pev.max_health = CNPC_HEALTH;
 		m_pPlayer.pev.health = CNPC_HEALTH;
+		m_pPlayer.m_bloodColor = BLOOD_COLOR_YELLOW;
 
 		self.m_bExclusiveHold = true;
 
@@ -453,9 +456,9 @@ class weapon_agrunt : CBaseDriveWeapon
 
 	void ResetPlayer()
 	{
-		m_pPlayer.pev.effects &= ~EF_NODRAW;
 		m_pPlayer.pev.fuser4 = 0; //enable jump
 		m_pPlayer.pev.max_health = 100;
+		m_pPlayer.m_bloodColor = BLOOD_COLOR_RED;
 
 		m_pPlayer.SetViewMode( ViewMode_FirstPerson );
 		m_pPlayer.SetMaxSpeedOverride( -1 );

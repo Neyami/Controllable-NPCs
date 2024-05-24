@@ -274,10 +274,10 @@ class weapon_pitdrone : CBaseDriveWeapon
 			m_pDriveEnt.ResetSequenceInfo();
 
 			SetThink( ThinkFunction(this.MeleeAttackThink) );
-		}
 
-		self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + MELEE_CD;
-		self.m_flTimeWeaponIdle = g_Engine.time + MELEE_CD;
+			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + MELEE_CD;
+			self.m_flTimeWeaponIdle = g_Engine.time + MELEE_CD;
+		}
 	}
 
 	void Reload()
@@ -618,7 +618,6 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 	void ResetPlayer()
 	{
-		m_pPlayer.pev.effects &= ~EF_NODRAW;
 		m_pPlayer.pev.fuser4 = 0; //enable jump
 		m_pPlayer.pev.view_ofs = Vector( 0, 0, 28 );
 		m_pPlayer.pev.max_health = 100;
