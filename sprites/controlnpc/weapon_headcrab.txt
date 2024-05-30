@@ -1,0 +1,4 @@
+3
+weapon				640		controlnpc/ui_headcrab		0	170	0	45
+weapon_s			640		controlnpc/ui_headcrab_sel		0	170	0	45
+crosshair			640		crosshairs	72	24	24	24

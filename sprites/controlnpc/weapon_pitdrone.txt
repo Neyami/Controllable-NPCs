@@ -1,5 +1,5 @@
 4
-weapon				640		640hud2		0	180	170	45
-weapon_s			640		640hud5		0	180	170	45
+weapon				640		controlnpc/ui_pitdrone		0	170	0	45
+weapon_s			640		controlnpc/ui_pitdrone_sel		0	170	0	45
 ammo				640		640hud7		24	84	24	24
 crosshair			640		crosshairs	72	24	24	24
