@@ -2,8 +2,10 @@ namespace cnpc_agrunt
 {
 	
 const string sWeaponName	= "weapon_agrunt";
+const float CNPC_HEALTH		= 150.0;
 
-const float CNPC_HEALTH				= 150.0;
+const bool DISABLE_CROUCH	= true;
+const float CNPC_VIEWOFS		= 40.0; //camera height offset
 
 const float CD_HORNET			= 2.0;
 const float CD_MELEE				= 1.0;
@@ -98,15 +100,20 @@ class weapon_agrunt : CBaseDriveWeapon
 
 		for( uint i = 0; i < pStepSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pStepSounds[i] );
+
+		//Precache these for downloading
+		g_Game.PrecacheGeneric( "sprites/controlnpc/weapon_agrunt.txt" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_agrunt.spr" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_agrunt_sel.spr" );
 	}
 
 	bool GetItemInfo( ItemInfo& out info )
 	{
 		info.iMaxAmmo1	= 100;
 		info.iMaxClip		= WEAPON_NOCLIP;
-		info.iSlot				= 1 - 1;
-		info.iPosition		= 1 - 1;
-		info.iFlags 			= ITEM_FLAG_SELECTONEMPTY; //to prevent monster from being despawned if out of ammo TODO
+		info.iSlot				= CNPC::AGRUNT_SLOT - 1;
+		info.iPosition		= CNPC::AGRUNT_POSITION - 1;
+		info.iFlags 			= ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_NOAUTOSWITCHEMPTY; //to prevent monster from being despawned if out of ammo TODO
 		info.iWeight			= 0; //-1 ??
 
 		return true;
@@ -232,6 +239,15 @@ class weapon_agrunt : CBaseDriveWeapon
 		if( m_pDriveEnt !is null )
 		{
 			m_pPlayer.pev.friction = 2; //no sliding!
+
+			if( DISABLE_CROUCH )
+			{
+				NetworkMessage disableduck( MSG_ONE, NetworkMessages::SVC_STUFFTEXT, m_pPlayer.edict() );
+					disableduck.WriteString( "-duck\n" );
+				disableduck.End();
+			}
+			else
+				m_pPlayer.pev.view_ofs = Vector( 0.0, 0.0, CNPC_VIEWOFS );
 
 			if( m_pPlayer.pev.button & (IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 )
 				m_pPlayer.SetMaxSpeedOverride( 0 );
@@ -438,6 +454,7 @@ class weapon_agrunt : CBaseDriveWeapon
 
 		m_pPlayer.pev.effects |= EF_NODRAW;
 		m_pPlayer.pev.fuser4 = 1; //disable jump
+		m_pPlayer.pev.view_ofs = Vector( 0.0, 0.0, CNPC_VIEWOFS );
 		m_pPlayer.pev.max_health = CNPC_HEALTH;
 		m_pPlayer.pev.health = CNPC_HEALTH;
 		m_pPlayer.m_bloodColor = BLOOD_COLOR_YELLOW;
@@ -583,11 +600,6 @@ class cnpc_agrunt : ScriptBaseAnimating//ScriptBaseMonsterEntity
 
 		if( pev.health > 0 )
 			pev.health = 0;
-
-		NetworkMessage killbeam( MSG_BROADCAST, NetworkMessages::SVC_TEMPENTITY, null );
-			killbeam.WriteByte(TE_KILLBEAM);
-			killbeam.WriteShort(self.entindex());
-		killbeam.End();
 
 		g_EntityFuncs.Remove(self);
 	}

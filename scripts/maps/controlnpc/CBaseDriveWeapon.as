@@ -41,6 +41,18 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		return null;
 	}
 
+	void SetAnim( int iAnim, float flFrame = 0.0, float flFrameRate = 1.0 )
+	{
+		if( m_pDriveEnt !is null )
+		{
+			m_pDriveEnt.pev.sequence = iAnim;
+			m_pDriveEnt.pev.frame = flFrame;
+			m_pDriveEnt.pev.framerate = flFrameRate;
+
+			m_pDriveEnt.ResetSequenceInfo();
+		}
+	}
+
 	int GetFrame( int iMaxFrames )
 	{
 		if( m_pDriveEnt is null ) return 0;

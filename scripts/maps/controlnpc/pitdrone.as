@@ -5,6 +5,9 @@ const string sWeaponName			= "weapon_pitdrone";
 
 const float CNPC_HEALTH				= 60.0;
 
+const bool DISABLE_CROUCH			= false;
+const float CNPC_VIEWOFS				= 0.0; //camera height offset
+
 //The numbers are from the model, but are too slow :FeelsBadMan:
 //const float SPEED_WALK					= 66.860611 * CNPC::flModelToGameSpeedModifier;
 //const float SPEED_RUN					= 126.246635 * CNPC::flModelToGameSpeedModifier;
@@ -147,14 +150,19 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 		for( i = 0; i < pDieSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pDieSounds[i] );
+
+		//Precache these for downloading
+		g_Game.PrecacheGeneric( "sprites/controlnpc/weapon_pitdrone.txt" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_pitdrone.spr" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_pitdrone_sel.spr" );
 	}
 
 	bool GetItemInfo( ItemInfo& out info )
 	{
 		info.iMaxAmmo1	= -1;
 		info.iMaxClip		= WEAPON_NOCLIP;
-		info.iSlot				= 1 - 1;
-		info.iPosition		= 1 - 1;
+		info.iSlot				= CNPC::PITDRONE_SLOT - 1;
+		info.iPosition		= CNPC::PITDRONE_POSITION - 1;
 		info.iFlags 			= ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_NOAUTORELOAD | ITEM_FLAG_NOAUTOSWITCHEMPTY;
 		info.iWeight			= 0; //-1 ??
 
@@ -299,6 +307,15 @@ class weapon_pitdrone : CBaseDriveWeapon
 		if( m_pDriveEnt !is null )
 		{
 			m_pPlayer.pev.friction = 2; //no sliding!
+
+			if( DISABLE_CROUCH )
+			{
+				NetworkMessage disableduck( MSG_ONE, NetworkMessages::SVC_STUFFTEXT, m_pPlayer.edict() );
+					disableduck.WriteString( "-duck\n" );
+				disableduck.End();
+			}
+			else
+				m_pPlayer.pev.view_ofs = Vector( 0.0, 0.0, CNPC_VIEWOFS );
 
 			if( m_pPlayer.pev.button & (IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 )
 				m_pPlayer.SetMaxSpeedOverride( 0 );
@@ -599,7 +616,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 		m_pPlayer.pev.effects |= EF_NODRAW;
 		m_pPlayer.pev.fuser4 = 1; //disable jump
-		m_pPlayer.pev.view_ofs = Vector( 0, 0, 0 );
+		m_pPlayer.pev.view_ofs = Vector( 0.0, 0.0, CNPC_VIEWOFS );
 		m_pPlayer.pev.max_health = CNPC_HEALTH;
 		m_pPlayer.pev.health = CNPC_HEALTH;
 		m_pPlayer.m_bloodColor = BLOOD_COLOR_YELLOW;
@@ -734,11 +751,6 @@ class cnpc_pitdrone : ScriptBaseAnimating//ScriptBaseMonsterEntity
 
 		if( pev.health > 0 )
 			pev.health = 0;
-
-		NetworkMessage killbeam( MSG_BROADCAST, NetworkMessages::SVC_TEMPENTITY, null );
-			killbeam.WriteByte(TE_KILLBEAM);
-			killbeam.WriteShort(self.entindex());
-		killbeam.End();
 
 		g_EntityFuncs.Remove(self);
 	}

@@ -42,23 +42,12 @@ const array<string> pBiteSounds =
 enum anim_e
 {
 	ANIM_IDLE = 0,
-	ANIM_WALK,
+	ANIM_WALK = 3,
 	ANIM_RUN,
-	ANIM_LEAP1,
+	ANIM_DEATH = 7,
+	ANIM_LEAP1 = 10,
 	ANIM_LEAP2,
-	ANIM_LEAP3,
-	ANIM_DEATH
-};
-
-const array<string> arrsAnims = 
-{
-	"idle",
-	"walk",
-	"run",
-	"jump",
-	"jump_variation1",
-	"jump_variation2",
-	"dieback"
+	ANIM_LEAP3
 };
 
 enum states_e
@@ -100,14 +89,19 @@ class weapon_headcrab : CBaseDriveWeapon
 
 		for( uint i = 0; i < pBiteSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pBiteSounds[i] );
+
+		//Precache these for downloading
+		g_Game.PrecacheGeneric( "sprites/controlnpc/weapon_headcrab.txt" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_headcrab.spr" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_headcrab_sel.spr" );
 	}
 
 	bool GetItemInfo( ItemInfo& out info )
 	{
 		info.iMaxAmmo1	= -1;
 		info.iMaxClip		= WEAPON_NOCLIP;
-		info.iSlot				= 1 - 1;
-		info.iPosition		= 1 - 1;
+		info.iSlot				= CNPC::HEADCRAB_SLOT - 1;
+		info.iPosition		= CNPC::HEADCRAB_POSITION - 1;
 		info.iFlags 			= 0;
 		info.iWeight			= 0; //-1 ??
 
@@ -165,7 +159,7 @@ class weapon_headcrab : CBaseDriveWeapon
 				m_pPlayer.SetMaxSpeedOverride( 0 );
 
 				int iAnim = Math.RandomLong(ANIM_LEAP1, ANIM_LEAP3);
-				m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[iAnim]);
+				m_pDriveEnt.pev.sequence = iAnim;
 				m_pDriveEnt.pev.frame = 0;
 				m_pDriveEnt.ResetSequenceInfo();
 
@@ -289,22 +283,22 @@ class weapon_headcrab : CBaseDriveWeapon
 
 		if( (m_pPlayer.pev.button & IN_USE) != 0 or IsBetween(m_pPlayer.pev.velocity.Length(), flMinWalkVelocity, flMaxWalkVelocity) )
 		{
-			if( m_pDriveEnt.pev.sequence != m_pDriveEnt.LookupSequence(arrsAnims[ANIM_WALK]) )
+			if( m_pDriveEnt.pev.sequence != ANIM_WALK )
 			{
 				m_iState = STATE_WALK;
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_WALK) );
-				m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[ANIM_WALK]);
+				m_pDriveEnt.pev.sequence = ANIM_WALK;
 				m_pDriveEnt.pev.frame = 0;
 				m_pDriveEnt.ResetSequenceInfo();
 			}
 		}
 		else
 		{
-			if( m_pDriveEnt.pev.sequence != m_pDriveEnt.LookupSequence(arrsAnims[ANIM_RUN]) )
+			if( m_pDriveEnt.pev.sequence != ANIM_RUN )
 			{
 				m_iState = STATE_RUN;
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
-				m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[ANIM_RUN]);
+				m_pDriveEnt.pev.sequence = ANIM_RUN;
 				m_pDriveEnt.pev.frame = 0;
 				m_pDriveEnt.ResetSequenceInfo();
 			}
@@ -321,7 +315,7 @@ class weapon_headcrab : CBaseDriveWeapon
 		{
 			m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) ); //-1
 			m_iState = STATE_IDLE;
-			m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[ANIM_IDLE]);
+			m_pDriveEnt.pev.sequence = ANIM_IDLE;
 			m_pDriveEnt.pev.frame = 0;
 			m_pDriveEnt.ResetSequenceInfo();
 		}
@@ -377,7 +371,7 @@ class weapon_headcrab : CBaseDriveWeapon
 	}
 }
 
-class cnpc_headcrab : ScriptBaseAnimating//ScriptBaseMonsterEntity
+class cnpc_headcrab : ScriptBaseAnimating
 {
 	void Spawn()
 	{
@@ -389,7 +383,7 @@ class cnpc_headcrab : ScriptBaseAnimating//ScriptBaseMonsterEntity
 		pev.solid = SOLID_NOT;
 		pev.movetype = MOVETYPE_NOCLIP;
 
-		pev.sequence = self.LookupSequence(arrsAnims[ANIM_IDLE]);
+		pev.sequence = ANIM_IDLE;
 		pev.frame = 0;
 		self.ResetSequenceInfo();
 
@@ -445,7 +439,7 @@ class cnpc_headcrab : ScriptBaseAnimating//ScriptBaseMonsterEntity
 
 	void DieThink()
 	{
-		pev.sequence = self.LookupSequence( arrsAnims[ANIM_DEATH] );
+		pev.sequence = ANIM_DEATH;
 		pev.frame = 0;
 		self.ResetSequenceInfo();
 
@@ -491,11 +485,6 @@ class cnpc_headcrab : ScriptBaseAnimating//ScriptBaseMonsterEntity
 
 		if( pev.health > 0 )
 			pev.health = 0;
-
-		NetworkMessage killbeam( MSG_BROADCAST, NetworkMessages::SVC_TEMPENTITY, null );
-			killbeam.WriteByte(TE_KILLBEAM);
-			killbeam.WriteShort(self.entindex());
-		killbeam.End();
 
 		g_EntityFuncs.Remove(self);
 	}

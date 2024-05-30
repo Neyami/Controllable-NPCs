@@ -3,6 +3,8 @@
 #include "agrunt"
 #include "pitdrone"
 
+#include "turret"
+
 void MapInit()
 {
 	g_Hooks.RegisterHook( Hooks::Player::ClientPutInServer, @CNPC::ClientPutInServer );
@@ -12,21 +14,44 @@ void MapInit()
 	cnpc_headcrab::Register();
 	cnpc_agrunt::Register();
 	cnpc_pitdrone::Register();
+
+	cnpc_turret::Register();
 }
 
 namespace CNPC
 {
 
+//xen
+const int HEADCRAB_SLOT			= 1;
+const int HEADCRAB_POSITION	= 10;
+const int AGRUNT_SLOT				= 1;
+const int AGRUNT_POSITION		= 12;
+const int PITDRONE_SLOT			= 1;
+const int PITDRONE_POSITION	= 14;
+
+//military
+const int TURRET_SLOT				= 2;
+const int TURRET_POSITION		= 10;
+
 const string sCNPCKV = "$i_cnpc_iscontrollingnpc";
-const string sCNPCKVPainTime = "$fl_cnpc_nextpaintime";
+const string sCNPCKVPainTime = "$f_cnpc_nextpaintime";
 
 const float flModelToGameSpeedModifier = 1.650124131504528; //gotten from player maxspeed (270) divided by player model speed (163.624054)
+
+const array<string> arrsCNPCWeapons =
+{
+	"weapon_headcrab",
+	"weapon_agrunt",
+	"weapon_pitdrone",
+	"weapon_turret"
+};
 
 enum cnpc_e
 {
 	CNPC_HEADCRAB = 1,
 	CNPC_AGRUNT,
-	CNPC_PITDRONE
+	CNPC_PITDRONE,
+	CNPC_TURRET
 };
 
 HookReturnCode ClientPutInServer( CBasePlayer@ pPlayer)
@@ -46,7 +71,6 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 	{
 		case CNPC_HEADCRAB:
 		{
-			
 			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
 				return HOOK_CONTINUE;
 
@@ -60,7 +84,6 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 
 		case CNPC_AGRUNT:
 		{
-			
 			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
 				return HOOK_CONTINUE;
 
@@ -74,7 +97,6 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 
 		case CNPC_PITDRONE:
 		{
-			
 			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
 				return HOOK_CONTINUE;
 
@@ -86,7 +108,41 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
+		/*case CNPC_TURRET:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.6, 1.2);
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			//if (pev->health <= 10)
+			//{
+				//if (m_iOn && (1 || RANDOM_LONG(0, 0x7FFF) > 800))
+				//{
+					//m_fBeserk = 1;
+					//SetThink(&CBaseTurret::SearchThink);
+				//}
+			//}
+
+			break;
+		}*/
+
 		default: break;
+	}
+
+	//This disables damaging another player, even if they're enemies
+	if( pDamageInfo.pVictim.GetClassname() == "player" and pDamageInfo.pAttacker.GetClassname() == "cnpc_turret" )
+	{
+		CustomKeyvalues@ pAttackerCustom = pDamageInfo.pAttacker.GetCustomKeyvalues();
+		pDamageInfo.flDamage = 0.0;
+
+		//Doesn't work, but might after some tinkering
+		/*int rel = pDamageInfo.pVictim.IRelationship(pDamageInfo.pAttacker);
+		bool isFriendly = rel == R_AL or rel == R_NO;
+
+		if( isFriendly )
+			pDamageInfo.flDamage = 0.0;*/
 	}
 
 	return HOOK_CONTINUE;
@@ -98,7 +154,7 @@ HookReturnCode PlayerKilled( CBasePlayer@ pPlayer, CBaseEntity@ pAttacker, int i
 	{
 		CBasePlayerWeapon@ pWeapon = cast<CBasePlayerWeapon@>( pPlayer.m_hActiveItem.GetEntity() );
 
-		if( pWeapon.GetClassname() == "weapon_agrunt" or pWeapon.GetClassname() == "weapon_headcrab" or pWeapon.GetClassname() == "weapon_pitdrone" )
+		if( arrsCNPCWeapons.find(pWeapon.GetClassname()) >= 0 )
 			g_EntityFuncs.Remove( pWeapon );
 	}
 
