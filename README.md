@@ -13,6 +13,14 @@ The only way to revert to a normal player is to die :ayaya:
 
 <BR>
 
+# HEADCRAB #  
+`weapon_headcrab` - Give this to the player  
+
+Primary Attack: Leap at target, or just forward it not aiming at an enemy
+
+
+<BR>
+
 # ALIEN GRUNT #  
 `weapon_agrunt` - Give this to the player  
 
@@ -30,3 +38,16 @@ Secondary Attack: Melee
 Reload: Reload spikes  
 Jump: Short hop  
 Longjump (duck-key, quickly followed by jump): Leap
+
+
+<BR>
+
+# TURRET #  
+`weapon_turret` - Give this to the player  
+
+Primary Attack: Shoot  
+Secondary Attack: Deploy and retire  
+Retire to replenish ammo  
+
+
+<BR>
