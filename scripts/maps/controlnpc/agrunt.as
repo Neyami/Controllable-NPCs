@@ -103,8 +103,8 @@ class weapon_agrunt : CBaseDriveWeapon
 
 		//Precache these for downloading
 		g_Game.PrecacheGeneric( "sprites/controlnpc/weapon_agrunt.txt" );
-		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_agrunt.spr" );
-		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_agrunt_sel.spr" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_aliengrunt.spr" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_aliengrunt_sel.spr" );
 	}
 
 	bool GetItemInfo( ItemInfo& out info )
