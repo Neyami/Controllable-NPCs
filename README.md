@@ -50,7 +50,8 @@ Primary Attack: Shoot
 Secondary Attack: Deploy and retire  
 Tertiary Attack: Toggle between first- and third-person view  
 
-Turret replenishes ammo when retired
+Turret replenishes ammo when retired  
+When active and not shooting, nearby enemies will be highlighted (experimental)  
 
 
 <BR>
