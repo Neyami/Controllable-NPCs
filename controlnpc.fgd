@@ -1,0 +1,10 @@
+@PointClass base(Monster) size(-32 -32 -16, 32 32 16) studio("models/turret.mdl") = info_cnpc_turret : "Controllable Turret"
+[
+//TODO
+//	orientation(Choices) : "Orientation" : 0 =
+//	[
+//		0 : "Floor Mount"
+//		1 : "Ceiling Mount"
+//	]
+	respawntime(string) : "Time to respawn" : "13"
+]
