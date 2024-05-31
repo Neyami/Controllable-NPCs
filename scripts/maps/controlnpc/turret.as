@@ -1,8 +1,9 @@
 namespace cnpc_turret
 {
 
-const bool CNPC_FIRSTPERSON			= true;
+bool CNPC_FIRSTPERSON					= true;
 const bool EPILEPSY_PREVENTION		= true; //there's a lot of flashing in thirdperson view if you look up far enough
+const bool ENEMY_DETECTION			= true; //Enemies within range get glowshelled in red every turret ping
 
 const string sWeaponName				= "weapon_turret";
 const string TURRET_GLOW_SPRITE	= "sprites/flare3.spr";
@@ -12,6 +13,7 @@ const float CNPC_HEALTH					= 200.0;
 const float CNPC_VIEWOFS_FPV_ON	= 0.0; //camera height offset
 const float CNPC_VIEWOFS_FPV_OFF	= -16.0;
 const float CNPC_VIEWOFS_TPV			= -28.0;
+const float CNPC_RESPAWNTIME			= 13.0; //from the point that the weapon is removed, not the turret itself
 
 const float CNPC_FIRERATE					= 0.05;
 const float CD_DEPLOY						= 1.0;
@@ -19,7 +21,7 @@ const float CD_DEPLOY						= 1.0;
 const int AMMO_MAX							= 240;
 const float AMMO_REGEN_RATE			= 0.1; //+1 per AMMO_REGEN_RATE seconds
 const Vector TURRET_SPREAD				= g_vecZero;
-const float TURRET_RANGE					= (100 * 12);
+const float TURRET_RANGE					= 1200.0;
 
 //forced to use this because of some bug with the normal usage of ammo
 const int HUD_CHANNEL_AMMO			= 9; //0-15
@@ -47,7 +49,8 @@ const array<string> arrsTurretSounds =
 	"turret/tu_spinup.wav",
 	"turret/tu_spindown.wav",
 	"turret/tu_ping.wav",
-	"turret/tu_fire1.wav"
+	"turret/tu_fire1.wav",
+	"ambience/particle_suck1.wav"
 };
 
 enum sound_e
@@ -57,7 +60,8 @@ enum sound_e
 	SND_SPINUP,
 	SND_SPINDOWN,
 	SND_PING,
-	SND_SHOOT
+	SND_SHOOT,
+	SND_RESPAWN
 };
 
 enum anim_e
@@ -84,11 +88,12 @@ class weapon_turret : CBaseDriveWeapon
 {
 	private int m_iState;
 	private float m_flPingTime;
+	private float m_flDetectOffTime;
 
 	private int m_iBaseTurnRate; // angles per second
 	private float m_fTurnRate; // actual turn rate
 
-	private float m_flStartYaw;
+	float m_flStartYaw;
 	private Vector m_vecCurAngles;
 	private Vector m_vecGoalAngles;
 
@@ -112,6 +117,30 @@ class weapon_turret : CBaseDriveWeapon
 	private int m_iAmmoMax;
 	private int m_iAmmoCurrent;
 	private float m_flNextAmmoRegen;
+
+	private int m_iOrientation;
+	int m_iAutoDeploy;
+
+	bool KeyValue( const string& in szKey, const string& in szValue )
+	{
+		if( szKey == "orientation" )
+		{
+			m_iOrientation = atoi( szValue );
+			return true;
+		}
+		else if( szKey == "autodeploy" )
+		{
+			m_iAutoDeploy = atoi( szValue );
+			return true;
+		}
+		else if( szKey == "startyaw" )
+		{
+			m_flStartYaw = atof( szValue );
+			return true;
+		}
+		else
+			return BaseClass.KeyValue( szKey, szValue );
+	}
 
 	void Spawn()
 	{
@@ -169,11 +198,19 @@ class weapon_turret : CBaseDriveWeapon
 			m1.WriteLong( g_ItemRegistry.GetIdForName(sWeaponName) );
 		m1.End();
 
+		if( m_iAutoDeploy == 1 ) m_pPlayer.SwitchWeapon(self);
+
 		return true;
 	}
 
 	bool Deploy()
 	{
+		if( m_iAutoDeploy == 1 )
+		{
+			spawn_driveent();
+			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.5;
+		}
+
 		return self.DefaultDeploy( "", "", 0, "" );
 	}
 
@@ -255,6 +292,31 @@ class weapon_turret : CBaseDriveWeapon
 		self.m_flTimeWeaponIdle = g_Engine.time + CD_DEPLOY;
 	}
 
+	void TertiaryAttack()
+	{
+		if( !CNPC_FIRSTPERSON )
+		{
+			m_pPlayer.SetViewMode( ViewMode_FirstPerson );
+			m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_FPV_OFF );
+			DoFirstPersonView();
+			CNPC_FIRSTPERSON = true;
+		}
+		else
+		{
+			cnpc_turret@ pDriveEnt = cast<cnpc_turret@>(CastToScriptClass(m_pDriveEnt));
+			if( pDriveEnt !is null and pDriveEnt.m_hRenderEntity.IsValid() ) g_EntityFuncs.Remove( pDriveEnt.m_hRenderEntity.GetEntity() );
+
+			if( m_hEpilepsyPreventer.IsValid() )
+				g_EntityFuncs.Remove( m_hEpilepsyPreventer.GetEntity() );
+
+			m_pPlayer.SetViewMode( ViewMode_ThirdPerson );
+			m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_TPV );
+			CNPC_FIRSTPERSON = false;
+		}
+
+		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
+	}
+
 	void Reload() //necessary to prevent the reload-key from interfering?
 	{
 	}
@@ -298,6 +360,7 @@ class weapon_turret : CBaseDriveWeapon
 				DoIdleAnimation();
 
 			DoPing();
+			DoEnemyDetectionOff( m_pDriveEnt.pev.origin );
 			MoveTurret();
 			DoAmmoRegen();
 			BlockPlayerAiming();
@@ -359,7 +422,7 @@ class weapon_turret : CBaseDriveWeapon
 	{
 		if( !EPILEPSY_PREVENTION or CNPC_FIRSTPERSON ) return;
 
-		if( m_pDriveEnt.pev.sequence == ANIM_FIRE )
+		if( m_pDriveEnt.pev.sequence == ANIM_FIRE or m_pDriveEnt.pev.sequence == ANIM_SPIN )
 		{
 			if( m_pPlayer.pev.v_angle.x <= -60.0 )
 			{
@@ -405,8 +468,11 @@ class weapon_turret : CBaseDriveWeapon
 			else if( m_flPingTime <= g_Engine.time )
 			{
 				m_flPingTime = g_Engine.time + 1.0;
+				m_flDetectOffTime = g_Engine.time + 0.8;
 				g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_ITEM, arrsTurretSounds[SND_PING], VOL_NORM, ATTN_NORM );
+
 				EyeOn();
+				DoEnemyDetectionOn();
 			}
 			else if (m_eyeBrightness > 0)
 				EyeOff();
@@ -432,6 +498,56 @@ class weapon_turret : CBaseDriveWeapon
 			{
 				m_eyeBrightness = Math.max( 0, m_eyeBrightness - 30 );
 				m_pEyeGlow.SetBrightness( m_eyeBrightness );
+			}
+		}
+	}
+
+	void DoEnemyDetectionOn()
+	{
+		if( !ENEMY_DETECTION ) return;
+
+		CBaseEntity@ pTarget = null;
+		while( (@pTarget = g_EntityFuncs.FindEntityInSphere(pTarget, m_pDriveEnt.pev.origin, TURRET_RANGE/2, "*", "classname")) !is null )
+		{
+			int rel = m_pPlayer.IRelationship(pTarget);
+			bool isFriendly = rel == R_AL or rel == R_NO;
+
+			if( !pTarget.pev.FlagBitSet(FL_MONSTER) or !pTarget.IsAlive() or isFriendly )
+				continue;
+
+			if( pTarget.pev.renderfx == kRenderFxNone )
+			{
+				pTarget.pev.renderfx = kRenderFxGlowShell;
+				pTarget.pev.rendercolor = Vector(255, 0, 0);
+				pTarget.pev.renderamt = 64;
+				CustomKeyvalues@ pCustom = pTarget.GetCustomKeyvalues();
+				pCustom.InitializeKeyvalueWithDefault( "$i_cnpc_isturrettarget" );
+				pCustom.SetKeyvalue( "$i_cnpc_isturrettarget", 1 );
+			}
+		}
+	}
+
+	void DoEnemyDetectionOff( Vector vecOrigin, bool bTurretDead = false )
+	{
+		if( !ENEMY_DETECTION ) return;
+
+		if( m_flDetectOffTime <= g_Engine.time or bTurretDead )
+		{
+			CBaseEntity@ pTarget = null;
+			while( (@pTarget = g_EntityFuncs.FindEntityInSphere(pTarget, vecOrigin, 8192.0, "*", "classname")) !is null )
+			{
+				int rel = m_pPlayer.IRelationship(pTarget);
+				bool isFriendly = rel == R_AL or rel == R_NO;
+
+				if( !pTarget.pev.FlagBitSet(FL_MONSTER) or isFriendly )
+					continue;
+
+				CustomKeyvalues@ pCustom = pTarget.GetCustomKeyvalues();
+				if( pCustom.GetKeyvalue("$i_cnpc_isturrettarget").GetInteger() == 1 )
+				{
+					pTarget.pev.renderfx = kRenderFxNone;
+					pCustom.SetKeyvalue( "$i_cnpc_isturrettarget", 0 );
+				}
 			}
 		}
 	}
@@ -597,7 +713,10 @@ class weapon_turret : CBaseDriveWeapon
 
 		m_pPlayer.pev.velocity = g_vecZero;
 		Vector vecOrigin = m_pPlayer.pev.origin;
-		vecOrigin.z -= 32.0;
+
+		if( m_iAutoDeploy == 0 )
+			vecOrigin.z -= 32.0;
+
 		@m_pDriveEnt = cast<CBaseAnimating@>( g_EntityFuncs.Create("cnpc_turret", vecOrigin, Vector(0, m_pPlayer.pev.angles.y, 0), true, m_pPlayer.edict()) );
 
 		g_EntityFuncs.DispatchSpawn( m_pDriveEnt.edict() );
@@ -670,6 +789,8 @@ class weapon_turret : CBaseDriveWeapon
 
 	void ResetPlayer()
 	{
+		DoEnemyDetectionOff( m_pPlayer.pev.origin, true );
+
 		if( m_hEpilepsyPreventer.IsValid() )
 			g_EntityFuncs.Remove( m_hEpilepsyPreventer.GetEntity() );
 
@@ -881,8 +1002,104 @@ class cnpc_turret : ScriptBaseAnimating
 	}
 }
 
+class info_cnpc_turret : ScriptBaseAnimating
+{
+	protected EHandle m_hCNPCWeapon;
+	protected CBaseEntity@ m_pCNPCWeapon
+	{
+		get const { return cast<CBaseEntity@>(m_hCNPCWeapon.GetEntity()); }
+		set { m_hCNPCWeapon = EHandle(@value); }
+	}
+
+	//private int m_iOrientation; //TODO
+	private float m_flRespawnTime; //how long until respawn
+	private float m_flTimeToRespawn; //used to check if ready to respawn
+
+	bool KeyValue( const string& in szKey, const string& in szValue )
+	{
+		if( szKey == "respawntime" )
+		{
+			m_flRespawnTime = atof( szValue );
+			return true;
+		}//TODO
+		/*else if( szKey == "orientation" )
+		{
+			m_iOrientation = atoi( szValue );
+			return true;
+		}*/
+		else
+			return BaseClass.KeyValue( szKey, szValue );
+	}
+
+	void Spawn()
+	{
+		g_EntityFuncs.SetModel( self, "models/turret.mdl" );
+		g_EntityFuncs.SetSize( self.pev, Vector(-32, -32, -16), Vector(32, 32, 16) );
+		g_EntityFuncs.SetOrigin( self, pev.origin );
+
+		pev.solid = SOLID_NOT;
+		pev.movetype = MOVETYPE_NONE;
+		pev.sequence = ANIM_IDLE;
+		pev.rendermode = kRenderTransTexture;
+		pev.renderfx = kRenderFxDistort;
+		pev.renderamt = 128;
+
+		if( m_flRespawnTime <= 0 ) m_flRespawnTime = CNPC_RESPAWNTIME;
+
+		self.SetBoneController( 0, 0 );
+		self.SetBoneController( 1, 0 );
+
+		SetUse( UseFunction(this.UseCNPC) );
+	}
+
+	int ObjectCaps() { return (BaseClass.ObjectCaps() | FCAP_IMPULSE_USE); }
+
+	void UseCNPC( CBaseEntity@ pActivator, CBaseEntity@ pCaller, USE_TYPE useType, float flValue  ) 
+	{
+		if( pActivator.pev.FlagBitSet(FL_CLIENT) and pActivator.pev.FlagBitSet(FL_ONGROUND) )
+		{
+			g_EntityFuncs.SetOrigin( pActivator, pev.origin );
+			pActivator.pev.angles = pev.angles;
+			pActivator.pev.fixangle = FAM_FORCEVIEWANGLES;
+			@m_pCNPCWeapon = g_EntityFuncs.Create( sWeaponName, pActivator.pev.origin, g_vecZero, true );
+			m_pCNPCWeapon.pev.spawnflags = SF_NORESPAWN | SF_CREATEDWEAPON;
+
+			g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "autodeploy", "1" );
+			g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "startyaw", "" + pev.angles.y );
+			g_EntityFuncs.DispatchSpawn( m_pCNPCWeapon.edict() );
+
+			SetUse( null );
+			pev.effects |= EF_NODRAW;
+
+			SetThink( ThinkFunction(this.RespawnThink) );
+			pev.nextthink = g_Engine.time;
+		}
+	}
+
+	void RespawnThink()
+	{
+		pev.nextthink = g_Engine.time + 0.1;
+
+		if( m_pCNPCWeapon is null and m_flTimeToRespawn <= 0.0 )
+			m_flTimeToRespawn = g_Engine.time +m_flRespawnTime;
+
+		if( m_flTimeToRespawn > 0.0 and m_flTimeToRespawn <= g_Engine.time )
+		{
+			SetThink( null );
+			SetUse( UseFunction(this.UseCNPC) );
+			pev.effects &= ~EF_NODRAW;
+			m_flTimeToRespawn = 0.0;
+
+			g_SoundSystem.EmitSoundDyn( self.edict(), CHAN_BODY, arrsTurretSounds[SND_RESPAWN], VOL_NORM, 0.3, 0, 90 );
+		}
+	}
+}
+
 void Register()
 {
+	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_turret::info_cnpc_turret", "info_cnpc_turret" );
+	g_Game.PrecacheOther( "info_cnpc_turret" );
+
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_turret::cnpc_turret", "cnpc_turret" );
 	g_Game.PrecacheOther( "cnpc_turret" );
 
