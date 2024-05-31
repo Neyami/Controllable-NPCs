@@ -44,10 +44,13 @@ Longjump (duck-key, quickly followed by jump): Leap
 
 # TURRET #  
 `weapon_turret` - Give this to the player  
+`info_cnpc_turret` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Shoot  
 Secondary Attack: Deploy and retire  
-Retire to replenish ammo  
+Tertiary Attack: Toggle between first- and third-person view  
+
+Turret replenishes ammo when retired
 
 
 <BR>
