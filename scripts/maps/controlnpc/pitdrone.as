@@ -129,6 +129,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 	void Precache()
 	{
 		g_Game.PrecacheModel( "models/pit_drone.mdl" );
+		g_Game.PrecacheModel( "models/pit_drone_spike.mdl" );
 		m_iSpikeSpray = g_Game.PrecacheModel( "sprites/tinyspit.spr" );
 
 		uint i;
