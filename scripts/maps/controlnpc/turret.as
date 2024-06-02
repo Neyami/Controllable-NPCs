@@ -3,7 +3,9 @@ namespace cnpc_turret
 
 bool CNPC_FIRSTPERSON					= true;
 const bool EPILEPSY_PREVENTION		= true; //there's a lot of flashing in thirdperson view if you look up far enough
+
 const bool ENEMY_DETECTION			= true; //Enemies within range get glowshelled in red every turret ping
+const Vector ED_COLOR						=Vector( 255, 0, 0 );
 
 const string sWeaponName				= "weapon_turret";
 const string TURRET_GLOW_SPRITE	= "sprites/flare3.spr";
@@ -360,10 +362,11 @@ class weapon_turret : CBaseDriveWeapon
 				DoIdleAnimation();
 
 			DoPing();
-			DoEnemyDetectionOff( m_pDriveEnt.pev.origin );
+			//DoEnemyDetectionOff( m_pDriveEnt.pev.origin ); //not needed when using networkmessage
 			MoveTurret();
 			DoAmmoRegen();
 			BlockPlayerAiming();
+			KeepPlayerInPlace();
 			DoEpilepsyPrevention();
 		}
 	}
@@ -416,6 +419,11 @@ class weapon_turret : CBaseDriveWeapon
 			m_pPlayer.pev.angles = m_pDriveEnt.pev.angles;
 			m_pPlayer.pev.fixangle = FAM_FORCEVIEWANGLES;
 		}
+	}
+
+	void KeepPlayerInPlace()
+	{
+		m_pPlayer.pev.velocity = g_vecZero;
 	}
 
 	void DoEpilepsyPrevention()
@@ -515,7 +523,20 @@ class weapon_turret : CBaseDriveWeapon
 			if( !pTarget.pev.FlagBitSet(FL_MONSTER) or !pTarget.IsAlive() or isFriendly )
 				continue;
 
-			if( pTarget.pev.renderfx == kRenderFxNone )
+			NetworkMessage m1( MSG_ONE, NetworkMessages::SVC_TEMPENTITY, m_pPlayer.edict() );
+				m1.WriteByte( TE_DLIGHT );
+				m1.WriteCoord( pTarget.Center().x );
+				m1.WriteCoord( pTarget.Center().y );
+				m1.WriteCoord( pTarget.Center().z );
+				m1.WriteByte( 32 ); //radius in 10's
+				m1.WriteByte( int(ED_COLOR.x) ); //r g b
+				m1.WriteByte( int(ED_COLOR.y) );
+				m1.WriteByte( int(ED_COLOR.z) );
+				m1.WriteByte( 255 ); //life in 10's
+				m1.WriteByte( 50 ); //decay rate in 10's
+			m1.End();
+
+			/*if( pTarget.pev.renderfx == kRenderFxNone )
 			{
 				pTarget.pev.renderfx = kRenderFxGlowShell;
 				pTarget.pev.rendercolor = Vector(255, 0, 0);
@@ -523,11 +544,12 @@ class weapon_turret : CBaseDriveWeapon
 				CustomKeyvalues@ pCustom = pTarget.GetCustomKeyvalues();
 				pCustom.InitializeKeyvalueWithDefault( "$i_cnpc_isturrettarget" );
 				pCustom.SetKeyvalue( "$i_cnpc_isturrettarget", 1 );
-			}
+			}*/
 		}
 	}
 
-	void DoEnemyDetectionOff( Vector vecOrigin, bool bTurretDead = false )
+	//not needed when using networkmessage
+	/*void DoEnemyDetectionOff( Vector vecOrigin, bool bTurretDead = false )
 	{
 		if( !ENEMY_DETECTION ) return;
 
@@ -550,7 +572,7 @@ class weapon_turret : CBaseDriveWeapon
 				}
 			}
 		}
-	}
+	}*/
 
 	void MoveTurret()
 	{
@@ -789,7 +811,7 @@ class weapon_turret : CBaseDriveWeapon
 
 	void ResetPlayer()
 	{
-		DoEnemyDetectionOff( m_pPlayer.pev.origin, true );
+		//DoEnemyDetectionOff( m_pPlayer.pev.origin, true ); //not needed when using networkmessage
 
 		if( m_hEpilepsyPreventer.IsValid() )
 			g_EntityFuncs.Remove( m_hEpilepsyPreventer.GetEntity() );
