@@ -1,4 +1,64 @@
-@PointClass base(Monster) size(-32 -32 -16, 32 32 16) studio("models/turret.mdl") = info_cnpc_turret : "Controllable Turret"
+@PointClass base(Monster) size(-16 -16 0, 16 16 36) studio("models/headcrab.mdl") = info_cnpc_headcrab : "Controllable Headcrab Spawner"
+[
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
+
+@PointClass base(Weapon, Targetx) studio("models/headcrab.mdl") = weapon_headccrab : "Controllable Headcrab"
+[
+	autodeploy(choices) : "Autodeploy monster when weapon is added to player" : 0 =
+	[
+		0 : "No (default)"
+		1 : "Yes"
+	]
+]
+
+
+@PointClass base(Monster) size(-32 -32 0, 32 32 64) studio("models/agrunt.mdl") = info_cnpc_agrunt : "Controllable Alien Grunt"
+[
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
+
+@PointClass base(Weapon, Targetx) studio("models/agrunt.mdl") = weapon_headccrab : "Controllable Alien Grunt"
+[
+	autodeploy(choices) : "Autodeploy monster when weapon is added to player" : 0 =
+	[
+		0 : "No (default)"
+		1 : "Yes"
+	]
+]
+
+
+@PointClass base(Monster) size(-32 -32 0, 32 32 64) studio("models/icky.mdl") = info_cnpc_icky : "Controllable Ichthyosaur"
+[
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
+
+@PointClass base(Weapon, Targetx) studio("models/icky.mdl") = weapon_headccrab : "Controllable Ichthyosaur"
+[
+	autodeploy(choices) : "Autodeploy monster when weapon is added to player" : 0 =
+	[
+		0 : "No (default)"
+		1 : "Yes"
+	]
+]
+
+
+@PointClass base(Monster) size(-24 -24 0, 24 24 32) studio("models/pit_drone.mdl") = info_cnpc_pitdrone : "Controllable Pit Drone"
+[
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
+
+@PointClass base(Weapon, Targetx) studio("models/pit_drone.mdl") = weapon_headccrab : "Controllable Pit Drone"
+[
+	autodeploy(choices) : "Autodeploy monster when weapon is added to player" : 0 =
+	[
+		0 : "No (default)"
+		1 : "Yes"
+	]
+]
+
+
+@PointClass base(Monster) size(-32 -32 -32, 32 32 32) studio("models/turret.mdl") = info_cnpc_turret : "Controllable Turret"
 [
 //TODO
 //	orientation(Choices) : "Orientation" : 0 =
@@ -6,5 +66,14 @@
 //		0 : "Floor Mount"
 //		1 : "Ceiling Mount"
 //	]
-	respawntime(string) : "Time to respawn" : "13"
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
+
+@PointClass base(Weapon, Targetx) studio("models/turret.mdl") = weapon_headccrab : "Controllable Turret"
+[
+	autodeploy(choices) : "Autodeploy monster when weapon is added to player" : 0 =
+	[
+		0 : "No (default)"
+		1 : "Yes"
+	]
 ]
