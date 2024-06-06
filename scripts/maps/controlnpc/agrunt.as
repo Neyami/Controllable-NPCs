@@ -64,7 +64,6 @@ enum states_e
 
 class weapon_agrunt : CBaseDriveWeapon
 {
-	private int m_iState;
 	private int m_iAgruntMuzzleFlash;
 	private int m_iRandomAttack;
 	private float m_flStopHornetAttack;

@@ -46,24 +46,24 @@ const array<string> pDieSounds =
 
 const array<string> arrsTurretSounds = 
 {
+	"ambience/particle_suck1.wav",
 	"turret/tu_deploy.wav",
 	"turret/tu_active2.wav",
 	"turret/tu_spinup.wav",
 	"turret/tu_spindown.wav",
 	"turret/tu_ping.wav",
-	"turret/tu_fire1.wav",
-	"ambience/particle_suck1.wav"
+	"turret/tu_fire1.wav"
 };
 
 enum sound_e
 {
+	SND_RESPAWN,
 	SND_DEPLOY = 0,
 	SND_ACTIVE2,
 	SND_SPINUP,
 	SND_SPINDOWN,
 	SND_PING,
-	SND_SHOOT,
-	SND_RESPAWN
+	SND_SHOOT
 };
 
 enum anim_e
@@ -88,7 +88,6 @@ enum states_e
 
 class weapon_turret : CBaseDriveWeapon
 {
-	private int m_iState;
 	private float m_flPingTime;
 	private float m_flDetectOffTime;
 
@@ -523,7 +522,7 @@ class weapon_turret : CBaseDriveWeapon
 			if( !pTarget.pev.FlagBitSet(FL_MONSTER) or !pTarget.IsAlive() or isFriendly )
 				continue;
 
-			NetworkMessage m1( MSG_ONE, NetworkMessages::SVC_TEMPENTITY, m_pPlayer.edict() );
+			/*NetworkMessage m1( MSG_ONE, NetworkMessages::SVC_TEMPENTITY, m_pPlayer.edict() );
 				m1.WriteByte( TE_DLIGHT );
 				m1.WriteCoord( pTarget.Center().x );
 				m1.WriteCoord( pTarget.Center().y );
@@ -534,7 +533,22 @@ class weapon_turret : CBaseDriveWeapon
 				m1.WriteByte( int(ED_COLOR.z) );
 				m1.WriteByte( 255 ); //life in 10's
 				m1.WriteByte( 50 ); //decay rate in 10's
-			m1.End();
+			m1.End();*/
+
+			NetworkMessage m2( MSG_ONE, NetworkMessages::SVC_TEMPENTITY, m_pPlayer.edict() );
+				m2.WriteByte( TE_ELIGHT );
+				//m2.WriteShort( pTarget.entindex() + 0x1000 * (i + 2) );		// entity, attachment
+				m2.WriteShort( pTarget.entindex() );
+				m2.WriteCoord( pTarget.Center().x );		// origin
+				m2.WriteCoord( pTarget.Center().y );
+				m2.WriteCoord( pTarget.Center().z );
+				m2.WriteCoord( 1024 );	// radius
+				m2.WriteByte( int(ED_COLOR.x) );	// R
+				m2.WriteByte( int(ED_COLOR.y) );	// G
+				m2.WriteByte( int(ED_COLOR.z) );	// B
+				m2.WriteByte( 16 );	// life * 10
+				m2.WriteCoord( 2000 ); // decay
+			m2.End(); 
 
 			/*if( pTarget.pev.renderfx == kRenderFxNone )
 			{
@@ -1089,9 +1103,16 @@ class info_cnpc_turret : ScriptBaseAnimating
 			g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "autodeploy", "1" );
 			g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "startyaw", "" + pev.angles.y );
 			g_EntityFuncs.DispatchSpawn( m_pCNPCWeapon.edict() );
+			m_pCNPCWeapon.Touch( pActivator ); //make sure they pick it up
 
 			SetUse( null );
 			pev.effects |= EF_NODRAW;
+
+			if( m_flRespawnTime == -1 )
+			{
+				g_EntityFuncs.Remove( self );
+				return;
+			}
 
 			SetThink( ThinkFunction(this.RespawnThink) );
 			pev.nextthink = g_Engine.time;

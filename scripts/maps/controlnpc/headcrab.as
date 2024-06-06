@@ -61,7 +61,6 @@ enum states_e
 
 class weapon_headcrab : CBaseDriveWeapon
 {
-	private int m_iState;
 	private float m_flLeapResetCheck;
 
 	void Spawn()

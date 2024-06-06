@@ -109,7 +109,6 @@ enum states_e
 
 class weapon_pitdrone : CBaseDriveWeapon
 {
-	private int m_iState;
 	private int m_iRandomAttack;
 	private int m_iSpikeSpray;
 	private float m_flDuckPressed;

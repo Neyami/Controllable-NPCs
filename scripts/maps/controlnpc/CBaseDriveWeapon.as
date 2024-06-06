@@ -1,5 +1,7 @@
 class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 {
+	int m_iState;
+
 	protected CBasePlayer@ m_pPlayer
 	{
 		get const { return cast<CBasePlayer@>(self.m_hPlayer.GetEntity()); }

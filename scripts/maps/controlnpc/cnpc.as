@@ -1,6 +1,7 @@
 #include "CBaseDriveWeapon"
 #include "headcrab"
 #include "agrunt"
+#include "icky"
 #include "pitdrone"
 
 #include "turret"
@@ -13,6 +14,7 @@ void MapInit()
 
 	cnpc_headcrab::Register();
 	cnpc_agrunt::Register();
+	cnpc_icky::Register();
 	cnpc_pitdrone::Register();
 
 	cnpc_turret::Register();
@@ -21,13 +23,17 @@ void MapInit()
 namespace CNPC
 {
 
+const bool PVP	= false; //TODO
+
 //xen
 const int HEADCRAB_SLOT			= 1;
 const int HEADCRAB_POSITION	= 10;
 const int AGRUNT_SLOT				= 1;
-const int AGRUNT_POSITION		= 12;
+const int AGRUNT_POSITION		= 11;
+const int ICKY_SLOT					= 1;
+const int ICKY_POSITION				= 12;
 const int PITDRONE_SLOT			= 1;
-const int PITDRONE_POSITION	= 14;
+const int PITDRONE_POSITION	= 13;
 
 //military
 const int TURRET_SLOT				= 2;
@@ -42,6 +48,7 @@ const array<string> arrsCNPCWeapons =
 {
 	"weapon_headcrab",
 	"weapon_agrunt",
+	"weapon_icky",
 	"weapon_pitdrone",
 	"weapon_turret"
 };
@@ -50,6 +57,7 @@ enum cnpc_e
 {
 	CNPC_HEADCRAB = 1,
 	CNPC_AGRUNT,
+	CNPC_ICKY,
 	CNPC_PITDRONE,
 	CNPC_TURRET
 };
@@ -91,6 +99,22 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
 
 			g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_agrunt::pPainSounds[Math.RandomLong(0,(cnpc_agrunt::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(85, 120) ); 
+
+			break;
+		}
+
+		case CNPC_ICKY:
+		{
+			/*if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.6, 1.2);
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );*/
+
+			if( pDamageInfo.flDamage > 0 and pDamageInfo.pVictim.pev.deadflag == DEAD_NO )
+				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_icky::pPainSounds[Math.RandomLong(0,(cnpc_icky::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM ); 
+
+			//smflinch = 5, bgflinch = 6
 
 			break;
 		}
@@ -171,4 +195,5 @@ HookReturnCode PlayerKilled( CBasePlayer@ pPlayer, CBaseEntity@ pAttacker, int i
 	Disable fall damage and sounds
 	Disable crouching to prevent models from sinking into the ground
 	Use self.m_fSequenceFinished instead ??
+	Allow for pvp
 */
