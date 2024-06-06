@@ -4,7 +4,7 @@ A work in progress.
 1) Download and put it in svencoop_addons, keeping directories
 2) Add `map_script controlnpc/cnpc` to the map.cfg
 3) uuuuuuuuuuuuhhhhhhhh
-4) Either add weapon_name to the map.cfg or `.player_give @me weapon_name` or any other way of giving stuff
+4) Place or spawn `info_cnpc_monstername`, add weapon_name to the map.cfg, or `.player_give @me weapon_name`
 5) Press the primary attack to turn into the monster
 6) ????
 7) PROFIT
@@ -29,6 +29,17 @@ Secondary Attack: Melee
 
 
 <BR>
+
+# ICHTHYOSAUR #  
+`weapon_icky` - Give this to the player  
+`info_cnpc_icky` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Bite  
+Secondary Attack: Charge and bite the first enemy hit  
+
+
+<BR>
+
 
 # PIT DRONE #  
 `weapon_pitdrone` - Give this to the player  
