@@ -53,6 +53,24 @@ Longjump (duck-key, quickly followed by jump): Leap
 
 <BR>
 
+
+# HUMAN ASSASSIN #  
+`weapon_fassn` - Give this to the player  
+`info_cnpc_fassn` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Shoot  
+Secondary Attack: Melee attack  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: Throw a grenade  
+Duck: Toggle stealth  
+Jump: Do a backflip, shooting while falling is possible  
+
+Stealth power replenishes when not in stealth  
+
+
+<BR>
+
+
 # TURRET #  
 `weapon_turret` - Give this to the player  
 `info_cnpc_turret` - Usable entity that turns the player into the monster upon using. Mappers can place this  
