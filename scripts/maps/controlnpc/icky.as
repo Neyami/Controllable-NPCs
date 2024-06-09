@@ -339,7 +339,7 @@ class weapon_icky : CBaseDriveWeapon
 
 		if( pHurt !is null )
 		{
-			if( (pHurt.pev.flags & FL_CLIENT) == 0 )
+			if( (pHurt.pev.flags & FL_MONSTER) == 1 and (pHurt.pev.flags & FL_CLIENT) == 0 )
 			{
 				pHurt.pev.punchangle.y = (m_iRandomAttack == 1) ? -25.0 : 25.0;
 				pHurt.pev.punchangle.x = 8.0;

@@ -182,7 +182,7 @@ class weapon_headcrab : CBaseDriveWeapon
 		m_pPlayer.pev.flags &= ~FL_ONGROUND;
 		Math.MakeVectors( m_pPlayer.pev.angles );
 		
-		Vector vecJumpDir;
+		Vector vecJumpVelocity;
 		CBaseEntity@ pTarget = g_Utility.FindEntityForward( m_pPlayer, LEAP_MAX_RANGE );
 
 		if( pTarget !is null and pTarget.pev.FlagBitSet(FL_MONSTER) and pTarget.IsAlive() and pTarget.pev.takedamage != DAMAGE_NO )
@@ -200,27 +200,29 @@ class weapon_headcrab : CBaseDriveWeapon
 			float speed = sqrt( 2 * gravity * height );
 			float time = speed / gravity;
 
-			vecJumpDir = ( pTarget.pev.origin + pTarget.pev.view_ofs - m_pPlayer.pev.origin );
-			vecJumpDir = vecJumpDir * ( 1.0 / time );
+			vecJumpVelocity = ( pTarget.pev.origin + pTarget.pev.view_ofs - m_pPlayer.pev.origin );
+			vecJumpVelocity = vecJumpVelocity * ( 1.0 / time );
 
-			vecJumpDir.z = speed;
+			vecJumpVelocity.z = speed;
 
-			float distance = vecJumpDir.Length();
+			float distance = vecJumpVelocity.Length();
 			
 			if( distance > LEAP_DISTANCE_MAX )
-				vecJumpDir = vecJumpDir * ( LEAP_DISTANCE_MAX / distance );
+				vecJumpVelocity = vecJumpVelocity * ( LEAP_DISTANCE_MAX / distance );
 		}
 		else
 		{
 			g_EntityFuncs.SetOrigin( m_pPlayer, m_pPlayer.pev.origin + Vector(0, 0, 1) );
-			vecJumpDir = Vector( g_Engine.v_forward.x, g_Engine.v_forward.y, g_Engine.v_up.z ) * LEAP_VELOCITY;
+			vecJumpVelocity = Vector( g_Engine.v_forward.x, g_Engine.v_forward.y, g_Engine.v_up.z ) * LEAP_VELOCITY;
+			//Math.MakeVectors( m_pPlayer.pev.v_angle );
+			//vecJumpVelocity = m_pPlayer.pev.velocity + g_Engine.v_forward * 400 + g_Engine.v_up * 200;
 		}
 
 		int iSound = Math.RandomLong(0, 2);
 		if( iSound != 0 )
 			g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, pAttackSounds[iSound], VOL_NORM, ATTN_IDLE );
 
-		m_pPlayer.pev.velocity = vecJumpDir;
+		m_pPlayer.pev.velocity = vecJumpVelocity;
 
 		m_pDriveEnt.pev.solid = SOLID_SLIDEBOX;
 		m_pDriveEnt.pev.movetype = MOVETYPE_TOSS;

@@ -4,6 +4,7 @@
 #include "icky"
 #include "pitdrone"
 
+#include "fassn"
 #include "turret"
 
 void MapInit()
@@ -17,6 +18,7 @@ void MapInit()
 	cnpc_icky::Register();
 	cnpc_pitdrone::Register();
 
+	cnpc_fassn::Register();
 	cnpc_turret::Register();
 }
 
@@ -36,8 +38,10 @@ const int PITDRONE_SLOT			= 1;
 const int PITDRONE_POSITION	= 13;
 
 //military
+const int FASSN_SLOT					= 2;
+const int FASSN_POSITION			= 10;
 const int TURRET_SLOT				= 2;
-const int TURRET_POSITION		= 10;
+const int TURRET_POSITION		= 11;
 
 const string sCNPCKV = "$i_cnpc_iscontrollingnpc";
 const string sCNPCKVPainTime = "$f_cnpc_nextpaintime";
@@ -50,6 +54,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_agrunt",
 	"weapon_icky",
 	"weapon_pitdrone",
+	"weapon_fassn",
 	"weapon_turret"
 };
 
@@ -59,6 +64,7 @@ enum cnpc_e
 	CNPC_AGRUNT,
 	CNPC_ICKY,
 	CNPC_PITDRONE,
+	CNPC_FASSN,
 	CNPC_TURRET
 };
 
