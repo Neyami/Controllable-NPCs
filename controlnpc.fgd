@@ -4,6 +4,12 @@
 ]
 
 
+@PointClass base(Monster) size(-16 -16 0, 16 16 36) studio("models/houndeye.mdl") = info_cnpc_houndeye : "Controllable Houndeye"
+[
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
+
+
 @PointClass base(Monster) size(-32 -32 0, 32 32 64) studio("models/agrunt.mdl") = info_cnpc_agrunt : "Controllable Alien Grunt"
 [
 	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
