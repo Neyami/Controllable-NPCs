@@ -619,7 +619,7 @@ class weapon_strooper : CBaseDriveWeapon
 		m_pPlayer.pev.fuser4 = 1; //disable jump
 		m_pPlayer.pev.max_health = CNPC_HEALTH;
 		m_pPlayer.pev.health = CNPC_HEALTH;
-		m_pPlayer.m_bloodColor = BLOOD_COLOR_YELLOW;
+		m_pPlayer.m_bloodColor = BLOOD_COLOR_GREEN;
 
 		self.m_bExclusiveHold = true;
 
