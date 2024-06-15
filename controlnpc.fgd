@@ -28,6 +28,12 @@
 ]
 
 
+@PointClass base(Monster) size(-24 -24 0, 24 24 32) studio("models/strooper.mdl") = info_cnpc_strooper : "Controllable Shock Trooper"
+[
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
+
+
 @PointClass base(Monster) size(-32 -32 -32, 32 32 32) studio("models/turret.mdl") = info_cnpc_turret : "Controllable Turret"
 [
 //TODO
