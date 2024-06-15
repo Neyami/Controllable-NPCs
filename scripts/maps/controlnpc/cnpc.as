@@ -4,6 +4,7 @@
 #include "agrunt"
 #include "icky"
 #include "pitdrone"
+#include "strooper"
 
 #include "fassn"
 #include "turret"
@@ -13,12 +14,14 @@ void MapInit()
 	g_Hooks.RegisterHook( Hooks::Player::ClientPutInServer, @CNPC::ClientPutInServer );
 	g_Hooks.RegisterHook( Hooks::Player::PlayerKilled, @CNPC::PlayerKilled );
 	g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @CNPC::PlayerTakeDamage );
+	g_Hooks.RegisterHook( Hooks::Player::ClientSay, @CNPC::ClientSay );
 
 	cnpc_headcrab::Register();
 	cnpc_houndeye::Register();
 	cnpc_agrunt::Register();
 	cnpc_icky::Register();
 	cnpc_pitdrone::Register();
+	cnpc_strooper::Register();
 
 	cnpc_fassn::Register();
 	cnpc_turret::Register();
@@ -27,7 +30,8 @@ void MapInit()
 namespace CNPC
 {
 
-const bool PVP	= false; //TODO
+const bool PVP										= false; //TODO
+const float CNPC_SPEAK_DISTANCE	= 768.0;
 
 //xen
 const int HEADCRAB_SLOT			= 1;
@@ -40,6 +44,8 @@ const int ICKY_SLOT					= 1;
 const int ICKY_POSITION				= 13;
 const int PITDRONE_SLOT			= 1;
 const int PITDRONE_POSITION	= 14;
+const int STROOPER_SLOT			= 1;
+const int STROOPER_POSITION	= 15;
 
 //military
 const int FASSN_SLOT					= 2;
@@ -59,6 +65,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_agrunt",
 	"weapon_icky",
 	"weapon_pitdrone",
+	"weapon_strooper",
 	"weapon_fassn",
 	"weapon_turret"
 };
@@ -70,6 +77,7 @@ enum cnpc_e
 	CNPC_AGRUNT,
 	CNPC_ICKY,
 	CNPC_PITDRONE,
+	CNPC_STROOPER,
 	CNPC_FASSN,
 	CNPC_TURRET
 };
@@ -177,6 +185,19 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
+		case CNPC_STROOPER:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + 1.0;
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_strooper::pPainSounds[Math.RandomLong(0,(cnpc_strooper::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+
+			break;
+		}
+
 		/*case CNPC_TURRET:
 		{
 			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
@@ -219,12 +240,204 @@ HookReturnCode PlayerKilled( CBasePlayer@ pPlayer, CBaseEntity@ pAttacker, int i
 	return HOOK_CONTINUE;
 }
 
+const array<string> arrsSentStroop =
+{
+	"!ST_ALERT0", //2 words
+	"!ST_TAUNT0",
+	"!ST_ANSWER0",
+	"!ST_CHECK0",
+	"!ST_GREN0", //4 //3 words
+	"!ST_ALERT1",
+	"!ST_THROW0",
+	"!ST_IDLE0",
+	"!ST_CLEAR0",
+	"!ST_ALERT2", //9 //4 words
+	"!ST_QUEST0",
+	"!ST_MONST0", //11 //5 words
+	"!ST_COVER0",
+	"!ST_CHARGE0",
+	"!ST_QUEST0"
+};
+
+const array<string> arrsStroopWords =
+{
+	"blis",
+	"dit",
+	"dup",
+	"ga",
+	"hyu",
+	"ka",
+	"kiml",
+	"kss",
+	"ku",
+	"kur",
+	"kyur",
+	"mub",
+	"puh",
+	"pur",
+	"ras",
+	"thirv",
+	"wirt"
+};
+
+HookReturnCode ClientSay( SayParameters@ pParams )
+{
+	CBasePlayer@ pPlayer = pParams.GetPlayer();
+	CustomKeyvalues@ pCustom = pPlayer.GetCustomKeyvalues();
+
+	if( pCustom.GetKeyvalue(sCNPCKV).GetInteger() != CNPC_STROOPER ) return HOOK_CONTINUE;
+
+	const CCommand@ args = pParams.GetArguments();
+	int iArgC = args.ArgC();
+	string sCustomSentence = "\"shocktrooper/";
+
+	if( iArgC > 0 )
+	{
+		if( iArgC > 9 ) iArgC = 9;
+
+		for( int i = 0; i < iArgC; ++i )
+		{
+			if( i == (iArgC -1) )
+				sCustomSentence += arrsStroopWords[Math.RandomLong(0, arrsStroopWords.length()-1)] + "\"";
+			else
+				sCustomSentence += arrsStroopWords[Math.RandomLong(0, arrsStroopWords.length()-1)] + " ";
+		}
+
+		CBasePlayer@ pTarget = null;
+		for( int i = 1; i <= g_Engine.maxClients; ++i )
+		{
+			@pTarget = g_PlayerFuncs.FindPlayerByIndex( i );
+
+			if( pTarget !is null and (pPlayer.pev.origin - pTarget.pev.origin).Length() < CNPC_SPEAK_DISTANCE )
+			{
+				NetworkMessage spk( MSG_ONE, NetworkMessages::SVC_STUFFTEXT, pTarget.edict() );
+					spk.WriteString( "spk "+ sCustomSentence + "\n" );
+				spk.End();
+
+				g_Game.AlertMessage( at_notice, "Spoke to: %1\n", pTarget.pev.netname );
+			}
+		}
+
+		/*if( iArgC == 1 or iArgC == 2 )
+			pPlayer.PlaySentence( arrsSentStroop[Math.RandomLong(0, 3)], 0, VOL_NORM, ATTN_IDLE );
+		else if( iArgC == 3 or iArgC == 4 )
+			pPlayer.PlaySentence( arrsSentStroop[Math.RandomLong(4, 8)], 0, VOL_NORM, ATTN_IDLE );
+		else if( iArgC >= 5 )
+			pPlayer.PlaySentence( arrsSentStroop[Math.RandomLong(9, 14)], 0, VOL_NORM, ATTN_IDLE );*/
+	}
+
+	return HOOK_CONTINUE;
+}
+
 } //namespace CNPC END
+
+abstract class CNPCSpawnEntity : ScriptBaseAnimating
+{
+	CScheduledFunction@ m_RespawnThink; //because SetThink doesn't work here for some reason :aRage:
+
+	protected EHandle m_hCNPCWeapon;
+	protected CBaseEntity@ m_pCNPCWeapon
+	{
+		get const { return cast<CBaseEntity@>(m_hCNPCWeapon.GetEntity()); }
+		set { m_hCNPCWeapon = EHandle(@value); }
+	}
+
+	bool m_bActive;
+	float m_flDefaultRespawnTime;
+	float m_flRespawnTime; //how long until respawn
+	float m_flTimeToRespawn; //used to check if ready to respawn
+
+	string sWeaponName;
+	string sModel;
+	int iStartAnim;
+	Vector vecSizeMin, vecSizeMax;
+
+	int ObjectCaps() { return m_bActive ? (BaseClass.ObjectCaps() | FCAP_IMPULSE_USE) : BaseClass.ObjectCaps(); }
+
+	bool KeyValue( const string& in szKey, const string& in szValue )
+	{
+		if( szKey == "respawntime" )
+		{
+			m_flRespawnTime = atof( szValue );
+			return true;
+		}
+		else
+			return BaseClass.KeyValue( szKey, szValue );
+	}
+
+	void Spawn()
+	{
+		g_EntityFuncs.SetModel( self, sModel );
+		g_EntityFuncs.SetSize( self.pev, vecSizeMin, vecSizeMax );
+		g_EntityFuncs.SetOrigin( self, pev.origin );
+		g_EngineFuncs.DropToFloor( self.edict() );
+
+		pev.solid = SOLID_NOT;
+		pev.movetype = MOVETYPE_NONE;
+		pev.sequence = iStartAnim;
+		pev.rendermode = kRenderTransTexture;
+		pev.renderfx = kRenderFxDistort;
+		pev.renderamt = 128;
+
+		if( m_flRespawnTime <= 0 ) m_flRespawnTime = m_flDefaultRespawnTime;
+
+		m_bActive = true;
+	}
+
+	void Use( CBaseEntity@ pActivator, CBaseEntity@ pCaller, USE_TYPE useType, float flValue  )
+	{
+		if( !m_bActive ) return;
+
+		if( pActivator.pev.FlagBitSet(FL_CLIENT) and pActivator.pev.FlagBitSet(FL_ONGROUND) )
+		{
+			CustomKeyvalues@ pCustom = pActivator.GetCustomKeyvalues();
+			if( pCustom.GetKeyvalue(CNPC::sCNPCKV).GetInteger() <= 0 )
+			{
+				g_EntityFuncs.SetOrigin( pActivator, pev.origin );
+				pActivator.pev.angles = pev.angles;
+				pActivator.pev.fixangle = FAM_FORCEVIEWANGLES;
+				@m_pCNPCWeapon = g_EntityFuncs.Create( sWeaponName, pActivator.pev.origin, g_vecZero, true );
+				m_pCNPCWeapon.pev.spawnflags = SF_NORESPAWN | SF_CREATEDWEAPON;
+
+				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "autodeploy", "1" );
+				g_EntityFuncs.DispatchSpawn( m_pCNPCWeapon.edict() );
+
+				pev.effects |= EF_NODRAW;
+				m_bActive = false;
+
+				@m_RespawnThink = g_Scheduler.SetTimeout( @this, "RespawnThink", 0.0 );
+			}
+		}
+	}
+
+	void RespawnThink()
+	{
+		if( m_pCNPCWeapon is null and m_flTimeToRespawn <= 0.0 )
+			m_flTimeToRespawn = g_Engine.time + m_flRespawnTime;
+
+		if( m_flTimeToRespawn > 0.0 and m_flTimeToRespawn <= g_Engine.time )
+		{
+			pev.effects &= ~EF_NODRAW;
+			m_flTimeToRespawn = 0.0;
+			m_bActive = true;
+
+			g_SoundSystem.EmitSoundDyn( self.edict(), CHAN_BODY, "ambience/particle_suck1.wav", VOL_NORM, 0.3, 0, 90 );
+			g_Scheduler.RemoveTimer( m_RespawnThink );
+			return;
+		}
+
+		@m_RespawnThink = g_Scheduler.SetTimeout( @this, "RespawnThink", 0.1 );
+	}
+}
 
 /* TODO
 	Disable flashlight and USE-key while controlling a monster ??
+
 	Disable fall damage and sounds
-	Disable crouching to prevent models from sinking into the ground
+
 	Use self.m_fSequenceFinished instead ??
+
 	Allow for pvp
+
+	Idle sounds and fidget animations
 */

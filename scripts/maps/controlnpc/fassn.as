@@ -6,8 +6,9 @@ namespace cnpc_fassn
 const bool BLOCK_JUMP_IF_NOT_ENOUGH_ROOM	= false;
 
 bool CNPC_FIRSTPERSON					= false;
-	
-const string sWeaponName				= "weapon_fassn";
+
+const string CNPC_WEAPONNAME		= "weapon_fassn";
+const string CNPC_MODEL					= "models/hassassin.mdl";
 
 const float CNPC_HEALTH					= 50.0;
 const float CNPC_VIEWOFS_FPV			= 28.0; //camera height offset
@@ -21,7 +22,7 @@ const float VELOCITY_WALK				= 150.0; //if the player's velocity is this or lowe
 const float JUMP_VELOCITY					= 160.0;
 const float CD_PRIMARY						= 0.25; //gun
 const float CD_SECONDARY					= 1.0; //kicks
-const float CD_GRENADE						= 6.0; //grenade
+const float CD_GRENADE						= 6.0;
 
 const float MELEE_DAMAGE					= 20.0;
 const float MELEE_RANGE					= 100.0;
@@ -153,7 +154,7 @@ class weapon_fassn : CBaseDriveWeapon
 
 	void Precache()
 	{
-		g_Game.PrecacheModel( "models/hassassin.mdl" );
+		g_Game.PrecacheModel( CNPC_MODEL );
 		m_iShell = g_Game.PrecacheModel( "models/shell.mdl" );
 
 		for( uint i = 0; i < arrsCNPCSounds.length(); i++ )
@@ -185,7 +186,7 @@ class weapon_fassn : CBaseDriveWeapon
 		@m_pPlayer = pPlayer;
 
 		NetworkMessage m1( MSG_ONE, NetworkMessages::WeapPickup, pPlayer.edict() );
-			m1.WriteLong( g_ItemRegistry.GetIdForName(sWeaponName) );
+			m1.WriteLong( g_ItemRegistry.GetIdForName(CNPC_WEAPONNAME) );
 		m1.End();
 
 		if( m_iAutoDeploy == 1 ) m_pPlayer.SwitchWeapon(self);
@@ -878,7 +879,7 @@ class cnpc_fassn : ScriptBaseAnimating
 
 	void Spawn()
 	{
-		g_EntityFuncs.SetModel( self, "models/hassassin.mdl" );
+		g_EntityFuncs.SetModel( self, CNPC_MODEL );
 		g_EntityFuncs.SetSize( self.pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );
 		g_EntityFuncs.SetOrigin( self, pev.origin );
 		g_EngineFuncs.DropToFloor( self.edict() );
@@ -982,7 +983,19 @@ class cnpc_fassn : ScriptBaseAnimating
 	}
 }
 
-class info_cnpc_fassn : ScriptBaseAnimating
+final class info_cnpc_fassn : CNPCSpawnEntity
+{
+	info_cnpc_fassn()
+	{
+		sWeaponName = CNPC_WEAPONNAME;
+		sModel = CNPC_MODEL;
+		iStartAnim = ANIM_IDLE;
+		m_flDefaultRespawnTime = CNPC_RESPAWNTIME;
+		vecSizeMin = VEC_HUMAN_HULL_MIN;
+		vecSizeMax = VEC_HUMAN_HULL_MAX;
+	}
+}
+/*class info_cnpc_fassn : ScriptBaseAnimating
 {
 	protected EHandle m_hCNPCWeapon;
 	protected CBaseEntity@ m_pCNPCWeapon
@@ -1069,7 +1082,7 @@ class info_cnpc_fassn : ScriptBaseAnimating
 			g_SoundSystem.EmitSoundDyn( self.edict(), CHAN_BODY, arrsCNPCSounds[SND_RESPAWN], VOL_NORM, 0.3, 0, 90 );
 		}
 	}
-}
+}*/
 
 void Register()
 {
@@ -1079,9 +1092,9 @@ void Register()
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_fassn::cnpc_fassn", "cnpc_fassn" );
 	g_Game.PrecacheOther( "cnpc_fassn" );
 
-	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_fassn::weapon_fassn", sWeaponName );
-	g_ItemRegistry.RegisterWeapon( sWeaponName, "controlnpc" );
-	g_Game.PrecacheOther( sWeaponName );
+	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_fassn::weapon_fassn", CNPC_WEAPONNAME );
+	g_ItemRegistry.RegisterWeapon( CNPC_WEAPONNAME, "controlnpc" );
+	g_Game.PrecacheOther( CNPC_WEAPONNAME );
 }
 
 } //namespace cnpc_fassn END
