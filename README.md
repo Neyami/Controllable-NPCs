@@ -21,8 +21,20 @@ Primary Attack: Leap at target, or just forward it not aiming at an enemy
 
 <BR>
 
+# HOUNDEYE #  
+`weapon_houndeye` - Give this to the player  
+`info_cnpc_houndeye` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Sonic Attack  
+Tertiary Attack: Toggle between first- and third-person view  
+Back Key (S): Hop backwards  
+
+
+<BR>
+
 # ALIEN GRUNT #  
 `weapon_agrunt` - Give this to the player  
+`info_cnpc_agrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Shoot Hornets  
 Secondary Attack: Melee  
@@ -49,6 +61,22 @@ Secondary Attack: Melee
 Reload: Reload spikes  
 Jump: Short hop  
 Longjump (duck-key, quickly followed by jump): Leap
+
+
+<BR>
+
+
+# SHOCK TROOPER #  
+`weapon_strooper` - Give this to the player  
+`info_cnpc_strooper` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Shoot Lightning Bolts  
+Secondary Attack: Melee  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: Throw Spore Grenade  
+Talk in chat: Speak in the language of Shock Troopers  
+
+Ammo replenishes when idle  
 
 
 <BR>
