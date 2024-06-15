@@ -103,7 +103,6 @@ enum states_e
 
 class weapon_fassn : CBaseDriveWeapon
 {
-	int m_iAutoDeploy;
 	private int m_iShell;
 	private bool m_bHasFired; //HACK
 	private float m_flLastShot;
@@ -122,17 +121,6 @@ class weapon_fassn : CBaseDriveWeapon
 	private int m_iStealthMax;
 	private int m_iStealthCurrent;
 	private float m_flNextStealthRegen;
-
-	bool KeyValue( const string& in szKey, const string& in szValue )
-	{
-		if( szKey == "autodeploy" )
-		{
-			m_iAutoDeploy = atoi( szValue );
-			return true;
-		}
-		else
-			return BaseClass.KeyValue( szKey, szValue );
-	}
 
 	void Spawn()
 	{

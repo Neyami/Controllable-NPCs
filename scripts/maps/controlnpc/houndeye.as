@@ -90,21 +90,9 @@ enum states_e
 
 class weapon_houndeye : CBaseDriveWeapon
 {
-	int m_iAutoDeploy;
 	private int m_iSpriteTexture;
 	private float m_flSonicAttack;
 	private float m_flSpecialEffect;
-
-	bool KeyValue( const string& in szKey, const string& in szValue )
-	{
-		if( szKey == "autodeploy" )
-		{
-			m_iAutoDeploy = atoi( szValue );
-			return true;
-		}
-		else
-			return BaseClass.KeyValue( szKey, szValue );
-	}
 
 	void Spawn()
 	{

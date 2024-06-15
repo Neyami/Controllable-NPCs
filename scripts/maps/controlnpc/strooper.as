@@ -21,6 +21,7 @@ const float VELOCITY_WALK				= 150.0; //if the player's velocity is this or lowe
 
 const float CD_PRIMARY						= 0.3; //doesn't actually affect the rate of fire, unless you change the var below
 const float CNPC_FIRERATE_MUL		= 1.0; //changing this will modify the rate of fire by changing the model's framerate
+const float CNPC_FIRE_MINRANGE		= 48.0; //decides how close you can be to a wall before shooting gets blocked
 const int AMMO_MAX							= 10;
 const float AMMO_REGEN_RATE			= 0.1; //+1 per AMMO_REGEN_RATE seconds
 const float SHOCK_DAMAGE				= 15.0;
@@ -99,8 +100,8 @@ enum states_e
 
 class weapon_strooper : CBaseDriveWeapon
 {
-	int m_iAutoDeploy;
 	private bool m_bHasFired;
+	private bool m_bShotBlocked;
 	private int m_iShockTrooperMuzzleFlash;
 	private float m_flNextAmmoRegen;
 
@@ -112,17 +113,6 @@ class weapon_strooper : CBaseDriveWeapon
 	private float m_flLastBlinkInterval;
 	private float m_flLastBlinkTime;
 
-	bool KeyValue( const string& in szKey, const string& in szValue )
-	{
-		if( szKey == "autodeploy" )
-		{
-			m_iAutoDeploy = atoi( szValue );
-			return true;
-		}
-		else
-			return BaseClass.KeyValue( szKey, szValue );
-	}
-
 	void Spawn()
 	{
 		Precache();
@@ -130,6 +120,7 @@ class weapon_strooper : CBaseDriveWeapon
 		self.m_iDefaultAmmo = AMMO_MAX;
 		m_iState = STATE_IDLE;
 		m_bHasFired = false;
+		m_bShotBlocked = false;
 		m_bSecondSwingDone = false;
 		m_flNextGrenade = 0.0;
 		m_bHasThrownGrenade = false;
@@ -226,6 +217,19 @@ class weapon_strooper : CBaseDriveWeapon
 				self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + 0.3;
 				return;
 			}
+
+			TraceResult tr;
+			Math.MakeVectors( m_pPlayer.pev.angles );
+			g_Utility.TraceHull( m_pPlayer.pev.origin, m_pPlayer.pev.origin + g_Engine.v_forward * CNPC_FIRE_MINRANGE, dont_ignore_monsters, head_hull, m_pPlayer.edict(), tr );
+
+			if( tr.flFraction != 1.0 ) 
+			{
+				m_bShotBlocked = true;
+				self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + 0.5;
+				return;
+			}
+
+			m_bShotBlocked = false;
 
 			if( m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) <= 0 )
 			{
@@ -425,7 +429,7 @@ class weapon_strooper : CBaseDriveWeapon
 	void DoIdleAnimation()
 	{
 		if( m_pDriveEnt is null ) return;
-		if( m_iState == STATE_SHOOT and m_pPlayer.pev.button & IN_ATTACK != 0 ) return;
+		if( m_iState == STATE_SHOOT and m_pPlayer.pev.button & IN_ATTACK != 0 and !m_bShotBlocked ) return;
 		if( m_iState == STATE_MELEE and m_pDriveEnt.pev.sequence == ANIM_MELEE and !m_pDriveEnt.m_fSequenceFinished ) return;
 		if( m_iState == STATE_GRENADE and m_pDriveEnt.pev.sequence == ANIM_GRENADETHROW and !m_pDriveEnt.m_fSequenceFinished ) return;
 
@@ -435,6 +439,7 @@ class weapon_strooper : CBaseDriveWeapon
 			{
 				m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_TPV );
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) ); //-1
+				m_bShotBlocked = false;
 				m_iState = STATE_IDLE;
 				m_pDriveEnt.pev.sequence = ANIM_IDLE;
 				m_pDriveEnt.pev.frame = 0;
@@ -479,6 +484,7 @@ class weapon_strooper : CBaseDriveWeapon
 		if( m_iState == STATE_SHOOT and m_pPlayer.pev.button & IN_ATTACK == 0 ) return;
 		if( m_pDriveEnt.pev.sequence != ANIM_SHOOT ) return;
 		if( m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) <= 0 ) return;
+		if( m_bShotBlocked ) return;
 
 		if( GetFrame(13) == 2 and !m_bHasFired )
 		{

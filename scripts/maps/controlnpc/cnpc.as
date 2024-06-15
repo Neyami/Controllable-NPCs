@@ -331,6 +331,7 @@ HookReturnCode ClientSay( SayParameters@ pParams )
 
 } //namespace CNPC END
 
+//thanks Outerbeast :ayaya:
 abstract class CNPCSpawnEntity : ScriptBaseAnimating
 {
 	CScheduledFunction@ m_RespawnThink; //because SetThink doesn't work here for some reason :aRage:
@@ -382,7 +383,11 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 		if( m_flRespawnTime <= 0 ) m_flRespawnTime = m_flDefaultRespawnTime;
 
 		m_bActive = true;
+
+		DoSpecificStuff();
 	}
+
+	void DoSpecificStuff() {}
 
 	void Use( CBaseEntity@ pActivator, CBaseEntity@ pCaller, USE_TYPE useType, float flValue  )
 	{

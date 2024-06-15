@@ -120,7 +120,6 @@ class weapon_turret : CBaseDriveWeapon
 	private float m_flNextAmmoRegen;
 
 	private int m_iOrientation;
-	int m_iAutoDeploy;
 
 	bool KeyValue( const string& in szKey, const string& in szValue )
 	{

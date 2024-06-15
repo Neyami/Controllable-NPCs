@@ -86,19 +86,6 @@ class weapon_icky : CBaseDriveWeapon
 	private float m_flMaxSpeed;
 	private int m_iRandomAttack;
 
-	int m_iAutoDeploy;
-
-	bool KeyValue( const string& in szKey, const string& in szValue )
-	{
-		if( szKey == "autodeploy" )
-		{
-			m_iAutoDeploy = atoi( szValue );
-			return true;
-		}
-		else
-			return BaseClass.KeyValue( szKey, szValue );
-	}
-
 	void Spawn()
 	{
 		Precache();

@@ -1,6 +1,7 @@
 class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 {
 	int m_iState;
+	int m_iAutoDeploy;
 
 	protected CBasePlayer@ m_pPlayer
 	{
@@ -13,6 +14,17 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 	{
 		get const { return cast<CBaseAnimating@>(m_hDriveEnt.GetEntity()); }
 		set { m_hDriveEnt = EHandle(@value); }
+	}
+
+	bool KeyValue( const string& in szKey, const string& in szValue )
+	{
+		if( szKey == "autodeploy" )
+		{
+			m_iAutoDeploy = atoi( szValue );
+			return true;
+		}
+		else
+			return BaseClass.KeyValue( szKey, szValue );
 	}
 
 	//Prevent weapon from being dropped manually
