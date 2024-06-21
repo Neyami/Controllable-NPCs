@@ -1,6 +1,7 @@
 #include "CBaseDriveWeapon"
 #include "headcrab"
 #include "houndeye"
+#include "islave"
 #include "agrunt"
 #include "icky"
 #include "pitdrone"
@@ -18,6 +19,7 @@ void MapInit()
 
 	cnpc_headcrab::Register();
 	cnpc_houndeye::Register();
+	cnpc_islave::Register();
 	cnpc_agrunt::Register();
 	cnpc_icky::Register();
 	cnpc_pitdrone::Register();
@@ -38,14 +40,16 @@ const int HEADCRAB_SLOT			= 1;
 const int HEADCRAB_POSITION	= 10;
 const int HOUNDEYE_SLOT			= 1;
 const int HOUNDEYE_POSITION	= 11;
+const int ISLAVE_SLOT				= 1;
+const int ISLAVE_POSITION			= 12;
 const int AGRUNT_SLOT				= 1;
-const int AGRUNT_POSITION		= 12;
+const int AGRUNT_POSITION		= 13;
 const int ICKY_SLOT					= 1;
-const int ICKY_POSITION				= 13;
+const int ICKY_POSITION				= 14;
 const int PITDRONE_SLOT			= 1;
-const int PITDRONE_POSITION	= 14;
+const int PITDRONE_POSITION	= 15;
 const int STROOPER_SLOT			= 1;
-const int STROOPER_POSITION	= 15;
+const int STROOPER_POSITION	= 16;
 
 //military
 const int FASSN_SLOT					= 2;
@@ -62,6 +66,7 @@ const array<string> arrsCNPCWeapons =
 {
 	"weapon_headcrab",
 	"weapon_houndeye",
+	"weapon_islave",
 	"weapon_agrunt",
 	"weapon_icky",
 	"weapon_pitdrone",
@@ -74,6 +79,7 @@ enum cnpc_e
 {
 	CNPC_HEADCRAB = 1,
 	CNPC_HOUNDEYE,
+	CNPC_ISLAVE,
 	CNPC_AGRUNT,
 	CNPC_ICKY,
 	CNPC_PITDRONE,
@@ -139,6 +145,14 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_houndeye::pPainSounds[Math.RandomLong(0,(cnpc_houndeye::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 			
 			//flinch_small = 11, flinch_small2 = 12
+
+			break;
+		}
+
+		case CNPC_ISLAVE:
+		{
+			if( Math.RandomLong(0, 2) == 0 )
+				g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_WEAPON, cnpc_islave::pPainSounds[Math.RandomLong(0,(cnpc_islave::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(85, 110)/*cnpc_islave::m_iVoicePitch*/ ); //todo
 
 			break;
 		}
@@ -240,7 +254,7 @@ HookReturnCode PlayerKilled( CBasePlayer@ pPlayer, CBaseEntity@ pAttacker, int i
 	return HOOK_CONTINUE;
 }
 
-const array<string> arrsSentStroop =
+/*const array<string> arrsSentStroop =
 {
 	"!ST_ALERT0", //2 words
 	"!ST_TAUNT0",
@@ -257,7 +271,7 @@ const array<string> arrsSentStroop =
 	"!ST_COVER0",
 	"!ST_CHARGE0",
 	"!ST_QUEST0"
-};
+};*/
 
 const array<string> arrsStroopWords =
 {
@@ -313,8 +327,6 @@ HookReturnCode ClientSay( SayParameters@ pParams )
 				NetworkMessage spk( MSG_ONE, NetworkMessages::SVC_STUFFTEXT, pTarget.edict() );
 					spk.WriteString( "spk "+ sCustomSentence + "\n" );
 				spk.End();
-
-				g_Game.AlertMessage( at_notice, "Spoke to: %1\n", pTarget.pev.netname );
 			}
 		}
 

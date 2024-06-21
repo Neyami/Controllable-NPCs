@@ -273,7 +273,6 @@ class weapon_fassn : CBaseDriveWeapon
 		self.m_flTimeWeaponIdle = g_Engine.time + CD_SECONDARY;
 	}
 
-
 	void MeleeAttackThink()
 	{
 		if( m_pPlayer is null or !m_pPlayer.IsAlive() or m_pDriveEnt is null )

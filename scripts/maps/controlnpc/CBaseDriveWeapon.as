@@ -1,7 +1,10 @@
 class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 {
+	int STATE_IDLE = 0;
+
 	int m_iState;
 	int m_iAutoDeploy;
+	float m_flNextIdleSound;
 
 	protected CBasePlayer@ m_pPlayer
 	{
@@ -26,6 +29,17 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		else
 			return BaseClass.KeyValue( szKey, szValue );
 	}
+
+	void DoIdleSound()
+	{
+		if( m_iState != STATE_IDLE ) return;
+		if( m_flNextIdleSound > g_Engine.time ) return;
+
+		if( Math.RandomLong(0, 99) == 0 )
+			IdleSound();
+	}
+
+	void IdleSound() {}
 
 	//Prevent weapon from being dropped manually
 	CBasePlayerItem@ DropItem() { return null; }
