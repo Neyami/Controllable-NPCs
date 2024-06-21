@@ -1,10 +1,16 @@
-@PointClass base(Monster) size(-16 -16 0, 16 16 36) studio("models/headcrab.mdl") = info_cnpc_headcrab : "Controllable Headcrab Spawner"
+@PointClass base(Monster) size(-16 -16 0, 16 16 36) studio("models/headcrab.mdl") = info_cnpc_headcrab : "Controllable Headcrab"
 [
 	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
 ]
 
 
 @PointClass base(Monster) size(-16 -16 0, 16 16 36) studio("models/houndeye.mdl") = info_cnpc_houndeye : "Controllable Houndeye"
+[
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
+
+
+@PointClass base(Monster) size(-16 -16 0, 16 16 36) studio("models/islave.mdl") = info_cnpc_islave : "Controllable Alien Slave"
 [
 	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
 ]
@@ -47,6 +53,12 @@
 
 
 @PointClass base(Monster) size(-16 -16 0, 16 16 72) studio("models/hassassin.mdl") = info_cnpc_fassn : "Controllable Female Assassin"
+[
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
+
+
+@PointClass base(Monster) size(-24 -24 0, 24 24 32) studio("models/template.mdl") = info_cnpc_template : "Controllable template"
 [
 	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
 ]
