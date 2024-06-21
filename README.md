@@ -9,7 +9,8 @@ A work in progress.
 6) ????
 7) PROFIT
 
-The only way to revert to a normal player is to die :ayaya:
+The only way to revert to a normal player is to die :ayaya:  
+Only the Alien Slave can "strafe" at the moment  
 
 <BR>
 
@@ -28,6 +29,18 @@ Primary Attack: Leap at target, or just forward it not aiming at an enemy
 Primary Attack: Sonic Attack  
 Tertiary Attack: Toggle between first- and third-person view  
 Back Key (S): Hop backwards  
+
+
+<BR>
+
+# ALIEN SLAVE #  
+`weapon_islave` - Give this to the player  
+`info_cnpc_islave` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Lightning Attack  
+Secondary Attack: Melee  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: Revive nearby dead alien slaves as allies  
 
 
 <BR>
