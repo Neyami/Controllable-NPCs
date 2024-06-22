@@ -10,7 +10,7 @@ A work in progress.
 7) PROFIT
 
 The only way to revert to a normal player is to die :ayaya:  
-Only the Alien Slave can "strafe" at the moment  
+Only the Alien Slave and Alien Grunt can "strafe" at the moment  
 
 <BR>
 
@@ -51,6 +51,8 @@ Reload: Revive nearby dead alien slaves as allies
 
 Primary Attack: Shoot Hornets  
 Secondary Attack: Melee  
+Reload: Throw a Snark Nest  
+Also; try falling from different heights :ayaya:  
 
 
 <BR>
