@@ -1,5 +1,7 @@
 namespace cnpc_agrunt
 {
+
+const bool CNPC_HARDLANDING		= true; //when falling from a great height the grunt will be stunned for a second or so
 	
 const string CNPC_WEAPONNAME	= "weapon_agrunt";
 const string CNPC_MODEL				= "models/agrunt.mdl";
@@ -10,6 +12,7 @@ const float CNPC_HEALTH				= 150.0;
 const bool DISABLE_CROUCH			= true;
 const float CNPC_VIEWOFS				= 40.0; //camera height offset
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the shocktrooper itself
+const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
 
 const float CD_HORNET					= 2.0;
 const float CD_MELEE						= 1.0;
@@ -19,6 +22,11 @@ const float MELEE_RANGE				= 100.0;
 
 const float HORNET_REFIRE				= 0.2;
 const float CNPC_FIRE_MINRANGE	= 48.0; //decides how close you can be to a wall before shooting gets blocked
+
+const float CD_GRENADE					= 2.0;
+const float GRENADE_VELOCITY		= 750.0;
+const float AMMO_REGEN_RATE		= 0.1; //+1 per AMMO_REGEN_RATE seconds
+const int GRENADE_AMMO				= 100; //amount required to toss a snark nest
 
 const array<string> pAttackHitSounds = 
 {
@@ -31,6 +39,14 @@ const array<string> pAttackMissSounds =
 {
 	"zombie/claw_miss1.wav",
 	"zombie/claw_miss2.wav"
+};
+
+const array<string> pIdleSounds = 
+{
+	"agrunt/ag_idle1.wav",
+	"agrunt/ag_idle2.wav",
+	"agrunt/ag_idle3.wav",
+	"agrunt/ag_idle4.wav"
 };
 
 const array<string> pPainSounds = 
@@ -64,12 +80,17 @@ enum anim_e
 	ANIM_RUN,
 	ANIM_MELEE_R = 8,
 	ANIM_MELEE_L,
-	ANIM_LONGSHOOT = 21,
+	ANIM_SHOOT = 19,
+	ANIM_QUICKSHOOT,
+	ANIM_LONGSHOOT,
 	ANIM_DEATH1,
 	ANIM_DEATH2,
 	ANIM_DEATH3,
 	ANIM_DEATH4,
-	ANIM_DEATH5
+	ANIM_DEATH5,
+	ANIM_FLOAT,
+	ANIM_LAND = 31,
+	ANIM_THROW
 };
 
 enum states_e
@@ -77,27 +98,42 @@ enum states_e
 	STATE_IDLE = 0,
 	STATE_WALK,
 	STATE_RUN,
-	STATE_DEATH,
 	STATE_ATTACK_MELEE,
-	STATE_ATTACK_HORNET
+	STATE_ATTACK_HORNET,
+	STATE_GRENADE,
+	STATE_LANDHARD
 };
 
 class weapon_agrunt : CBaseDriveWeapon
 {
+	private int m_iLastWord;
+
 	private int m_iAgruntMuzzleFlash;
-	private int m_iRandomAttack;
 	private float m_flStopHornetAttack;
 	private bool m_bShotBlocked;
+
+	private int m_iRandomAttack;
+
+	private bool m_bHasThrownGrenade;
+	private float m_flNextGrenade;
+	private float m_flNextAmmoRegen;
+
+	private bool m_bIsFallingHard;
 
 	void Spawn()
 	{
 		Precache();
 
-		self.m_iDefaultAmmo = 100;
+		self.m_iDefaultAmmo = GRENADE_AMMO;
 
 		m_iState = STATE_IDLE;
 		m_iRandomAttack = 0;
 		m_bShotBlocked = false;
+		m_iLastWord = 0;
+		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
+		m_flNextGrenade = 0.0;
+		m_bHasThrownGrenade = false;
+		m_bIsFallingHard = false;
 
 		self.FallInit();
 	}
@@ -112,6 +148,9 @@ class weapon_agrunt : CBaseDriveWeapon
 
 		for( uint i = 0; i < pAttackMissSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pAttackMissSounds[i] );
+
+		for( uint i = 0; i < pIdleSounds.length(); i++ )
+			g_SoundSystem.PrecacheSound( pIdleSounds[i] );
 
 		for( uint i = 0; i < pPainSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pPainSounds[i] );
@@ -130,7 +169,7 @@ class weapon_agrunt : CBaseDriveWeapon
 
 	bool GetItemInfo( ItemInfo& out info )
 	{
-		info.iMaxAmmo1	= 100;
+		info.iMaxAmmo1	= GRENADE_AMMO;
 		info.iMaxClip		= WEAPON_NOCLIP;
 		info.iSlot				= CNPC::AGRUNT_SLOT - 1;
 		info.iPosition		= CNPC::AGRUNT_POSITION - 1;
@@ -150,6 +189,8 @@ class weapon_agrunt : CBaseDriveWeapon
 		NetworkMessage m1( MSG_ONE, NetworkMessages::WeapPickup, pPlayer.edict() );
 			m1.WriteLong( g_ItemRegistry.GetIdForName(CNPC_WEAPONNAME) );
 		m1.End();
+
+		m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType, GRENADE_AMMO);
 
 		if( m_iAutoDeploy == 1 ) m_pPlayer.SwitchWeapon(self);
 
@@ -186,13 +227,11 @@ class weapon_agrunt : CBaseDriveWeapon
 	{
 		if( m_pDriveEnt !is null )
 		{
-			if( m_iState != STATE_ATTACK_MELEE and m_iState != STATE_DEATH )
-			{
-				TraceResult tr;
-				Math.MakeVectors( m_pPlayer.pev.angles );
-				g_Utility.TraceHull( m_pPlayer.pev.origin, m_pPlayer.pev.origin + g_Engine.v_forward * CNPC_FIRE_MINRANGE, dont_ignore_monsters, head_hull, m_pPlayer.edict(), tr );
+			if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
 
-				if( tr.flFraction != 1.0 ) 
+			if( m_iState != STATE_ATTACK_MELEE and m_iState != STATE_GRENADE and m_iState != STATE_LANDHARD )
+			{
+				if( CheckIfShotIsBlocked(CNPC_FIRE_MINRANGE) )
 				{
 					m_bShotBlocked = true;
 					self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + 0.5;
@@ -225,7 +264,9 @@ class weapon_agrunt : CBaseDriveWeapon
 
 	void SecondaryAttack()
 	{
-		if( m_iState != STATE_ATTACK_HORNET and m_iState != STATE_DEATH )
+		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
+
+		if( m_iState != STATE_ATTACK_HORNET and m_iState != STATE_GRENADE and m_iState != STATE_LANDHARD )
 		{
 			m_iState = STATE_ATTACK_MELEE;
 			m_pPlayer.SetMaxSpeedOverride( 0 );
@@ -277,30 +318,19 @@ class weapon_agrunt : CBaseDriveWeapon
 			else
 				m_pPlayer.pev.view_ofs = Vector( 0.0, 0.0, CNPC_VIEWOFS );
 
-			if( m_pPlayer.pev.button & (IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 )
-				m_pPlayer.SetMaxSpeedOverride( 0 );
-			else if( m_pPlayer.pev.button & IN_FORWARD != 0 )
+			if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and m_iState < STATE_ATTACK_MELEE )
 			{
-				if( m_iState != STATE_ATTACK_MELEE and m_iState != STATE_ATTACK_HORNET )
-				{
-					m_pPlayer.SetMaxSpeedOverride( -1 );
-					DoMovementAnimation();
-					self.m_flTimeWeaponIdle = g_Engine.time + 0.1;
-				}
+				m_pPlayer.SetMaxSpeedOverride( -1 );
+				DoMovementAnimation();
 			}
 
-			if( m_pPlayer.pev.velocity.Length() <= 10.0 and m_iState != STATE_ATTACK_MELEE and m_iState != STATE_ATTACK_HORNET )
-				DoIdleAnimation();
-
-			if( m_iState == STATE_ATTACK_HORNET )
-			{
-				Vector angDir = m_pPlayer.pev.v_angle;
-
-				if( angDir.x > 180 )
-					angDir.x = angDir.x - 360;
-
-				m_pDriveEnt.SetBlending( 0, -angDir.x );
-			}
+			DoIdleAnimation();
+			DoIdleSound();
+			CheckGrenadeInput();
+			ThrowGrenade();
+			DoAmmoRegen();
+			DoFalling();
+			DoGunAiming();
 		}
 	}
 
@@ -312,11 +342,7 @@ class weapon_agrunt : CBaseDriveWeapon
 			return;
 		}
 
-		TraceResult tr;
-		Math.MakeVectors( m_pPlayer.pev.angles );
-		g_Utility.TraceHull( m_pPlayer.pev.origin, m_pPlayer.pev.origin + g_Engine.v_forward * CNPC_FIRE_MINRANGE, dont_ignore_monsters, head_hull, m_pPlayer.edict(), tr );
-
-		if( tr.flFraction != 1.0 ) 
+		if( CheckIfShotIsBlocked(CNPC_FIRE_MINRANGE) )
 		{
 			SetThink( null );
 			m_bShotBlocked = true;
@@ -468,15 +494,154 @@ class weapon_agrunt : CBaseDriveWeapon
 	void DoIdleAnimation()
 	{
 		if( m_pDriveEnt is null ) return;
+		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
+		if( m_iState == STATE_ATTACK_MELEE and (m_pDriveEnt.pev.sequence == ANIM_MELEE_L or m_pDriveEnt.pev.sequence == ANIM_MELEE_R) and !m_pDriveEnt.m_fSequenceFinished ) return;
+		if( m_iState == STATE_ATTACK_HORNET and m_pDriveEnt.pev.sequence == ANIM_LONGSHOOT and !m_pDriveEnt.m_fSequenceFinished ) return;
+		if( m_iState == STATE_GRENADE and m_pDriveEnt.pev.sequence == ANIM_THROW and !m_pDriveEnt.m_fSequenceFinished ) return;
+		if( m_iState == STATE_LANDHARD and m_pDriveEnt.pev.sequence == ANIM_LAND and !m_pDriveEnt.m_fSequenceFinished ) return;
 
-		if( m_iState != STATE_IDLE )
+		if( m_pPlayer.pev.velocity.Length() <= 10.0 )
 		{
-			m_pPlayer.SetMaxSpeedOverride( -1 );
-			m_iState = STATE_IDLE;
-			m_pDriveEnt.pev.sequence = ANIM_IDLE;
+			if( m_iState != STATE_IDLE )
+			{
+				m_pPlayer.SetMaxSpeedOverride( -1 );
+				m_iState = STATE_IDLE;
+				m_pDriveEnt.pev.sequence = ANIM_IDLE;
+				m_pDriveEnt.pev.frame = 0;
+				m_pDriveEnt.ResetSequenceInfo();
+				m_bShotBlocked = false;
+			}
+		}
+	}
+
+	void IdleSound()
+	{
+		int num = -1;
+
+		do
+		{
+			num = Math.RandomLong( 0,3 );
+		} while( num == m_iLastWord );
+
+		m_iLastWord = num;
+
+		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, pIdleSounds[num], VOL_NORM, ATTN_NORM );
+
+		if( Math.RandomLong(1, 10) <= 1 )
+			m_flNextIdleSound = g_Engine.time + ( 10 + Math.RandomFloat(0.0, 10.0) );
+		else
+			m_flNextIdleSound = g_Engine.time + Math.RandomFloat( 0.5, 1.0 );
+	}
+
+	void CheckGrenadeInput()
+	{
+		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
+		if( m_iState == STATE_ATTACK_HORNET or m_iState == STATE_ATTACK_MELEE or m_iState == STATE_LANDHARD ) return;
+		if( m_flNextGrenade > g_Engine.time ) return;
+		if( m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) < GRENADE_AMMO ) return;
+		if( CheckIfShotIsBlocked(CNPC_FIRE_MINRANGE*1.8) ) return;
+
+		if( (m_pPlayer.pev.button & IN_RELOAD) == 0 and (m_pPlayer.pev.oldbuttons & IN_RELOAD) != 0 )
+		{
+			m_pPlayer.SetMaxSpeedOverride( 0 );
+
+			m_iState = STATE_GRENADE;
+			m_pDriveEnt.pev.sequence = ANIM_THROW;
 			m_pDriveEnt.pev.frame = 0;
 			m_pDriveEnt.ResetSequenceInfo();
-			m_bShotBlocked = false;
+
+			m_flNextGrenade = g_Engine.time + CD_GRENADE;
+		}
+	}
+
+	void ThrowGrenade()
+	{
+		if( m_iState != STATE_GRENADE or m_pDriveEnt.pev.sequence != ANIM_THROW ) return;
+
+		if( GetFrame(16) == 7 and !m_bHasThrownGrenade )
+		{
+			Vector vecAngle = m_pPlayer.pev.v_angle;
+
+			//prevent nests from spawning in the floor
+			if( vecAngle.x > 15.0 )
+				vecAngle.x = 15.0;
+			else if( vecAngle.x <= -60.0 )
+				vecAngle.x = -60.0;
+
+			Math.MakeVectors( vecAngle );
+			Vector vecGrenadeOrigin = m_pDriveEnt.pev.origin + Vector(0, 0, 32);
+			vecGrenadeOrigin = vecGrenadeOrigin + g_Engine.v_forward * 72.0;
+			Vector vecGrenadeVelocity = m_pPlayer.pev.velocity + g_Engine.v_forward * GRENADE_VELOCITY;
+
+			CBaseEntity@ pSnarkNest = g_EntityFuncs.Create( "monster_sqknest", vecGrenadeOrigin, g_vecZero, true );
+			pSnarkNest.pev.velocity = vecGrenadeVelocity;
+			g_EntityFuncs.DispatchKeyValue( pSnarkNest.edict(), "is_player_ally", "1" );
+			g_EntityFuncs.DispatchSpawn( pSnarkNest.edict() );
+			pSnarkNest.pev.nextthink = g_Engine.time + 4.0; //prevents DropToFloor from teleporting the nest when spawned
+
+			m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType, m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) - GRENADE_AMMO );
+			m_bHasThrownGrenade = true;
+		}
+		else if( GetFrame(56) > 45 and m_bHasThrownGrenade )
+			m_bHasThrownGrenade = false;
+	}
+
+	void DoAmmoRegen()
+	{
+		if( m_iState != STATE_GRENADE and m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) < GRENADE_AMMO )
+		{
+			if( m_flNextAmmoRegen < g_Engine.time )
+			{
+				m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType, m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) +1 );
+
+				m_flNextAmmoRegen = g_Engine.time + AMMO_REGEN_RATE;
+			}
+		}
+	}
+
+	void DoFalling()
+	{
+		if( m_iState > STATE_ATTACK_MELEE ) return;
+
+		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) and m_pPlayer.m_flFallVelocity != 0 )
+		{
+			if( m_pPlayer.m_flFallVelocity >= 580.0 ) m_bIsFallingHard = true;
+
+			if( m_pDriveEnt.pev.sequence != ANIM_FLOAT )
+			{
+				m_pDriveEnt.pev.sequence = ANIM_FLOAT;
+				m_pDriveEnt.pev.frame = 0;
+				m_pDriveEnt.ResetSequenceInfo();
+			}
+		}
+
+		if( CNPC_HARDLANDING )
+		{
+			if( m_pPlayer.pev.FlagBitSet(FL_ONGROUND) and m_bIsFallingHard )
+			{
+				if( m_pDriveEnt.pev.sequence != ANIM_LAND )
+				{
+					m_iState = STATE_LANDHARD;
+					m_pDriveEnt.pev.sequence = ANIM_LAND;
+					m_pDriveEnt.pev.frame = 0;
+					m_pDriveEnt.ResetSequenceInfo();
+					m_pPlayer.SetMaxSpeedOverride( 0 );
+					m_bIsFallingHard = false;
+				}
+			}
+		}
+	}
+
+	void DoGunAiming()
+	{
+		if( m_iState == STATE_ATTACK_HORNET )
+		{
+			Vector angDir = m_pPlayer.pev.v_angle;
+
+			if( angDir.x > 180 )
+				angDir.x = angDir.x - 360;
+
+			m_pDriveEnt.SetBlending( 0, -angDir.x );
 		}
 	}
 
@@ -525,10 +690,26 @@ class weapon_agrunt : CBaseDriveWeapon
 		CustomKeyvalues@ pCustom = m_pPlayer.GetCustomKeyvalues();
 		pCustom.SetKeyvalue( CNPC::sCNPCKV, 0 );
 	}
+
+	bool CheckIfShotIsBlocked( float flMinRange )
+	{
+		TraceResult tr;
+		Math.MakeVectors( m_pPlayer.pev.v_angle );
+		g_Utility.TraceHull( m_pPlayer.pev.origin, m_pPlayer.pev.origin + g_Engine.v_forward * flMinRange, dont_ignore_monsters, head_hull, m_pPlayer.edict(), tr );
+
+		if( tr.flFraction != 1.0 ) return true;
+
+		return false;
+	}
 }
 
 class cnpc_agrunt : ScriptBaseAnimating
 {
+	protected CBasePlayer@ m_pOwner
+	{
+		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
+	}
+
 	void Spawn()
 	{
 		g_EntityFuncs.SetModel( self, CNPC_MODEL );
@@ -549,7 +730,7 @@ class cnpc_agrunt : ScriptBaseAnimating
 
 	void DriveThink()
 	{
-		if( pev.owner is null or pev.owner.vars.deadflag != DEAD_NO )
+		if( m_pOwner is null or !m_pOwner.IsConnected() or m_pOwner.pev.deadflag != DEAD_NO )
 		{
 			pev.velocity = g_vecZero;
 			SetThink( ThinkFunction(this.DieThink) );
@@ -558,16 +739,19 @@ class cnpc_agrunt : ScriptBaseAnimating
 			return;
 		}
 
-		CBasePlayer@ pOwner = cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) );
-
-		Vector vecOrigin = pOwner.pev.origin;
+		Vector vecOrigin = m_pOwner.pev.origin;
 		vecOrigin.z -= 32.0;
 		g_EntityFuncs.SetOrigin( self, vecOrigin );
 
-		pev.velocity = pOwner.pev.velocity;
+		pev.velocity = m_pOwner.pev.velocity;
 
 		pev.angles.x = 0;
-		pev.angles.y = pOwner.pev.angles.y;
+
+		if( pev.velocity.Length2D() > 0.0 )
+			pev.angles.y = Math.VecToAngles( pev.velocity ).y;
+		else
+			pev.angles.y = m_pOwner.pev.angles.y;
+
 		pev.angles.z = 0;
 
 		self.StudioFrameAdvance();
@@ -651,6 +835,9 @@ void Register()
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_agrunt::info_cnpc_agrunt", "info_cnpc_agrunt" );
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_agrunt::cnpc_agrunt", "cnpc_agrunt" );
 	g_Game.PrecacheOther( "cnpc_agrunt" );
+
+	g_Game.PrecacheMonster( "monster_sqknest", true );
+	g_Game.PrecacheMonster( "monster_sqknest", false );
 
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_agrunt::weapon_agrunt", CNPC_WEAPONNAME );
 	g_ItemRegistry.RegisterWeapon( CNPC_WEAPONNAME, "controlnpc", "hornets" );

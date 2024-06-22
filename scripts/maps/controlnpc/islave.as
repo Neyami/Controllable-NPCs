@@ -114,6 +114,7 @@ class weapon_islave : CBaseDriveWeapon
 		m_iSwing = 0;
 		m_iZapStage = 0;
 		m_bReviveZap = false;
+		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 
 		self.FallInit();
 	}

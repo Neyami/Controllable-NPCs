@@ -637,7 +637,7 @@ class weapon_fassn : CBaseDriveWeapon
 			m_pDriveEnt.pev.sequence = ANIM_JUMP_FALLING;
 			m_pDriveEnt.pev.frame = 0;
 			m_pDriveEnt.ResetSequenceInfo();
-		}		
+		}
 	}
 
 	void Shoot()

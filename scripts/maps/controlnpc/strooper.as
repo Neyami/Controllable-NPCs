@@ -579,7 +579,7 @@ class weapon_strooper : CBaseDriveWeapon
 			Vector vecGrenadeOrigin = m_pDriveEnt.pev.origin + Vector(0, 0, 98);
 			Vector vecGrenadeVelocity = m_pPlayer.pev.velocity + g_Engine.v_forward * GRENADE_VELOCITY;
 
-			CreateSpore( m_pDriveEnt.pev.origin + Vector(0, 0, 98), vecGrenadeVelocity );
+			CreateSpore( vecGrenadeOrigin, vecGrenadeVelocity );
 
 			m_bHasThrownGrenade = true;
 		}
