@@ -516,6 +516,8 @@ class weapon_agrunt : CBaseDriveWeapon
 
 	void IdleSound()
 	{
+		if( m_pDriveEnt is null ) return;
+
 		int num = -1;
 
 		do
