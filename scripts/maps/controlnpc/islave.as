@@ -387,6 +387,8 @@ class weapon_islave : CBaseDriveWeapon
 
 	void IdleSound()
 	{
+		if( m_pDriveEnt is null ) return;
+
 		if( Math.RandomLong(0, 2) == 0 )
 		{
 			g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "SLV_IDLE", 0.85, ATTN_NORM, 0, m_iVoicePitch );
