@@ -337,10 +337,6 @@ class weapon_turret : CBaseDriveWeapon
 		{
 			m_pPlayer.SetMaxSpeedOverride( 0 );
 
-			NetworkMessage disableduck( MSG_ONE, NetworkMessages::SVC_STUFFTEXT, m_pPlayer.edict() );
-				disableduck.WriteString( "-duck\n" );
-			disableduck.End();
-
 			if( m_pDriveEnt.pev.sequence == ANIM_DEPLOY and m_pDriveEnt.m_fSequenceFinished )
 			{
 				SetAnim( ANIM_SPIN );
