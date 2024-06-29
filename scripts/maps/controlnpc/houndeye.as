@@ -4,13 +4,17 @@ namespace cnpc_houndeye
 bool CNPC_FIRSTPERSON					= false;
 const bool USE_SPECIAL_EFFECT		= false;
 	
-const string sWeaponName				= "weapon_houndeye";
+const string CNPC_WEAPONNAME		= "weapon_houndeye";
+const string CNPC_MODEL					= "models/houndeye.mdl";
+const Vector CNPC_SIZEMIN				= Vector( -16, -16, 0 );
+const Vector CNPC_SIZEMAX				= Vector( 16, 16, 72 );
 
 const float CNPC_HEALTH					= 60.0;
 const float CNPC_VIEWOFS_FPV			= 0.0; //camera height offset
 const float CNPC_VIEWOFS_TPV			= 0.0;
 const float CNPC_RESPAWNTIME			= 13.0; //from the point that the weapon is removed, not the houndeye itself
 const float CNPC_MODEL_OFFSET		= 36.0; //sometimes the model floats above the ground
+const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky movement on other players
 
 const float SPEED_WALK						= 40; //35.94265 * CNPC::flModelToGameSpeedModifier; //35.94265 from model, player = 71.196838
 const float SPEED_RUN						= -1; //220.556808 * CNPC::flModelToGameSpeedModifier; //220.556808 from model, player = 163.624054
@@ -145,7 +149,7 @@ class weapon_houndeye : CBaseDriveWeapon
 		@m_pPlayer = pPlayer;
 
 		NetworkMessage m1( MSG_ONE, NetworkMessages::WeapPickup, pPlayer.edict() );
-			m1.WriteLong( g_ItemRegistry.GetIdForName(sWeaponName) );
+			m1.WriteLong( g_ItemRegistry.GetIdForName(CNPC_WEAPONNAME) );
 		m1.End();
 
 		if( m_iAutoDeploy == 1 ) m_pPlayer.SwitchWeapon(self);
@@ -244,13 +248,10 @@ class weapon_houndeye : CBaseDriveWeapon
 		{
 			m_pPlayer.pev.friction = 2; //no sliding!
 
-			if( m_pPlayer.pev.button & (IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 )
-				m_pPlayer.SetMaxSpeedOverride( 0 );
-			else if( m_pPlayer.pev.button & IN_FORWARD != 0 and m_iState != STATE_JUMPBACK and m_iState != STATE_ATTACK_SONIC )
+			if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and m_iState < STATE_ATTACK_SONIC )
 			{
-				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) ); //-1
+				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
 				DoMovementAnimation();
-				self.m_flTimeWeaponIdle = g_Engine.time + 0.1;
 			}
 
 			DoIdleAnimation();
@@ -313,7 +314,7 @@ class weapon_houndeye : CBaseDriveWeapon
 	{
 		if( m_iState == STATE_JUMPBACK or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
 
-		if( (m_pPlayer.pev.button & IN_BACK) == 0 and (m_pPlayer.pev.oldbuttons & IN_BACK) != 0 )
+		if( (m_pPlayer.pev.button & IN_JUMP) == 0 and (m_pPlayer.pev.oldbuttons & IN_JUMP) != 0 )
 		{
 			if( m_iState == STATE_ATTACK_SONIC )
 			{
@@ -657,12 +658,18 @@ class weapon_houndeye : CBaseDriveWeapon
 
 class cnpc_houndeye : ScriptBaseAnimating
 {
+	protected CBasePlayer@ m_pOwner
+	{
+		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
+	}
+
 	EHandle m_hRenderEntity;
+	private float m_flNextOriginUpdate; //hopefully fixes hacky movement on other players
 
 	void Spawn()
 	{
 		g_EntityFuncs.SetModel( self, "models/houndeye.mdl" );
-		g_EntityFuncs.SetSize( self.pev, Vector(-16, -16, 0), Vector(16, 16, 72) );
+		g_EntityFuncs.SetSize( self.pev, CNPC_SIZEMIN, CNPC_SIZEMAX );
 		g_EntityFuncs.SetOrigin( self, pev.origin );
 		g_EngineFuncs.DropToFloor( self.edict() );
 
@@ -673,13 +680,15 @@ class cnpc_houndeye : ScriptBaseAnimating
 		pev.frame = 0;
 		self.ResetSequenceInfo();
 
+		m_flNextOriginUpdate = g_Engine.time;
+
 		SetThink( ThinkFunction(this.DriveThink) );
 		pev.nextthink = g_Engine.time;
 	}
 
 	void DriveThink()
 	{
-		if( pev.owner is null or pev.owner.vars.deadflag != DEAD_NO )
+		if( m_pOwner is null or !m_pOwner.IsConnected() or m_pOwner.pev.deadflag != DEAD_NO )
 		{
 			if( m_hRenderEntity.IsValid() )
 				g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );
@@ -691,16 +700,23 @@ class cnpc_houndeye : ScriptBaseAnimating
 			return;
 		}
 
-		CBasePlayer@ pOwner = cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) );
+		if( m_flNextOriginUpdate < g_Engine.time )
+		{
+			Vector vecOrigin = m_pOwner.pev.origin;
+			vecOrigin.z -= CNPC_MODEL_OFFSET;
+			g_EntityFuncs.SetOrigin( self, vecOrigin );
+			m_flNextOriginUpdate = g_Engine.time + CNPC_ORIGINUPDATE;
+		}
 
-		Vector vecOrigin = pOwner.pev.origin;
-		vecOrigin.z -= CNPC_MODEL_OFFSET;
-		g_EntityFuncs.SetOrigin( self, vecOrigin );
-
-		pev.velocity = pOwner.pev.velocity;
+		pev.velocity = m_pOwner.pev.velocity;
 
 		pev.angles.x = 0;
-		pev.angles.y = pOwner.pev.angles.y;
+
+		if( pev.velocity.Length2D() > 0.0 and pev.sequence != ANIM_JUMPBACK )
+			pev.angles.y = Math.VecToAngles( pev.velocity ).y;
+		else
+			pev.angles.y = m_pOwner.pev.angles.y;
+
 		pev.angles.z = 0;
 
 		self.StudioFrameAdvance();
@@ -761,101 +777,29 @@ class cnpc_houndeye : ScriptBaseAnimating
 	}
 }
 
-class info_cnpc_houndeye : ScriptBaseAnimating
+final class info_cnpc_houndeye : CNPCSpawnEntity
 {
-	protected EHandle m_hCNPCWeapon;
-	protected CBaseEntity@ m_pCNPCWeapon
+	info_cnpc_houndeye()
 	{
-		get const { return cast<CBaseEntity@>(m_hCNPCWeapon.GetEntity()); }
-		set { m_hCNPCWeapon = EHandle(@value); }
-	}
-
-	private float m_flRespawnTime; //how long until respawn
-	private float m_flTimeToRespawn; //used to check if ready to respawn
-
-	bool KeyValue( const string& in szKey, const string& in szValue )
-	{
-		if( szKey == "respawntime" )
-		{
-			m_flRespawnTime = atof( szValue );
-			return true;
-		}
-		else
-			return BaseClass.KeyValue( szKey, szValue );
-	}
-
-	void Spawn()
-	{
-		g_EntityFuncs.SetModel( self, "models/houndeye.mdl" );
-		g_EntityFuncs.SetSize( self.pev, Vector(-16, -16, 0), Vector(16, 16, 36) );
-		g_EntityFuncs.SetOrigin( self, pev.origin );
-		g_EngineFuncs.DropToFloor( self.edict() );
-
-		pev.solid = SOLID_NOT;
-		pev.movetype = MOVETYPE_NONE;
-		pev.sequence = ANIM_IDLE;
-		pev.rendermode = kRenderTransTexture;
-		pev.renderfx = kRenderFxDistort;
-		pev.renderamt = 128;
-
-		if( m_flRespawnTime <= 0 ) m_flRespawnTime = CNPC_RESPAWNTIME;
-
-		SetUse( UseFunction(this.UseCNPC) );
-	}
-
-	int ObjectCaps() { return (BaseClass.ObjectCaps() | FCAP_IMPULSE_USE); }
-
-	void UseCNPC( CBaseEntity@ pActivator, CBaseEntity@ pCaller, USE_TYPE useType, float flValue  ) 
-	{
-		if( pActivator.pev.FlagBitSet(FL_CLIENT) and pActivator.pev.FlagBitSet(FL_ONGROUND) )
-		{
-			g_EntityFuncs.SetOrigin( pActivator, pev.origin );
-			pActivator.pev.angles = pev.angles;
-			pActivator.pev.fixangle = FAM_FORCEVIEWANGLES;
-			@m_pCNPCWeapon = g_EntityFuncs.Create( sWeaponName, pActivator.pev.origin, g_vecZero, true );
-			m_pCNPCWeapon.pev.spawnflags = SF_NORESPAWN | SF_CREATEDWEAPON;
-
-			g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "autodeploy", "1" );
-			g_EntityFuncs.DispatchSpawn( m_pCNPCWeapon.edict() );
-
-			SetUse( null );
-			pev.effects |= EF_NODRAW;
-
-			SetThink( ThinkFunction(this.RespawnThink) );
-			pev.nextthink = g_Engine.time;
-		}
-	}
-
-	void RespawnThink()
-	{
-		pev.nextthink = g_Engine.time + 0.1;
-
-		if( m_pCNPCWeapon is null and m_flTimeToRespawn <= 0.0 )
-			m_flTimeToRespawn = g_Engine.time +m_flRespawnTime;
-
-		if( m_flTimeToRespawn > 0.0 and m_flTimeToRespawn <= g_Engine.time )
-		{
-			SetThink( null );
-			SetUse( UseFunction(this.UseCNPC) );
-			pev.effects &= ~EF_NODRAW;
-			m_flTimeToRespawn = 0.0;
-
-			g_SoundSystem.EmitSoundDyn( self.edict(), CHAN_BODY, arrsCNPCSounds[SND_RESPAWN], VOL_NORM, 0.3, 0, 90 );
-		}
+		sWeaponName = CNPC_WEAPONNAME;
+		sModel = CNPC_MODEL;
+		iStartAnim = ANIM_IDLE;
+		m_flDefaultRespawnTime = CNPC_RESPAWNTIME;
+		vecSizeMin = CNPC_SIZEMIN;
+		vecSizeMax = CNPC_SIZEMAX;
 	}
 }
 
 void Register()
 {
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_houndeye::info_cnpc_houndeye", "info_cnpc_houndeye" );
-	g_Game.PrecacheOther( "info_cnpc_houndeye" );
-
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_houndeye::cnpc_houndeye", "cnpc_houndeye" );
-	g_Game.PrecacheOther( "cnpc_houndeye" );
+	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_houndeye::weapon_houndeye", CNPC_WEAPONNAME );
+	g_ItemRegistry.RegisterWeapon( CNPC_WEAPONNAME, "controlnpc" );
 
-	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_houndeye::weapon_houndeye", sWeaponName );
-	g_ItemRegistry.RegisterWeapon( sWeaponName, "controlnpc" );
-	g_Game.PrecacheOther( sWeaponName );
+	g_Game.PrecacheOther( "info_cnpc_houndeye" );
+	g_Game.PrecacheOther( "cnpc_houndeye" );
+	g_Game.PrecacheOther( CNPC_WEAPONNAME );
 }
 
 } //namespace cnpc_houndeye END

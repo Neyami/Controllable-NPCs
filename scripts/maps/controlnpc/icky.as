@@ -4,8 +4,11 @@ namespace cnpc_icky
 {
 
 bool CNPC_FIRSTPERSON				= false;
-	
-const string sWeaponName			= "weapon_icky";
+
+const string CNPC_WEAPONNAME	= "weapon_icky";
+const string CNPC_MODEL				= "models/icky.mdl";
+const Vector CNPC_SIZEMIN			= Vector( -32, -32, 0 );
+const Vector CNPC_SIZEMAX			= Vector( 32, 32, 64 );
 
 const float CNPC_HEALTH				= 350.0;
 const float CNPC_CAMDIST				= 256.0;
@@ -138,7 +141,7 @@ class weapon_icky : CBaseDriveWeapon
 		@m_pPlayer = pPlayer;
 
 		NetworkMessage m1( MSG_ONE, NetworkMessages::WeapPickup, pPlayer.edict() );
-			m1.WriteLong( g_ItemRegistry.GetIdForName(sWeaponName) );
+			m1.WriteLong( g_ItemRegistry.GetIdForName(CNPC_WEAPONNAME) );
 		m1.End();
 
 		if( m_iAutoDeploy == 1 ) m_pPlayer.SwitchWeapon(self);
@@ -546,6 +549,11 @@ class weapon_icky : CBaseDriveWeapon
 
 class cnpc_icky : ScriptBaseAnimating
 {
+	protected CBasePlayer@ m_pOwner
+	{
+		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
+	}
+
 	int m_iState;
 	EHandle m_hRenderEntity;
 	private float m_flRemoveCorpse;
@@ -553,7 +561,7 @@ class cnpc_icky : ScriptBaseAnimating
 	void Spawn()
 	{
 		g_EntityFuncs.SetModel( self, "models/icky.mdl" );
-		g_EntityFuncs.SetSize( self.pev, Vector(-32, -32, 0), Vector(32, 32, 64) );
+		g_EntityFuncs.SetSize( self.pev, CNPC_SIZEMIN, CNPC_SIZEMAX );
 		g_EntityFuncs.SetOrigin( self, pev.origin );
 
 		pev.solid = SOLID_BBOX;
@@ -562,7 +570,6 @@ class cnpc_icky : ScriptBaseAnimating
 		pev.sequence = ANIM_IDLE;
 		pev.frame = 0;
 		self.ResetSequenceInfo();
-
 		self.SetBoneController( 0, 0 );
 
 		SetThink( ThinkFunction(this.DriveThink) );
@@ -590,14 +597,14 @@ class cnpc_icky : ScriptBaseAnimating
 
 			if( (pOther.pev.flags & FL_CLIENT) == 0 )
 			{
-				pOther.TakeDamage( pev.owner.vars, pev.owner.vars, BITE_DAMAGE2, (DMG_SLASH|DMG_ALWAYSGIB) );
+				pOther.TakeDamage( m_pOwner.pev, m_pOwner.pev, BITE_DAMAGE2, (DMG_SLASH|DMG_ALWAYSGIB) );
 				pOther.pev.punchangle.z = -18;
 				pOther.pev.punchangle.x = 5;
 				pOther.pev.velocity = pOther.pev.velocity - g_Engine.v_right * 300;
 			}
 			else if( (pOther.pev.flags & FL_CLIENT) == 1 and CNPC::PVP )
 			{
-				pOther.TakeDamage( pev.owner.vars, pev.owner.vars, BITE_DAMAGE2, (DMG_SLASH|DMG_ALWAYSGIB) );
+				pOther.TakeDamage( m_pOwner.pev, m_pOwner.pev, BITE_DAMAGE2, (DMG_SLASH|DMG_ALWAYSGIB) );
 				pOther.pev.punchangle.z = -18;
 				pOther.pev.punchangle.x = 5;
 				pOther.pev.velocity = pOther.pev.velocity - g_Engine.v_right * 300;
@@ -616,7 +623,7 @@ class cnpc_icky : ScriptBaseAnimating
 
 	void DriveThink()
 	{
-		if( pev.owner is null or pev.owner.vars.deadflag != DEAD_NO )
+		if( m_pOwner is null or !m_pOwner.IsConnected() or m_pOwner.pev.deadflag != DEAD_NO )
 		{
 			if( m_hRenderEntity.IsValid() )
 				g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );
@@ -727,109 +734,34 @@ class cnpc_icky : ScriptBaseAnimating
 	}
 }
 
-class info_cnpc_icky : ScriptBaseAnimating
+final class info_cnpc_icky : CNPCSpawnEntity
 {
-	protected EHandle m_hCNPCWeapon;
-	protected CBaseEntity@ m_pCNPCWeapon
+	info_cnpc_icky()
 	{
-		get const { return cast<CBaseEntity@>(m_hCNPCWeapon.GetEntity()); }
-		set { m_hCNPCWeapon = EHandle(@value); }
+		sWeaponName = CNPC_WEAPONNAME;
+		sModel = CNPC_MODEL;
+		iStartAnim = ANIM_IDLE;
+		m_flDefaultRespawnTime = CNPC_RESPAWNTIME;
+		vecSizeMin = CNPC_SIZEMIN;
+		vecSizeMax = CNPC_SIZEMAX;
 	}
 
-	private float m_flRespawnTime; //how long until respawn
-	private float m_flTimeToRespawn; //used to check if ready to respawn
-
-	bool KeyValue( const string& in szKey, const string& in szValue )
+	void DoSpecificStuff()
 	{
-		if( szKey == "respawntime" )
-		{
-			m_flRespawnTime = atof( szValue );
-			return true;
-		}
-		else
-			return BaseClass.KeyValue( szKey, szValue );
-	}
-
-	void Spawn()
-	{
-		g_EntityFuncs.SetModel( self, "models/icky.mdl" );
-		g_EntityFuncs.SetSize( self.pev, Vector(-32, -32, 0), Vector(32, 32, 64) );
-		g_EntityFuncs.SetOrigin( self, pev.origin );
-
-		pev.solid = SOLID_NOT;
-		pev.movetype = MOVETYPE_NONE;
-		pev.sequence = ANIM_IDLE;
-		pev.rendermode = kRenderTransTexture;
-		pev.renderfx = kRenderFxDistort;
-		pev.renderamt = 128;
-
 		self.SetBoneController( 0, 0 );
-
-		if( m_flRespawnTime == 0 ) m_flRespawnTime = CNPC_RESPAWNTIME;
-
-		SetUse( UseFunction(this.UseCNPC) );
-	}
-
-	int ObjectCaps() { return (BaseClass.ObjectCaps() | FCAP_IMPULSE_USE); }
-
-	void UseCNPC( CBaseEntity@ pActivator, CBaseEntity@ pCaller, USE_TYPE useType, float flValue  ) 
-	{
-		if( pActivator.pev.FlagBitSet(FL_CLIENT) )
-		{
-			g_EntityFuncs.SetOrigin( pActivator, pev.origin );
-			pActivator.pev.angles = pev.angles;
-			pActivator.pev.fixangle = FAM_FORCEVIEWANGLES;
-			@m_pCNPCWeapon = g_EntityFuncs.Create( sWeaponName, pActivator.pev.origin, g_vecZero, true );
-			m_pCNPCWeapon.pev.spawnflags = SF_NORESPAWN | SF_CREATEDWEAPON;
-
-			g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "autodeploy", "1" );
-			g_EntityFuncs.DispatchSpawn( m_pCNPCWeapon.edict() );
-			m_pCNPCWeapon.Touch( pActivator ); //make sure they pick it up
-
-			SetUse( null );
-			pev.effects |= EF_NODRAW;
-
-			if( m_flRespawnTime == -1 )
-			{
-				g_EntityFuncs.Remove( self );
-				return;
-			}
-
-			SetThink( ThinkFunction(this.RespawnThink) );
-			pev.nextthink = g_Engine.time;
-		}
-	}
-
-	void RespawnThink()
-	{
-		pev.nextthink = g_Engine.time + 0.1;
-
-		if( m_pCNPCWeapon is null and m_flTimeToRespawn <= 0.0 )
-			m_flTimeToRespawn = g_Engine.time + m_flRespawnTime;
-
-		if( m_flTimeToRespawn > 0.0 and m_flTimeToRespawn <= g_Engine.time )
-		{
-			SetThink( null );
-			SetUse( UseFunction(this.UseCNPC) );
-			pev.effects &= ~EF_NODRAW;
-			m_flTimeToRespawn = 0.0;
-
-			g_SoundSystem.EmitSoundDyn( self.edict(), CHAN_BODY, arrsCNPCSounds[SND_RESPAWN], VOL_NORM, 0.3, 0, 90 );
-		}
 	}
 }
 
 void Register()
 {
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_icky::info_cnpc_icky", "info_cnpc_icky" );
-	g_Game.PrecacheOther( "info_cnpc_icky" );
-
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_icky::cnpc_icky", "cnpc_icky" );
-	g_Game.PrecacheOther( "cnpc_icky" );
+	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_icky::weapon_icky", CNPC_WEAPONNAME );
+	g_ItemRegistry.RegisterWeapon( CNPC_WEAPONNAME, "controlnpc" );
 
-	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_icky::weapon_icky", sWeaponName );
-	g_ItemRegistry.RegisterWeapon( sWeaponName, "controlnpc" );
-	g_Game.PrecacheOther( sWeaponName );
+	g_Game.PrecacheOther( "info_cnpc_icky" );
+	g_Game.PrecacheOther( "cnpc_icky" );
+	g_Game.PrecacheOther( CNPC_WEAPONNAME );
 }
 
 } //namespace cnpc_icky END

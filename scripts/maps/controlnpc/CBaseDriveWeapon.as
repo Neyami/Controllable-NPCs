@@ -44,11 +44,14 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 	//Prevent weapon from being dropped manually
 	CBasePlayerItem@ DropItem() { return null; }
 
-	CBaseEntity@ CheckTraceHullAttack( float flDist, int iDamage, int iDmgType )
+	CBaseEntity@ CheckTraceHullAttack( float flDist, int iDamage, int iDmgType, bool bUseViewAngles = true )
 	{
 		TraceResult tr;
 
-		Math.MakeVectors( m_pPlayer.pev.v_angle );
+		if( bUseViewAngles )
+			Math.MakeVectors( m_pPlayer.pev.v_angle );
+		else
+			Math.MakeVectors( m_pPlayer.pev.angles );
 
 		Vector vecStart = self.pev.origin;
 		vecStart.z += self.pev.size.z * 0.5;

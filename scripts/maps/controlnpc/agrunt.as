@@ -12,7 +12,9 @@ const float CNPC_HEALTH				= 150.0;
 const bool DISABLE_CROUCH			= true;
 const float CNPC_VIEWOFS				= 40.0; //camera height offset
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the shocktrooper itself
+const float CNPC_MODEL_OFFSET	= 32.0; //sometimes the model floats above the ground
 const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
+const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky movement on other players
 
 const float CD_HORNET					= 2.0;
 const float CD_MELEE						= 1.0;
@@ -326,6 +328,7 @@ class weapon_agrunt : CBaseDriveWeapon
 
 			DoIdleAnimation();
 			DoIdleSound();
+
 			CheckGrenadeInput();
 			ThrowGrenade();
 			DoAmmoRegen();
@@ -712,6 +715,8 @@ class cnpc_agrunt : ScriptBaseAnimating
 		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
 	}
 
+	private float m_flNextOriginUpdate; //hopefully fixes hacky movement on other players
+
 	void Spawn()
 	{
 		g_EntityFuncs.SetModel( self, CNPC_MODEL );
@@ -725,6 +730,8 @@ class cnpc_agrunt : ScriptBaseAnimating
 		pev.sequence = ANIM_IDLE;
 		pev.frame = 0;
 		self.ResetSequenceInfo();
+
+		m_flNextOriginUpdate = g_Engine.time;
 
 		SetThink( ThinkFunction(this.DriveThink) );
 		pev.nextthink = g_Engine.time;
@@ -741,9 +748,13 @@ class cnpc_agrunt : ScriptBaseAnimating
 			return;
 		}
 
-		Vector vecOrigin = m_pOwner.pev.origin;
-		vecOrigin.z -= 32.0;
-		g_EntityFuncs.SetOrigin( self, vecOrigin );
+		if( m_flNextOriginUpdate < g_Engine.time )
+		{
+			Vector vecOrigin = m_pOwner.pev.origin;
+			vecOrigin.z -= CNPC_MODEL_OFFSET;
+			g_EntityFuncs.SetOrigin( self, vecOrigin );
+			m_flNextOriginUpdate = g_Engine.time + CNPC_ORIGINUPDATE;
+		}
 
 		pev.velocity = m_pOwner.pev.velocity;
 

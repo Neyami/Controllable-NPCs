@@ -14,6 +14,7 @@ const float CNPC_VIEWOFS_TPV			= 40.0;
 const float CNPC_VIEWOFS_SHOOT	= 14.0;
 const float CNPC_RESPAWNTIME			= 13.0; //from the point that the weapon is removed, not the shocktrooper itself
 const float CNPC_MODEL_OFFSET		= 36.0; //sometimes the model floats above the ground
+const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky movement on other players
 
 const float SPEED_WALK						= -1; //461.184601 * CNPC::flModelToGameSpeedModifier; //461.184601
 const float SPEED_RUN						= -1; //137.380585 * CNPC::flModelToGameSpeedModifier; //137.380585
@@ -122,8 +123,8 @@ class weapon_strooper : CBaseDriveWeapon
 		m_bHasFired = false;
 		m_bShotBlocked = false;
 		m_bSecondSwingDone = false;
-		m_flNextGrenade = 0.0;
 		m_bHasThrownGrenade = false;
+		m_flNextGrenade = 0.0;
 		m_flLastBlinkTime = m_flLastBlinkInterval = g_Engine.time;
 
 		self.FallInit();
@@ -876,7 +877,13 @@ class sporegrenade2 : ScriptBaseMonsterEntity
 
 class cnpc_strooper : ScriptBaseAnimating
 {
+	protected CBasePlayer@ m_pOwner
+	{
+		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
+	}
+
 	EHandle m_hRenderEntity;
+	private float m_flNextOriginUpdate; //hopefully fixes hacky movement on other players
 	private bool m_bHasDroppedRoach;
 
 	void Spawn()
@@ -893,6 +900,7 @@ class cnpc_strooper : ScriptBaseAnimating
 		pev.frame = 0;
 		self.ResetSequenceInfo();
 
+		m_flNextOriginUpdate = g_Engine.time;
 		m_bHasDroppedRoach = false;
 
 		SetThink( ThinkFunction(this.DriveThink) );
@@ -903,17 +911,12 @@ class cnpc_strooper : ScriptBaseAnimating
 	{
 		if( CNPC::PVP )
 		{
-			if( pev.owner !is null )
+			if( m_pOwner !is null and m_pOwner.IsConnected() )
 			{
-				CBasePlayer@ pOwner = cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) );
-
-				if( pOwner.IsConnected() )
-				{
-					if( pOwner.Classify() == CLASS_PLAYER )
-						return CLASS_PLAYER_ALLY;
-					else
-						return pOwner.Classify();
-				}
+				if( m_pOwner.Classify() == CLASS_PLAYER )
+					return CLASS_PLAYER_ALLY;
+				else
+					return m_pOwner.Classify();
 			}
 		}
 
@@ -922,7 +925,7 @@ class cnpc_strooper : ScriptBaseAnimating
 
 	void DriveThink()
 	{
-		if( pev.owner is null or pev.owner.vars.deadflag != DEAD_NO )
+		if( m_pOwner is null or !m_pOwner.IsConnected() or m_pOwner.pev.deadflag != DEAD_NO )
 		{
 			if( m_hRenderEntity.IsValid() )
 				g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );
@@ -934,16 +937,18 @@ class cnpc_strooper : ScriptBaseAnimating
 			return;
 		}
 
-		CBasePlayer@ pOwner = cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) );
+		if( m_flNextOriginUpdate < g_Engine.time )
+		{
+			Vector vecOrigin = m_pOwner.pev.origin;
+			vecOrigin.z -= CNPC_MODEL_OFFSET;
+			g_EntityFuncs.SetOrigin( self, vecOrigin );
+			m_flNextOriginUpdate = g_Engine.time + CNPC_ORIGINUPDATE;
+		}
 
-		Vector vecOrigin = pOwner.pev.origin;
-		vecOrigin.z -= CNPC_MODEL_OFFSET;
-		g_EntityFuncs.SetOrigin( self, vecOrigin );
-
-		pev.velocity = pOwner.pev.velocity;
+		pev.velocity = m_pOwner.pev.velocity;
 
 		pev.angles.x = 0;
-		pev.angles.y = pOwner.pev.angles.y;
+		pev.angles.y = m_pOwner.pev.angles.y;
 		pev.angles.z = 0;
 
 		self.StudioFrameAdvance();

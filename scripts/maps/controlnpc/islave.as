@@ -15,6 +15,7 @@ const float CNPC_VIEWOFS_TPV		= 28.0;
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the islave itself
 const float CNPC_MODEL_OFFSET	= 36.0; //sometimes the model floats above the ground
 const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
+const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky movement on other players
 
 const float SPEED_WALK					= (55.127274 * CNPC::flModelToGameSpeedModifier) * 0.3;
 const float SPEED_RUN					= (151.098679 * CNPC::flModelToGameSpeedModifier) * 0.8;
@@ -316,13 +317,10 @@ class weapon_islave : CBaseDriveWeapon
 		{
 			m_pPlayer.pev.friction = 2; //no sliding!
 
-			if( (m_pPlayer.pev.button & IN_BACK) != 0 )
-				m_pPlayer.SetMaxSpeedOverride( 0 );
-			else if( m_pPlayer.pev.button & (IN_FORWARD|IN_MOVELEFT|IN_MOVERIGHT) != 0 and m_iState != STATE_MELEE and m_iState != STATE_RANGE )
+			if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and m_iState < STATE_RANGE )
 			{
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
 				DoMovementAnimation();
-				self.m_flTimeWeaponIdle = g_Engine.time + 0.1;
 			}
 
 			DoIdleAnimation();
@@ -836,7 +834,13 @@ class weapon_islave : CBaseDriveWeapon
 
 class cnpc_islave : ScriptBaseAnimating
 {
+	protected CBasePlayer@ m_pOwner
+	{
+		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
+	}
+
 	EHandle m_hRenderEntity;
+	private float m_flNextOriginUpdate; //hopefully fixes hacky movement on other players
 	int m_iVoicePitch;
 
 	void Spawn()
@@ -856,13 +860,15 @@ class cnpc_islave : ScriptBaseAnimating
 		pev.frame = 0;
 		self.ResetSequenceInfo();
 
+		m_flNextOriginUpdate = g_Engine.time;
+
 		SetThink( ThinkFunction(this.DriveThink) );
 		pev.nextthink = g_Engine.time;
 	}
 
 	void DriveThink()
 	{
-		if( pev.owner is null or pev.owner.vars.deadflag != DEAD_NO )
+		if( m_pOwner is null or !m_pOwner.IsConnected() or m_pOwner.pev.deadflag != DEAD_NO )
 		{
 			if( m_hRenderEntity.IsValid() )
 				g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );
@@ -874,20 +880,22 @@ class cnpc_islave : ScriptBaseAnimating
 			return;
 		}
 
-		CBasePlayer@ pOwner = cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) );
+		if( m_flNextOriginUpdate < g_Engine.time )
+		{
+			Vector vecOrigin = m_pOwner.pev.origin;
+			vecOrigin.z -= CNPC_MODEL_OFFSET;
+			g_EntityFuncs.SetOrigin( self, vecOrigin );
+			m_flNextOriginUpdate = g_Engine.time + CNPC_ORIGINUPDATE;
+		}
 
-		Vector vecOrigin = pOwner.pev.origin;
-		vecOrigin.z -= CNPC_MODEL_OFFSET;
-		g_EntityFuncs.SetOrigin( self, vecOrigin );
-
-		pev.velocity = pOwner.pev.velocity;
+		pev.velocity = m_pOwner.pev.velocity;
 
 		pev.angles.x = 0;
 
 		if( pev.velocity.Length2D() > 0.0 )
 			pev.angles.y = Math.VecToAngles( pev.velocity ).y;
 		else
-			pev.angles.y = pOwner.pev.angles.y;
+			pev.angles.y = m_pOwner.pev.angles.y;
 
 		pev.angles.z = 0;
 

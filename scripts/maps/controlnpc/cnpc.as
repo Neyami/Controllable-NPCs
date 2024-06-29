@@ -6,6 +6,7 @@
 #include "icky"
 #include "pitdrone"
 #include "strooper"
+#include "gonome"
 
 #include "fassn"
 #include "turret"
@@ -24,6 +25,7 @@ void MapInit()
 	cnpc_icky::Register();
 	cnpc_pitdrone::Register();
 	cnpc_strooper::Register();
+	cnpc_gonome::Register();
 
 	cnpc_fassn::Register();
 	cnpc_turret::Register();
@@ -50,6 +52,8 @@ const int PITDRONE_SLOT			= 1;
 const int PITDRONE_POSITION	= 15;
 const int STROOPER_SLOT			= 1;
 const int STROOPER_POSITION	= 16;
+const int GONOME_SLOT				= 1;
+const int GONOME_POSITION		= 17;
 
 //military
 const int FASSN_SLOT					= 2;
@@ -62,6 +66,26 @@ const string sCNPCKVPainTime = "$f_cnpc_nextpaintime";
 
 const float flModelToGameSpeedModifier = 1.650124131504528; //gotten from player maxspeed (270) divided by player model speed (163.624054)
 
+const array<string>arrsEdibles =
+{
+	"monster_barney",
+	"monster_hgrunt",
+	"monster_human_grunt",
+	"monster_otis",
+	"monster_scientist",
+
+	"monster_barney_dead",
+	"monster_hevsuit_dead",
+	"monster_hgrunt_dead",
+	"monster_otis_dead",
+	"monster_scientist_dead"
+};
+
+const array<string>arrsFlyingMobs =
+{
+	"info_cnpc_icky"
+};
+
 const array<string> arrsCNPCWeapons =
 {
 	"weapon_headcrab",
@@ -71,6 +95,8 @@ const array<string> arrsCNPCWeapons =
 	"weapon_icky",
 	"weapon_pitdrone",
 	"weapon_strooper",
+	"weapon_gonome",
+
 	"weapon_fassn",
 	"weapon_turret"
 };
@@ -84,6 +110,8 @@ enum cnpc_e
 	CNPC_ICKY,
 	CNPC_PITDRONE,
 	CNPC_STROOPER,
+	CNPC_GONOME,
+
 	CNPC_FASSN,
 	CNPC_TURRET
 };
@@ -135,12 +163,6 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 
 		case CNPC_HOUNDEYE:
 		{
-			/*if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
-				return HOOK_CONTINUE;
-
-			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.6, 1.2);
-			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );*/
-
 			if( pDamageInfo.flDamage > 0 and pDamageInfo.pVictim.pev.deadflag == DEAD_NO )
 				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_houndeye::pPainSounds[Math.RandomLong(0,(cnpc_houndeye::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 			
@@ -152,7 +174,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 		case CNPC_ISLAVE:
 		{
 			if( Math.RandomLong(0, 2) == 0 )
-				g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_WEAPON, cnpc_islave::pPainSounds[Math.RandomLong(0,(cnpc_islave::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(85, 110)/*cnpc_islave::m_iVoicePitch*/ ); //todo
+				g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_WEAPON, cnpc_islave::pPainSounds[Math.RandomLong(0,(cnpc_islave::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(85, 110) ); //TODO cnpc_islave::m_iVoicePitch
 
 			break;
 		}
@@ -172,12 +194,6 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 
 		case CNPC_ICKY:
 		{
-			/*if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
-				return HOOK_CONTINUE;
-
-			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.6, 1.2);
-			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );*/
-
 			if( pDamageInfo.flDamage > 0 and pDamageInfo.pVictim.pev.deadflag == DEAD_NO )
 				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_icky::pPainSounds[Math.RandomLong(0,(cnpc_icky::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 
@@ -212,7 +228,21 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
-		/*case CNPC_TURRET:
+		case CNPC_GONOME:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.6, 1.2);
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_gonome::pPainSounds[Math.RandomLong(0,(cnpc_gonome::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+
+			break;
+		}
+
+		/*TODO, add berserk mode??
+		case CNPC_TURRET:
 		{
 			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
 				return HOOK_CONTINUE;
@@ -383,7 +413,9 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 		g_EntityFuncs.SetModel( self, sModel );
 		g_EntityFuncs.SetSize( self.pev, vecSizeMin, vecSizeMax );
 		g_EntityFuncs.SetOrigin( self, pev.origin );
-		g_EngineFuncs.DropToFloor( self.edict() );
+
+		if( CNPC::arrsFlyingMobs.find(self.GetClassname()) < 0 )
+			g_EngineFuncs.DropToFloor( self.edict() );
 
 		pev.solid = SOLID_NOT;
 		pev.movetype = MOVETYPE_NONE;
@@ -457,4 +489,6 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 	Allow for pvp
 
 	Idle sounds and fidget animations
+
+	Berserk-mode for turret
 */

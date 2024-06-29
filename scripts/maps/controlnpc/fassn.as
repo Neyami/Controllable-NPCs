@@ -15,6 +15,8 @@ const float CNPC_VIEWOFS_FPV			= 28.0; //camera height offset
 const float CNPC_VIEWOFS_TPV			= 28.0;
 const float CNPC_VIEWOFS_SHOOT	= 14.0;
 const float CNPC_RESPAWNTIME			= 13.0; //from the point that the weapon is removed, not the fassn itself
+const float CNPC_MODEL_OFFSET		= 32.0; //sometimes the model floats above the ground
+const float CNPC_ORIGINUPDATE		= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky movement on other players
 
 const float SPEED_WALK						= -1;
 const float SPEED_RUN						= -1;
@@ -84,8 +86,7 @@ enum anim_e
 	ANIM_JUMP_START,
 	ANIM_JUMP_LOOP,
 	ANIM_JUMP_FALLING,
-	ANIM_JUMP_SHOOT,
-	ANIM_LAND
+	ANIM_JUMP_SHOOT
 };
 
 enum states_e
@@ -492,13 +493,10 @@ class weapon_fassn : CBaseDriveWeapon
 		{
 			m_pPlayer.pev.friction = 2; //no sliding!
 
-			if( m_pPlayer.pev.button & (IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 )
-				m_pPlayer.SetMaxSpeedOverride( 0 );
-			else if( m_pPlayer.pev.button & IN_FORWARD != 0 and m_iState != STATE_SHOOT and m_iState != STATE_MELEE and m_iState != STATE_GRENADE )
+			if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and (m_iState < STATE_SHOOT or (m_iState == STATE_JUMP and m_pPlayer.pev.FlagBitSet(FL_ONGROUND))) )
 			{
-				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) ); //-1
+				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
 				DoMovementAnimation();
-				self.m_flTimeWeaponIdle = g_Engine.time + 0.1;
 			}
 
 			DoIdleAnimation();
@@ -862,7 +860,13 @@ class weapon_fassn : CBaseDriveWeapon
 
 class cnpc_fassn : ScriptBaseAnimating
 {
+	protected CBasePlayer@ m_pOwner
+	{
+		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
+	}
+
 	EHandle m_hRenderEntity;
+	private float m_flNextOriginUpdate; //hopefully fixes hacky movement on other players
 
 	void Spawn()
 	{
@@ -878,13 +882,15 @@ class cnpc_fassn : ScriptBaseAnimating
 		pev.frame = 0;
 		self.ResetSequenceInfo();
 
+		m_flNextOriginUpdate = g_Engine.time;
+
 		SetThink( ThinkFunction(this.DriveThink) );
 		pev.nextthink = g_Engine.time;
 	}
 
 	void DriveThink()
 	{
-		if( pev.owner is null or pev.owner.vars.deadflag != DEAD_NO )
+		if( m_pOwner is null or !m_pOwner.IsConnected() or m_pOwner.pev.deadflag != DEAD_NO )
 		{
 			if( m_hRenderEntity.IsValid() )
 				g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );
@@ -896,16 +902,23 @@ class cnpc_fassn : ScriptBaseAnimating
 			return;
 		}
 
-		CBasePlayer@ pOwner = cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) );
+		if( m_flNextOriginUpdate < g_Engine.time )
+		{
+			Vector vecOrigin = m_pOwner.pev.origin;
+			vecOrigin.z -= CNPC_MODEL_OFFSET;
+			g_EntityFuncs.SetOrigin( self, vecOrigin );
+			m_flNextOriginUpdate = g_Engine.time + CNPC_ORIGINUPDATE;
+		}
 
-		Vector vecOrigin = pOwner.pev.origin;
-		vecOrigin.z -= 32.0;
-		g_EntityFuncs.SetOrigin( self, vecOrigin );
-
-		pev.velocity = pOwner.pev.velocity;
+		pev.velocity = m_pOwner.pev.velocity;
 
 		pev.angles.x = 0;
-		pev.angles.y = pOwner.pev.angles.y;
+
+		if( pev.velocity.Length2D() > 0.0 and pev.sequence < ANIM_JUMP_START )
+			pev.angles.y = Math.VecToAngles( pev.velocity ).y;
+		else
+			pev.angles.y = m_pOwner.pev.angles.y;
+
 		pev.angles.z = 0;
 
 		self.StudioFrameAdvance();
@@ -982,94 +995,6 @@ final class info_cnpc_fassn : CNPCSpawnEntity
 		vecSizeMax = VEC_HUMAN_HULL_MAX;
 	}
 }
-/*class info_cnpc_fassn : ScriptBaseAnimating
-{
-	protected EHandle m_hCNPCWeapon;
-	protected CBaseEntity@ m_pCNPCWeapon
-	{
-		get const { return cast<CBaseEntity@>(m_hCNPCWeapon.GetEntity()); }
-		set { m_hCNPCWeapon = EHandle(@value); }
-	}
-
-	private float m_flRespawnTime; //how long until respawn
-	private float m_flTimeToRespawn; //used to check if ready to respawn
-
-	bool KeyValue( const string& in szKey, const string& in szValue )
-	{
-		if( szKey == "respawntime" )
-		{
-			m_flRespawnTime = atof( szValue );
-			return true;
-		}
-		else
-			return BaseClass.KeyValue( szKey, szValue );
-	}
-
-	void Spawn()
-	{
-		g_EntityFuncs.SetModel( self, "models/hassassin.mdl" );
-		g_EntityFuncs.SetSize( self.pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );
-
-		Vector vecOrigin = pev.origin;
-		vecOrigin.z -= 36.0;
-		g_EntityFuncs.SetOrigin( self, vecOrigin );
-
-		pev.solid = SOLID_NOT;
-		pev.movetype = MOVETYPE_NONE;
-		pev.sequence = ANIM_IDLE;
-		pev.rendermode = kRenderTransTexture;
-		pev.renderfx = kRenderFxDistort;
-		pev.renderamt = 128;
-
-		if( m_flRespawnTime <= 0 ) m_flRespawnTime = CNPC_RESPAWNTIME;
-
-		SetUse( UseFunction(this.UseCNPC) );
-	}
-
-	int ObjectCaps() { return (BaseClass.ObjectCaps() | FCAP_IMPULSE_USE); }
-
-	void UseCNPC( CBaseEntity@ pActivator, CBaseEntity@ pCaller, USE_TYPE useType, float flValue  ) 
-	{
-		CustomKeyvalues@ pCustom = pActivator.GetCustomKeyvalues();
-		if( pCustom.GetKeyvalue(CNPC::sCNPCKV).GetInteger() != 0 ) return;
-
-		if( pActivator.pev.FlagBitSet(FL_CLIENT) and pActivator.pev.FlagBitSet(FL_ONGROUND) )
-		{
-			g_EntityFuncs.SetOrigin( pActivator, pev.origin );
-			pActivator.pev.angles = pev.angles;
-			pActivator.pev.fixangle = FAM_FORCEVIEWANGLES;
-			@m_pCNPCWeapon = g_EntityFuncs.Create( sWeaponName, pActivator.pev.origin, g_vecZero, true );
-			m_pCNPCWeapon.pev.spawnflags = SF_NORESPAWN | SF_CREATEDWEAPON;
-
-			g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "autodeploy", "1" );
-			g_EntityFuncs.DispatchSpawn( m_pCNPCWeapon.edict() );
-
-			SetUse( null );
-			pev.effects |= EF_NODRAW;
-
-			SetThink( ThinkFunction(this.RespawnThink) );
-			pev.nextthink = g_Engine.time;
-		}
-	}
-
-	void RespawnThink()
-	{
-		pev.nextthink = g_Engine.time + 0.1;
-
-		if( m_pCNPCWeapon is null and m_flTimeToRespawn <= 0.0 )
-			m_flTimeToRespawn = g_Engine.time +m_flRespawnTime;
-
-		if( m_flTimeToRespawn > 0.0 and m_flTimeToRespawn <= g_Engine.time )
-		{
-			SetThink( null );
-			SetUse( UseFunction(this.UseCNPC) );
-			pev.effects &= ~EF_NODRAW;
-			m_flTimeToRespawn = 0.0;
-
-			g_SoundSystem.EmitSoundDyn( self.edict(), CHAN_BODY, arrsCNPCSounds[SND_RESPAWN], VOL_NORM, 0.3, 0, 90 );
-		}
-	}
-}*/
 
 void Register()
 {

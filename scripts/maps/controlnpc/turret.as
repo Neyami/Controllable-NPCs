@@ -877,6 +877,11 @@ class weapon_turret : CBaseDriveWeapon
 
 class cnpc_turret : ScriptBaseAnimating
 {
+	protected CBasePlayer@ m_pOwner
+	{
+		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
+	}
+
 	EHandle m_hRenderEntity;
 
 	int m_iOrientation;
@@ -906,7 +911,7 @@ class cnpc_turret : ScriptBaseAnimating
 
 	void DriveThink()
 	{
-		if( pev.owner is null or pev.owner.vars.deadflag != DEAD_NO )
+		if( m_pOwner is null or !m_pOwner.IsConnected() or m_pOwner.pev.deadflag != DEAD_NO )
 		{
 			if( m_hRenderEntity.IsValid() )
 				g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );

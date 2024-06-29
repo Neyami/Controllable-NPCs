@@ -1,16 +1,22 @@
 namespace cnpc_pitdrone
 {
-	
-const string sWeaponName			= "weapon_pitdrone";
+
+const string CNPC_WEAPONNAME	= "weapon_pitdrone";
+const string CNPC_MODEL				= "models/pit_drone.mdl";
+const Vector CNPC_SIZEMIN			= Vector(-16, -16, 0);
+const Vector CNPC_SIZEMAX			= Vector(16, 16, 72);
 
 const float CNPC_HEALTH				= 60.0;
+const float CNPC_MODEL_OFFSET	= 32.0; //sometimes the model floats above the ground
+const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky movement on other players
+const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the template itself
 
 const bool DISABLE_CROUCH			= false;
 const float CNPC_VIEWOFS				= 0.0; //camera height offset
 
 //The numbers are from the model, but are too slow :FeelsBadMan:
-//const float SPEED_WALK					= 66.860611 * CNPC::flModelToGameSpeedModifier;
-//const float SPEED_RUN					= 126.246635 * CNPC::flModelToGameSpeedModifier;
+const float SPEED_WALK					= -1; //66.860611 * CNPC::flModelToGameSpeedModifier;
+const float SPEED_RUN					= -1; //126.246635 * CNPC::flModelToGameSpeedModifier;
 
 const float RANGE_CD						= 0.8;
 const float RANGE_DAMAGE				= 15.0;
@@ -100,7 +106,6 @@ enum states_e
 	STATE_IDLE = 0,
 	STATE_WALK,
 	STATE_RUN,
-	STATE_DEATH,
 	STATE_ATTACK_RANGE,
 	STATE_ATTACK_MELEE,
 	STATE_RELOAD,
@@ -127,7 +132,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 	void Precache()
 	{
-		g_Game.PrecacheModel( "models/pit_drone.mdl" );
+		g_Game.PrecacheModel( CNPC_MODEL );
 		g_Game.PrecacheModel( "models/pit_drone_spike.mdl" );
 		m_iSpikeSpray = g_Game.PrecacheModel( "sprites/tinyspit.spr" );
 
@@ -177,16 +182,24 @@ class weapon_pitdrone : CBaseDriveWeapon
 		@m_pPlayer = pPlayer;
 
 		NetworkMessage m1( MSG_ONE, NetworkMessages::WeapPickup, pPlayer.edict() );
-			m1.WriteLong( g_ItemRegistry.GetIdForName(sWeaponName) );
+			m1.WriteLong( g_ItemRegistry.GetIdForName(CNPC_WEAPONNAME) );
 		m1.End();
 
 		m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType, 6);
+
+		if( m_iAutoDeploy == 1 ) m_pPlayer.SwitchWeapon(self);
 
 		return true;
 	}
 
 	bool Deploy()
 	{
+		if( m_iAutoDeploy == 1 )
+		{
+			spawn_driveent();
+			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.5;
+		}
+
 		return self.DefaultDeploy( "", "", 0, "" );
 	}
 
@@ -207,7 +220,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 	void PrimaryAttack()
 	{
-		if( m_pPlayer.pev.velocity.Length() > 10.0 or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) or m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) <= 0 )
+		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) or m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) <= 0 )
 		{
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.3;
 			return;
@@ -215,18 +228,15 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 		if( m_pDriveEnt !is null )
 		{
-			if( m_iState != STATE_WALK and m_iState != STATE_RUN and m_iState != STATE_DEATH )
-			{
-				m_iState = STATE_ATTACK_RANGE;
-				m_pPlayer.SetMaxSpeedOverride( 0 );
+			m_iState = STATE_ATTACK_RANGE;
+			m_pPlayer.SetMaxSpeedOverride( 0 );
 
-				m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[ANIM_RANGE]);
-				m_pDriveEnt.pev.frame = 0;
-				m_pDriveEnt.ResetSequenceInfo();
+			m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[ANIM_RANGE]);
+			m_pDriveEnt.pev.frame = 0;
+			m_pDriveEnt.ResetSequenceInfo();
 
-				SetThink( ThinkFunction(this.RangeAttackThink) );
-				pev.nextthink = g_Engine.time + 0.3;
-			}
+			SetThink( ThinkFunction(this.RangeAttackThink) );
+			pev.nextthink = g_Engine.time + 0.3;
 		}
 		else
 		{
@@ -242,13 +252,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 	void SecondaryAttack()
 	{
-		if( m_pPlayer.pev.velocity.Length() > 10.0 )
-		{
-			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.3;
-			return;
-		}
-
-		if( m_pDriveEnt !is null and m_iState != STATE_WALK and m_iState != STATE_RUN and m_iState != STATE_ATTACK_RANGE and m_iState != STATE_DEATH and m_iState != STATE_RELOAD )
+		if( m_pDriveEnt !is null and m_iState != STATE_ATTACK_RANGE and m_iState != STATE_RELOAD )
 		{
 			m_iState = STATE_ATTACK_MELEE;
 			m_pPlayer.SetMaxSpeedOverride( 0 );
@@ -317,16 +321,10 @@ class weapon_pitdrone : CBaseDriveWeapon
 			else
 				m_pPlayer.pev.view_ofs = Vector( 0.0, 0.0, CNPC_VIEWOFS );
 
-			if( m_pPlayer.pev.button & (IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 )
-				m_pPlayer.SetMaxSpeedOverride( 0 );
-			else if( m_pPlayer.pev.button & IN_FORWARD != 0 )
+			if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and (m_iState < STATE_ATTACK_RANGE or (m_iState == STATE_JUMP and m_pPlayer.pev.FlagBitSet(FL_ONGROUND))) )
 			{
-				if( m_iState != STATE_ATTACK_MELEE and m_iState != STATE_ATTACK_RANGE and m_iState != STATE_RELOAD )
-				{
-					m_pPlayer.SetMaxSpeedOverride( -1 ); //int(SPEED_RUN)
-					DoMovementAnimation();
-					self.m_flTimeWeaponIdle = g_Engine.time + 0.1;
-				}
+				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
+				DoMovementAnimation();
 			}
 
 			if( m_pPlayer.pev.velocity.Length() <= 10.0 and m_iState != STATE_ATTACK_RANGE and m_iState != STATE_ATTACK_MELEE and m_iState != STATE_RELOAD )
@@ -533,7 +531,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 		if( m_flDuckPressed > 0.0 and m_flDuckPressed < g_Engine.time )
 			m_flDuckPressed = 0.0;
 
-		if( !IsBetween2(m_iState, STATE_DEATH, STATE_RELOAD) and (m_pPlayer.pev.button & IN_JUMP) == 0 and (m_pPlayer.pev.oldbuttons & IN_JUMP) != 0 )
+		if( !IsBetween2(m_iState, STATE_ATTACK_RANGE, STATE_RELOAD) and (m_pPlayer.pev.button & IN_JUMP) == 0 and (m_pPlayer.pev.oldbuttons & IN_JUMP) != 0 )
 		{
 			m_iState = STATE_JUMP;
 
@@ -604,7 +602,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 	void spawn_driveent()
 	{
-		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) )
+		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) and m_iAutoDeploy == 0 )
 		{
 			g_EngineFuncs.ClientPrintf( m_pPlayer, print_center, "Unable to deploy\nwhile in the air" );
 			return;
@@ -652,12 +650,19 @@ class weapon_pitdrone : CBaseDriveWeapon
 	}
 }
 
-class cnpc_pitdrone : ScriptBaseAnimating//ScriptBaseMonsterEntity
+class cnpc_pitdrone : ScriptBaseAnimating
 {
+	protected CBasePlayer@ m_pOwner
+	{
+		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
+	}
+
+	private float m_flNextOriginUpdate; //hopefully fixes hacky movement on other players
+
 	void Spawn()
 	{
 		g_EntityFuncs.SetModel( self, "models/pit_drone.mdl" );
-		g_EntityFuncs.SetSize( self.pev, Vector(-16, -16, 0), Vector(16, 16, 72) );
+		g_EntityFuncs.SetSize( self.pev, CNPC_SIZEMIN, CNPC_SIZEMAX );
 		g_EntityFuncs.SetOrigin( self, pev.origin );
 		g_EngineFuncs.DropToFloor( self.edict() );
 
@@ -669,13 +674,15 @@ class cnpc_pitdrone : ScriptBaseAnimating//ScriptBaseMonsterEntity
 		self.ResetSequenceInfo();
 		self.SetBodygroup( 1, 1 );
 
+		m_flNextOriginUpdate = g_Engine.time;
+
 		SetThink( ThinkFunction(this.DriveThink) );
 		pev.nextthink = g_Engine.time;
 	}
 
 	void DriveThink()
 	{
-		if( pev.owner is null or pev.owner.vars.deadflag != DEAD_NO )
+		if( m_pOwner is null or !m_pOwner.IsConnected() or m_pOwner.pev.deadflag != DEAD_NO )
 		{
 			pev.velocity = g_vecZero;
 			SetThink( ThinkFunction(this.DieThink) );
@@ -684,19 +691,26 @@ class cnpc_pitdrone : ScriptBaseAnimating//ScriptBaseMonsterEntity
 			return;
 		}
 
-		CBasePlayer@ pOwner = cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) );
+		if( m_flNextOriginUpdate < g_Engine.time )
+		{
+			Vector vecOrigin = m_pOwner.pev.origin;
+			vecOrigin.z -= CNPC_MODEL_OFFSET;
+			g_EntityFuncs.SetOrigin( self, vecOrigin );
+			m_flNextOriginUpdate = g_Engine.time + CNPC_ORIGINUPDATE;
+		}
 
-		Vector vecOrigin = pOwner.pev.origin;
-		vecOrigin.z -= 32.0;
-		g_EntityFuncs.SetOrigin( self, vecOrigin );
-
-		pev.velocity = pOwner.pev.velocity;
+		pev.velocity = m_pOwner.pev.velocity;
 
 		pev.angles.x = 0;
-		pev.angles.y = pOwner.pev.angles.y;
+
+		if( pev.velocity.Length2D() > 0.0 )
+			pev.angles.y = Math.VecToAngles( pev.velocity ).y;
+		else
+			pev.angles.y = m_pOwner.pev.angles.y;
+
 		pev.angles.z = 0;
 
-		pev.scale = pOwner.pev.scale;
+		pev.scale = m_pOwner.pev.scale;
 
 		self.StudioFrameAdvance();
 
@@ -756,14 +770,29 @@ class cnpc_pitdrone : ScriptBaseAnimating//ScriptBaseMonsterEntity
 	}
 }
 
+final class info_cnpc_pitdrone : CNPCSpawnEntity
+{
+	info_cnpc_pitdrone()
+	{
+		sWeaponName = CNPC_WEAPONNAME;
+		sModel = CNPC_MODEL;
+		iStartAnim = ANIM_IDLE;
+		m_flDefaultRespawnTime = CNPC_RESPAWNTIME;
+		vecSizeMin = CNPC_SIZEMIN;
+		vecSizeMax = CNPC_SIZEMAX;
+	}
+}
+
 void Register()
 {
+	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_pitdrone::info_cnpc_pitdrone", "info_cnpc_pitdrone" );
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_pitdrone::cnpc_pitdrone", "cnpc_pitdrone" );
-	g_Game.PrecacheOther( "cnpc_pitdrone" );
+	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_pitdrone::weapon_pitdrone", CNPC_WEAPONNAME );
+	g_ItemRegistry.RegisterWeapon( CNPC_WEAPONNAME, "controlnpc", "spikes" );
 
-	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_pitdrone::weapon_pitdrone", sWeaponName );
-	g_ItemRegistry.RegisterWeapon( sWeaponName, "controlnpc", "spikes" );
-	g_Game.PrecacheOther( sWeaponName );
+	g_Game.PrecacheOther( "cnpc_pitdrone" );
+	g_Game.PrecacheOther( "info_cnpc_pitdrone" );
+	g_Game.PrecacheOther( CNPC_WEAPONNAME );
 }
 
 } //namespace cnpc_pitdrone END
