@@ -58,7 +58,7 @@ const array<string> arrsTurretSounds =
 enum sound_e
 {
 	SND_RESPAWN,
-	SND_DEPLOY = 0,
+	SND_DEPLOY = 1,
 	SND_ACTIVE2,
 	SND_SPINUP,
 	SND_SPINDOWN,
