@@ -297,7 +297,12 @@ class weapon_turret : CBaseDriveWeapon
 		if( !CNPC_FIRSTPERSON )
 		{
 			m_pPlayer.SetViewMode( ViewMode_FirstPerson );
-			m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_FPV_OFF );
+
+			if( m_iState == STATE_IDLE_INACTIVE )
+				m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_FPV_OFF );
+			else
+				m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_FPV_ON );
+
 			DoFirstPersonView();
 			CNPC_FIRSTPERSON = true;
 		}
