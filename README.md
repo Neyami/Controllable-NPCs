@@ -94,6 +94,21 @@ Talk in chat: Speak in the language of Shock Troopers
 Ammo replenishes when idle  
 
 
+
+<BR>
+
+
+# GONOME #  
+`weapon_gonome` - Give this to the player  
+`info_cnpc_gonome` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Melee, Left and Right Slash  
+Secondary Attack: Melee, Bite and Thrash  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: Throw Guts  
+Use: Hold to feed on dead humanoids to regenerate health  
+
+
 <BR>
 
 
