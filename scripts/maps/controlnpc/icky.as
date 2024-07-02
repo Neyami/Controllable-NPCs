@@ -15,6 +15,7 @@ const float CNPC_CAMDIST				= 256.0;
 const float CNPC_VIEWOFS_FPV		= 0.0; //camera height offset
 const float CNPC_VIEWOFS_TPV		= 40.0;
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the icky itself
+const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
 const float CNPC_FLOATTIME			= 20.0; //the body will stick around for this long
 
 const float SPEED_RUN_MAX			= 300.0;
@@ -43,20 +44,27 @@ const array<string> pDieSounds =
 
 const array<string> arrsCNPCSounds = 
 {
-	"ambience/particle_suck1.wav",
+	"ambience/particle_suck1.wav", //only here for the precache
 	"ichy/ichy_attack1.wav",
 	"ichy/ichy_attack2.wav",
 	"ichy/ichy_bite1.wav",
-	"ichy/ichy_bite2.wav"
+	"ichy/ichy_bite2.wav",
+	"ichy/ichy_idle1.wav",
+	"ichy/ichy_idle2.wav",
+	"ichy/ichy_idle3.wav",
+	"ichy/ichy_idle4.wav"
 };
 
 enum sound_e
 {
-	SND_RESPAWN = 0,
-	SND_ATTACK1,
+	SND_ATTACK1 = 1,
 	SND_ATTACK2,
 	SND_BITE1,
-	SND_BITE2
+	SND_BITE2,
+	SND_IDLE1,
+	SND_IDLE2,
+	SND_IDLE3,
+	SND_IDLE4
 };
 
 enum anim_e
@@ -272,21 +280,6 @@ class weapon_icky : CBaseDriveWeapon
 		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
 	}
 
-	void Reload() //necessary to prevent the reload-key from interfering?
-	{
-	}
-
-	//doesn't actually do anything??
-	void WeaponIdle()
-	{
-		if( self.m_flTimeWeaponIdle > g_Engine.time )
-			return;
-
-		DoIdleAnimation();
-
-		self.m_flTimeWeaponIdle = g_Engine.time + 1.0;
-	}
-
 	void ItemPreFrame()
 	{
 		if( m_pDriveEnt !is null )
@@ -312,8 +305,8 @@ class weapon_icky : CBaseDriveWeapon
 				m_iState = STATE_RUN;
 			}
 
-			if( m_pPlayer.pev.velocity.Length2D() <= 10.0 )
-				DoIdleAnimation();
+			DoIdleAnimation();
+			DoIdleSound();
 		}
 	}
 
@@ -446,14 +439,25 @@ class weapon_icky : CBaseDriveWeapon
 		if( m_pDriveEnt is null ) return;
 		if( m_pDriveEnt.pev.sequence == ANIM_BITE_BIG and !m_pDriveEnt.m_fSequenceFinished ) return;
 		if( (m_pDriveEnt.pev.sequence == ANIM_BITE_LEFT or m_pDriveEnt.pev.sequence == ANIM_BITE_RIGHT) and !m_pDriveEnt.m_fSequenceFinished ) return;
-
-		if( m_iState != STATE_IDLE )
+		
+		if( m_pPlayer.pev.velocity.Length() <= 10.0 )
 		{
-			m_iState = STATE_IDLE;
-			m_pDriveEnt.pev.sequence = ANIM_IDLE;
-			m_pDriveEnt.pev.frame = 0;
-			m_pDriveEnt.ResetSequenceInfo();
+			if( m_iState != STATE_IDLE )
+			{
+				m_iState = STATE_IDLE;
+				m_pDriveEnt.pev.sequence = ANIM_IDLE;
+				m_pDriveEnt.pev.frame = 0;
+				m_pDriveEnt.ResetSequenceInfo();
+			}
 		}
+	}
+
+	void IdleSound()
+	{
+		if( m_pDriveEnt is null ) return;
+
+		g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[Math.RandomLong(SND_IDLE1, SND_IDLE4)], VOL_NORM, 0.6, 0, Math.RandomLong(95, 105) );
+		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 	}
 
 	void spawn_driveent()

@@ -8,7 +8,8 @@ const Vector CNPC_SIZEMAX			= Vector(16, 16, 72);
 
 const float CNPC_HEALTH				= 60.0;
 const float CNPC_MODEL_OFFSET	= 32.0; //sometimes the model floats above the ground
-const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky movement on other players
+const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
+const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the template itself
 
 const bool DISABLE_CROUCH			= false;
@@ -24,37 +25,14 @@ const float RANGE_SPEED				= 900.0;
 const float RANGE_PITCH_MIN		= -44.5;
 const float RANGE_PITCH_MAX		= 32.0;
 
-const float MELEE_CD						= 1.5;
+const float MELEE_CD1					= 1.2; //both arms
+const float MELEE_CD2					= 1.5; //slashes
 const float MELEE_RANGE				= 70.0;
 const float MELEE_DAMAGE1			= 25.0;
 const float MELEE_DAMAGE2			= 25.0;
 
 const float RELOAD_TIME				= 1.0;
 const float JUMP_VELOCITY				= 350.0;
-
-
-const array<string> pAttackSounds = 
-{
-	"pitdrone/pit_drone_melee_attack1.wav",
-	"pitdrone/pit_drone_melee_attack2.wav"
-};
-
-const array<string> pAttackHitStrikeSounds = 
-{
-	"bullchicken/bc_bite2.wav"
-};
-
-const array<string> pAttackMissSounds = 
-{
-	"zombie/claw_miss1.wav",
-	"zombie/claw_miss2.wav"
-};
-
-const array<string> pAttackSoundsSpike = 
-{
-	"pitdrone/pit_drone_attack_spike1.wav",
-	"pitdrone/pit_drone_attack_spike2.wav"
-};
 
 const array<string> pPainSounds = 
 {
@@ -64,41 +42,54 @@ const array<string> pPainSounds =
 	"pitdrone/pit_drone_pain4.wav"
 };
 
-const array<string> pDieSounds = 
+const array<string> arrsCNPCSounds = 
 {
+	"ambience/particle_suck1.wav", //only here for the precache
+	"pitdrone/pit_drone_melee_attack1.wav",
+	"pitdrone/pit_drone_melee_attack2.wav",
+	"bullchicken/bc_bite2.wav",
+	"zombie/claw_miss1.wav",
+	"zombie/claw_miss2.wav",
+	"pitdrone/pit_drone_attack_spike1.wav",
+	"pitdrone/pit_drone_attack_spike2.wav",
 	"pitdrone/pit_drone_die1.wav",
 	"pitdrone/pit_drone_die2.wav",
-	"pitdrone/pit_drone_die3.wav"
+	"pitdrone/pit_drone_die3.wav",
+	"pitdrone/pit_drone_idle1.wav",
+	"pitdrone/pit_drone_idle2.wav",
+	"pitdrone/pit_drone_idle3.wav"
+};
+
+enum sound_e
+{
+	SND_ATTACK1 = 1,
+	SND_ATTACK2,
+	SND_HIT,
+	SND_MISS1,
+	SND_MISS2,
+	SND_SHOOT1,
+	SND_SHOOT2,
+	SND_DIE1,
+	SND_DIE2,
+	SND_DIE3,
+	SND_IDLE1,
+	SND_IDLE2,
+	SND_IDLE3
 };
 
 enum anim_e
 {
 	ANIM_IDLE = 0,
-	ANIM_WALK,
-	ANIM_RUN,
-	ANIM_MELEE1,
+	ANIM_WALK = 2,
+	ANIM_RUN = 4,
+	ANIM_JUMP,
+	ANIM_MELEE1 = 10,
 	ANIM_MELEE2,
 	ANIM_RANGE,
-	ANIM_RELOAD,
-	ANIM_JUMP,
+	ANIM_RELOAD = 14,
 	ANIM_DEATH1,
 	ANIM_DEATH2,
 	ANIM_DEATH3
-};
-
-const array<string> arrsAnims = 
-{
-	"idle_1",
-	"walk",
-	"run",
-	"bite",
-	"whip",
-	"range",
-	"reload",
-	"jump",
-	"die",
-	"die1",
-	"die2"
 };
 
 enum states_e
@@ -117,6 +108,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 	private int m_iRandomAttack;
 	private int m_iSpikeSpray;
 	private float m_flDuckPressed;
+	private float m_flStopMeleeAttack; //hacky way to speed up the end of the attack
 
 	void Spawn()
 	{
@@ -126,6 +118,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 		m_iState = STATE_IDLE;
 		m_iRandomAttack = 0;
+		m_flStopMeleeAttack = 0.0;
 
 		self.FallInit();
 	}
@@ -138,23 +131,11 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 		uint i;
 
-		for( i = 0; i < pAttackSounds.length(); i++ )
-			g_SoundSystem.PrecacheSound( pAttackSounds[i] );
-
-		for( i = 0; i < pAttackHitStrikeSounds.length(); i++ )
-			g_SoundSystem.PrecacheSound( pAttackHitStrikeSounds[i] );
-
-		for( i = 0; i < pAttackMissSounds.length(); i++ )
-			g_SoundSystem.PrecacheSound( pAttackMissSounds[i] );
-
-		for( i = 0; i < pAttackSoundsSpike.length(); i++ )
-			g_SoundSystem.PrecacheSound( pAttackSoundsSpike[i] );
+		for( i = 0; i < arrsCNPCSounds.length(); i++ )
+			g_SoundSystem.PrecacheSound( arrsCNPCSounds[i] );
 
 		for( i = 0; i < pPainSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pPainSounds[i] );
-
-		for( i = 0; i < pDieSounds.length(); i++ )
-			g_SoundSystem.PrecacheSound( pDieSounds[i] );
 
 		//Precache these for downloading
 		g_Game.PrecacheGeneric( "sprites/controlnpc/weapon_pitdrone.txt" );
@@ -231,7 +212,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 			m_iState = STATE_ATTACK_RANGE;
 			m_pPlayer.SetMaxSpeedOverride( 0 );
 
-			m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[ANIM_RANGE]);
+			m_pDriveEnt.pev.sequence = ANIM_RANGE;
 			m_pDriveEnt.pev.frame = 0;
 			m_pDriveEnt.ResetSequenceInfo();
 
@@ -252,58 +233,48 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 	void SecondaryAttack()
 	{
-		if( m_pDriveEnt !is null and m_iState != STATE_ATTACK_RANGE and m_iState != STATE_RELOAD )
+		if( m_pDriveEnt is null or m_iState == STATE_ATTACK_RANGE or m_iState == STATE_RELOAD or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) )
 		{
-			m_iState = STATE_ATTACK_MELEE;
-			m_pPlayer.SetMaxSpeedOverride( 0 );
+			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.3;
+			return;
+		}
 
-			m_iRandomAttack = Math.RandomLong(0, 1);
+		m_iState = STATE_ATTACK_MELEE;
+		m_pPlayer.SetMaxSpeedOverride( 0 );
 
-			switch( m_iRandomAttack )
+		m_iRandomAttack = Math.RandomLong(0, 1);
+
+		switch( m_iRandomAttack )
+		{
+			//both arms
+			case 0:
 			{
-				//both arms
-				case 0:
-				{
-					g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_VOICE, pAttackSounds[0], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
-					m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[ANIM_MELEE1]);
-					pev.nextthink = g_Engine.time + 0.5;
+				g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[SND_ATTACK1], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
+				m_pDriveEnt.pev.sequence = ANIM_MELEE1;
+				pev.nextthink = g_Engine.time + 0.5;
+				m_flStopMeleeAttack = g_Engine.time + 1.0;
+				self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + MELEE_CD1;
 
-					break;
-				}
-
-				//slashes
-				case 1:
-				{
-					g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_VOICE, pAttackSounds[1], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
-					m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[ANIM_MELEE2]);
-					pev.nextthink = g_Engine.time + 0.2;
-
-					break;
-				}
+				break;
 			}
 
-			m_pDriveEnt.pev.frame = 0;
-			m_pDriveEnt.ResetSequenceInfo();
+			//slashes
+			case 1:
+			{
+				g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[SND_ATTACK2], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
+				m_pDriveEnt.pev.sequence = ANIM_MELEE2;
+				pev.nextthink = g_Engine.time + 0.2;
+				m_flStopMeleeAttack = g_Engine.time + 1.4;
+				self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + MELEE_CD2;
 
-			SetThink( ThinkFunction(this.MeleeAttackThink) );
-
-			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + MELEE_CD;
-			self.m_flTimeWeaponIdle = g_Engine.time + MELEE_CD;
+				break;
+			}
 		}
-	}
 
-	void Reload()
-	{
-	}
+		m_pDriveEnt.pev.frame = 0;
+		m_pDriveEnt.ResetSequenceInfo();
 
-	void WeaponIdle()
-	{
-		if( self.m_flTimeWeaponIdle > g_Engine.time )
-			return;
-
-		DoIdleAnimation();
-
-		self.m_flTimeWeaponIdle = g_Engine.time + 1.0;
+		SetThink( ThinkFunction(this.MeleeAttackThink) );
 	}
 
 	void ItemPreFrame()
@@ -327,13 +298,14 @@ class weapon_pitdrone : CBaseDriveWeapon
 				DoMovementAnimation();
 			}
 
-			if( m_pPlayer.pev.velocity.Length() <= 10.0 and m_iState != STATE_ATTACK_RANGE and m_iState != STATE_ATTACK_MELEE and m_iState != STATE_RELOAD )
-				DoIdleAnimation();
+			DoIdleAnimation();
+			DoIdleSound();
+			StopMeleeAttack();
+			DoReload();
 
 			if( (m_pPlayer.pev.button & IN_DUCK) != 0 and (m_pPlayer.pev.oldbuttons & IN_DUCK) == 0 and m_flDuckPressed <= 0.0 )
 				m_flDuckPressed = g_Engine.time + 0.3;
 
-			DoReload();
 			DoJump();
 		}
 	}
@@ -398,7 +370,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 			else 
 				m_pDriveEnt.SetBodygroup( 1, m_pDriveEnt.GetBodygroup(1) + 1 );
 
-			g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, pAttackSoundsSpike[Math.RandomLong(0,(pAttackSoundsSpike.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
+			g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, arrsCNPCSounds[Math.RandomLong(SND_SHOOT1, SND_SHOOT2)], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
 		}
 	}
 
@@ -425,15 +397,15 @@ class weapon_pitdrone : CBaseDriveWeapon
 					pHurt.pev.punchangle.x = -30.0;
 					g_PlayerFuncs.ScreenShake( pHurt.pev.origin, 8.0, 1.5, 0.7, 2 );
 
-					g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, pAttackHitStrikeSounds[Math.RandomLong(0,(pAttackHitStrikeSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
+					g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, arrsCNPCSounds[SND_HIT], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
 				}
 			}
 			else
 			{
 				if( Math.RandomLong(0, 1) == 1 )
-					g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, pAttackSoundsSpike[Math.RandomLong(0,(pAttackSoundsSpike.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
+					g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[Math.RandomLong(SND_SHOOT1, SND_SHOOT2)], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
 
-				g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, pAttackMissSounds[Math.RandomLong(0,(pAttackMissSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
+				g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[Math.RandomLong(SND_MISS1, SND_MISS2)], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
 			}
 		}
 		else if( m_iRandomAttack == 1 ) //right slash
@@ -456,7 +428,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 				}
 			} 
 			else
-				g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, pAttackMissSounds[Math.RandomLong(0,(pAttackMissSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
+				g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[Math.RandomLong(SND_MISS1, SND_MISS2)], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
 
 			m_iRandomAttack = 2;
 			pev.nextthink = g_Engine.time + 0.6;
@@ -484,9 +456,9 @@ class weapon_pitdrone : CBaseDriveWeapon
 			else
 			{
 				if( Math.RandomLong(0, 1) == 1 )
-					g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, pAttackSoundsSpike[Math.RandomLong(0,(pAttackSoundsSpike.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
+					g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[Math.RandomLong(SND_SHOOT1, SND_SHOOT2)], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
 
-				g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, pAttackMissSounds[Math.RandomLong(0,(pAttackMissSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
+				g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[Math.RandomLong(SND_MISS1, SND_MISS2)], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(95, 105) );
 			}
 		}
 
@@ -495,12 +467,12 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 	void DoReload()
 	{
-		if( m_iState == STATE_IDLE and (m_pPlayer.pev.button & IN_RELOAD) == 0 and (m_pPlayer.pev.oldbuttons & IN_RELOAD) != 0 and m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) < 6 )
+		if( m_iState < STATE_ATTACK_RANGE and (m_pPlayer.pev.button & IN_RELOAD) == 0 and (m_pPlayer.pev.oldbuttons & IN_RELOAD) != 0 and m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) < 6 and m_pPlayer.pev.FlagBitSet(FL_ONGROUND) )
 		{
 			m_iState = STATE_RELOAD;
 
 			m_pPlayer.SetMaxSpeedOverride( 0 );
-			m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[ANIM_RELOAD]);
+			m_pDriveEnt.pev.sequence = ANIM_RELOAD;
 			m_pDriveEnt.pev.frame = 0;
 			m_pDriveEnt.ResetSequenceInfo();
 
@@ -536,7 +508,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 			m_iState = STATE_JUMP;
 
 			m_pPlayer.SetMaxSpeedOverride( 0 );
-			m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[ANIM_JUMP]);
+			m_pDriveEnt.pev.sequence = ANIM_JUMP;
 			m_pDriveEnt.pev.frame = SetFrame(10, 43);
 			m_pDriveEnt.ResetSequenceInfo();
 			Math.MakeVectors( m_pPlayer.pev.angles );
@@ -562,22 +534,22 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 		if( (m_pPlayer.pev.button & IN_USE) != 0 or IsBetween(m_pPlayer.pev.velocity.Length(), flMinWalkVelocity, flMaxWalkVelocity) )
 		{
-			if( m_pDriveEnt.pev.sequence != m_pDriveEnt.LookupSequence(arrsAnims[ANIM_WALK]) )
+			if( m_pDriveEnt.pev.sequence != ANIM_WALK )
 			{
 				m_iState = STATE_WALK;
 				//m_pPlayer.SetMaxSpeedOverride( int(SPEED_WALK) );
-				m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[ANIM_WALK]);
+				m_pDriveEnt.pev.sequence = ANIM_WALK;
 				m_pDriveEnt.pev.frame = 0;
 				m_pDriveEnt.ResetSequenceInfo();
 			}
 		}
 		else
 		{
-			if( m_pDriveEnt.pev.sequence != m_pDriveEnt.LookupSequence(arrsAnims[ANIM_RUN]) )
+			if( m_pDriveEnt.pev.sequence != ANIM_RUN )
 			{
 				m_iState = STATE_RUN;
 				//m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
-				m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[ANIM_RUN]);
+				m_pDriveEnt.pev.sequence = ANIM_RUN;
 				m_pDriveEnt.pev.frame = 0;
 				m_pDriveEnt.ResetSequenceInfo();
 			}
@@ -588,16 +560,38 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 	void DoIdleAnimation()
 	{
-		if( m_pDriveEnt is null or m_iState == STATE_JUMP ) return;
+		if( m_pDriveEnt is null ) return;
+		if( m_iState == STATE_ATTACK_RANGE and m_pDriveEnt.pev.sequence == ANIM_RANGE and !m_pDriveEnt.m_fSequenceFinished ) return;
+		if( m_iState == STATE_ATTACK_MELEE and (m_pDriveEnt.pev.sequence == ANIM_MELEE1 or m_pDriveEnt.pev.sequence == ANIM_MELEE2) and m_flStopMeleeAttack > 0.0 ) return;
+		if( m_iState == STATE_JUMP and !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
+		if( m_iState == STATE_RELOAD and m_pDriveEnt.pev.sequence == ANIM_RELOAD and !m_pDriveEnt.m_fSequenceFinished ) return;
 
-		if( m_iState != STATE_IDLE )
+		if( m_pPlayer.pev.velocity.Length() <= 10.0 )
 		{
-			m_pPlayer.SetMaxSpeedOverride( -1 ); //int(SPEED_RUN)
-			m_iState = STATE_IDLE;
-			m_pDriveEnt.pev.sequence = m_pDriveEnt.LookupSequence(arrsAnims[ANIM_IDLE]);
-			m_pDriveEnt.pev.frame = 0;
-			m_pDriveEnt.ResetSequenceInfo();
+			if( m_iState != STATE_IDLE )
+			{
+				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
+				m_iState = STATE_IDLE;
+				m_pDriveEnt.pev.sequence = ANIM_IDLE;
+				m_pDriveEnt.pev.frame = 0;
+				m_pDriveEnt.ResetSequenceInfo();
+			}
 		}
+	}
+
+	void IdleSound()
+	{
+		if( m_pDriveEnt is null ) return;
+
+		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[Math.RandomLong(SND_IDLE1, SND_IDLE3)], VOL_NORM, ATTN_NORM );
+		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
+	}
+
+	void StopMeleeAttack()
+	{
+		if( m_flStopMeleeAttack <= 0.0 or m_flStopMeleeAttack > g_Engine.time ) return;
+
+		m_flStopMeleeAttack = 0.0;
 	}
 
 	void spawn_driveent()
@@ -657,7 +651,7 @@ class cnpc_pitdrone : ScriptBaseAnimating
 		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
 	}
 
-	private float m_flNextOriginUpdate; //hopefully fixes hacky movement on other players
+	private float m_flNextOriginUpdate;
 
 	void Spawn()
 	{
@@ -669,7 +663,7 @@ class cnpc_pitdrone : ScriptBaseAnimating
 		pev.solid = SOLID_NOT;
 		pev.movetype = MOVETYPE_NOCLIP;
 
-		pev.sequence = self.LookupSequence(arrsAnims[ANIM_IDLE]);
+		pev.sequence = ANIM_IDLE;
 		pev.frame = 0;
 		self.ResetSequenceInfo();
 		self.SetBodygroup( 1, 1 );
@@ -703,7 +697,7 @@ class cnpc_pitdrone : ScriptBaseAnimating
 
 		pev.angles.x = 0;
 
-		if( pev.velocity.Length2D() > 0.0 )
+		if( m_pOwner.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and pev.velocity.Length2D() > 0.0 and (pev.sequence == ANIM_RUN or pev.sequence == ANIM_WALK) )
 			pev.angles.y = Math.VecToAngles( pev.velocity ).y;
 		else
 			pev.angles.y = m_pOwner.pev.angles.y;
@@ -719,11 +713,11 @@ class cnpc_pitdrone : ScriptBaseAnimating
 
 	void DieThink()
 	{
-		pev.sequence = self.LookupSequence( arrsAnims[Math.RandomLong(ANIM_DEATH1, ANIM_DEATH3)] );
+		pev.sequence = Math.RandomLong( ANIM_DEATH1, ANIM_DEATH3 );
 		pev.frame = 0;
 		self.ResetSequenceInfo();
 
-		g_SoundSystem.EmitSound( self.edict(), CHAN_VOICE, pDieSounds[Math.RandomLong(0, pDieSounds.length()-1)], VOL_NORM, ATTN_NORM );
+		g_SoundSystem.EmitSound( self.edict(), CHAN_VOICE, arrsCNPCSounds[Math.RandomLong(SND_DIE1, SND_DIE3)], VOL_NORM, ATTN_NORM );
 
 		SetThink( ThinkFunction(this.SUB_StartFadeOut) );
 		pev.nextthink = g_Engine.time;

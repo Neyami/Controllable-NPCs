@@ -9,6 +9,7 @@
 #include "gonome"
 
 #include "fassn"
+#include "mturret"
 #include "turret"
 
 void MapInit()
@@ -28,11 +29,14 @@ void MapInit()
 	cnpc_gonome::Register();
 
 	cnpc_fassn::Register();
+	cnpc_mturret::Register();
 	cnpc_turret::Register();
 }
 
 namespace CNPC
 {
+
+int g_iShockTrooperQuestion;
 
 const bool PVP										= false; //TODO
 const float CNPC_SPEAK_DISTANCE	= 768.0;
@@ -58,8 +62,10 @@ const int GONOME_POSITION		= 17;
 //military
 const int FASSN_SLOT					= 2;
 const int FASSN_POSITION			= 10;
+const int MTURRET_SLOT				= 2;
+const int MTURRET_POSITION		= 11;
 const int TURRET_SLOT				= 2;
-const int TURRET_POSITION		= 11;
+const int TURRET_POSITION		= 12;
 
 const string sCNPCKV = "$i_cnpc_iscontrollingnpc";
 const string sCNPCKVPainTime = "$f_cnpc_nextpaintime";
@@ -98,6 +104,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_gonome",
 
 	"weapon_fassn",
+	"weapon_mturret",
 	"weapon_turret"
 };
 
@@ -113,6 +120,7 @@ enum cnpc_e
 	CNPC_GONOME,
 
 	CNPC_FASSN,
+	CNPC_MTURRET,
 	CNPC_TURRET
 };
 
@@ -133,7 +141,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			return HOOK_CONTINUE;
 	}
 
-	if( pDamageInfo.pVictim.GetClassname() == "player" and pDamageInfo.pAttacker.GetClassname() == "cnpc_turret" )
+	if( pDamageInfo.pVictim.GetClassname() == "player" and (pDamageInfo.pAttacker.GetClassname() == "cnpc_turret" or pDamageInfo.pAttacker.GetClassname() == "cnpc_mturret") )
 	{
 		//hacky isFriendly check
 		if( pDamageInfo.pAttacker.pev.owner !is null )
@@ -381,7 +389,7 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 	protected EHandle m_hCNPCWeapon;
 	protected CBaseEntity@ m_pCNPCWeapon
 	{
-		get const { return cast<CBaseEntity@>(m_hCNPCWeapon.GetEntity()); }
+		get const { return m_hCNPCWeapon.GetEntity(); }
 		set { m_hCNPCWeapon = EHandle(@value); }
 	}
 
@@ -435,9 +443,9 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 
 	void Use( CBaseEntity@ pActivator, CBaseEntity@ pCaller, USE_TYPE useType, float flValue  )
 	{
-		if( !m_bActive ) return;
+		if( !m_bActive or !pActivator.pev.FlagBitSet(FL_CLIENT) ) return;
 
-		if( pActivator.pev.FlagBitSet(FL_CLIENT) and pActivator.pev.FlagBitSet(FL_ONGROUND) )
+		if( pActivator.pev.FlagBitSet(FL_ONGROUND) or CNPC::arrsFlyingMobs.find(self.GetClassname()) >= 0 )
 		{
 			CustomKeyvalues@ pCustom = pActivator.GetCustomKeyvalues();
 			if( pCustom.GetKeyvalue(CNPC::sCNPCKV).GetInteger() <= 0 )
@@ -491,4 +499,6 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 	Idle sounds and fidget animations
 
 	Berserk-mode for turret
+
+	Use the driveent as a targetable entity with the proper hitbox
 */

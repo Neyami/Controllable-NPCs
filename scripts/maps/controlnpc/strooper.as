@@ -14,7 +14,8 @@ const float CNPC_VIEWOFS_TPV			= 40.0;
 const float CNPC_VIEWOFS_SHOOT	= 14.0;
 const float CNPC_RESPAWNTIME			= 13.0; //from the point that the weapon is removed, not the shocktrooper itself
 const float CNPC_MODEL_OFFSET		= 36.0; //sometimes the model floats above the ground
-const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky movement on other players
+const float CNPC_IDLESOUND				= 10.0; //how often to check for an idlesound
+const float CNPC_ORIGINUPDATE		= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
 
 const float SPEED_WALK						= -1; //461.184601 * CNPC::flModelToGameSpeedModifier; //461.184601
 const float SPEED_RUN						= -1; //137.380585 * CNPC::flModelToGameSpeedModifier; //137.380585
@@ -104,6 +105,7 @@ class weapon_strooper : CBaseDriveWeapon
 	private bool m_bHasFired;
 	private bool m_bShotBlocked;
 	private int m_iShockTrooperMuzzleFlash;
+	private int m_iVoicePitch;
 	private float m_flNextAmmoRegen;
 
 	private bool m_bSecondSwingDone;
@@ -126,6 +128,11 @@ class weapon_strooper : CBaseDriveWeapon
 		m_bHasThrownGrenade = false;
 		m_flNextGrenade = 0.0;
 		m_flLastBlinkTime = m_flLastBlinkInterval = g_Engine.time;
+
+		if( Math.RandomLong(0, 1) == 1 )
+			m_iVoicePitch = 109 + Math.RandomLong( 0, 7 );
+		else
+			m_iVoicePitch = 100;
 
 		self.FallInit();
 	}
@@ -379,15 +386,14 @@ class weapon_strooper : CBaseDriveWeapon
 		{
 			m_pPlayer.pev.friction = 2; //no sliding!
 
-			if( m_pPlayer.pev.button & (IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 )
-				m_pPlayer.SetMaxSpeedOverride( 0 );
-			else if( m_pPlayer.pev.button & IN_FORWARD != 0 and m_iState != STATE_SHOOT and m_iState != STATE_MELEE and m_iState != STATE_GRENADE )
+			if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and m_iState < STATE_SHOOT )
 			{
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) ); //-1
 				DoMovementAnimation();
 			}
 
 			DoIdleAnimation();
+			DoIdleSound();
 			Blink();
 			Shoot();
 			DoAmmoRegen();
@@ -447,6 +453,66 @@ class weapon_strooper : CBaseDriveWeapon
 				m_pDriveEnt.ResetSequenceInfo();
 				g_EngineFuncs.CVarSetFloat( "sk_plr_shockrifle", 15 );
 			}
+		}
+	}
+
+	// from halflife-op4-updated
+	void IdleSound()
+	{
+		if( CNPC::g_iShockTrooperQuestion != 0 or Math.RandomLong(0, 1) == 1 )
+		{
+			if( CNPC::g_iShockTrooperQuestion == 0 )
+			{
+				// ask question or make statement
+				switch( Math.RandomLong(0, 2) )
+				{
+					case 0: // check in
+					{
+						g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "ST_CHECK", 0.35, ATTN_NORM, 0, m_iVoicePitch );
+						CNPC::g_iShockTrooperQuestion = 1;
+
+						break;
+					}
+
+					case 1: // question
+					{
+						g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "ST_QUEST", 0.35, ATTN_NORM, 0, m_iVoicePitch );
+						CNPC::g_iShockTrooperQuestion = 2;
+
+						break;
+					}
+
+					case 2: // statement
+					{
+						g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "ST_IDLE", 0.35, ATTN_NORM, 0, m_iVoicePitch );
+
+						break;
+					}
+				}
+			}
+			else
+			{
+				switch( CNPC::g_iShockTrooperQuestion )
+				{
+					case 1: // check in
+					{
+						g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "ST_CLEAR", 0.35, ATTN_NORM, 0, m_iVoicePitch );
+
+						break;
+					}
+
+					case 2: // question
+					{
+						g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "ST_ANSWER", 0.35, ATTN_NORM, 0, m_iVoicePitch );
+
+						break;
+					}
+				}
+
+				CNPC::g_iShockTrooperQuestion = 0;
+			}
+
+			m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 		}
 	}
 
@@ -948,7 +1014,12 @@ class cnpc_strooper : ScriptBaseAnimating
 		pev.velocity = m_pOwner.pev.velocity;
 
 		pev.angles.x = 0;
-		pev.angles.y = m_pOwner.pev.angles.y;
+
+		if( m_pOwner.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and pev.velocity.Length2D() > 0.0 and (pev.sequence == ANIM_RUN or pev.sequence == ANIM_WALK) )
+			pev.angles.y = Math.VecToAngles( pev.velocity ).y;
+		else
+			pev.angles.y = m_pOwner.pev.angles.y;
+
 		pev.angles.z = 0;
 
 		self.StudioFrameAdvance();

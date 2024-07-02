@@ -14,7 +14,7 @@ const float CNPC_VIEWOFS				= 40.0; //camera height offset
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the shocktrooper itself
 const float CNPC_MODEL_OFFSET	= 32.0; //sometimes the model floats above the ground
 const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
-const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky movement on other players
+const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
 
 const float CD_HORNET					= 2.0;
 const float CD_MELEE						= 1.0;
@@ -760,7 +760,7 @@ class cnpc_agrunt : ScriptBaseAnimating
 
 		pev.angles.x = 0;
 
-		if( pev.velocity.Length2D() > 0.0 )
+		if( m_pOwner.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and pev.velocity.Length2D() > 0.0 and (pev.sequence == ANIM_RUN or pev.sequence == ANIM_WALK) )
 			pev.angles.y = Math.VecToAngles( pev.velocity ).y;
 		else
 			pev.angles.y = m_pOwner.pev.angles.y;

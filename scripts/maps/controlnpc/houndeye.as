@@ -14,7 +14,8 @@ const float CNPC_VIEWOFS_FPV			= 0.0; //camera height offset
 const float CNPC_VIEWOFS_TPV			= 0.0;
 const float CNPC_RESPAWNTIME			= 13.0; //from the point that the weapon is removed, not the houndeye itself
 const float CNPC_MODEL_OFFSET		= 36.0; //sometimes the model floats above the ground
-const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky movement on other players
+const float CNPC_IDLESOUND				= 10.0; //how often to check for an idlesound
+const float CNPC_ORIGINUPDATE		= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
 
 const float SPEED_WALK						= 40; //35.94265 * CNPC::flModelToGameSpeedModifier; //35.94265 from model, player = 71.196838
 const float SPEED_RUN						= -1; //220.556808 * CNPC::flModelToGameSpeedModifier; //220.556808 from model, player = 163.624054
@@ -32,7 +33,7 @@ const RGBA SONIC_BEAM_COLOR_4	= RGBA(62, 33, 211, 255);
 const float SQUAD_RADIUS					= 420.0; //friendly player-controlled houndeyes within this range will count as squadmembers (changes color of the sonic beams and increases damage)
 const float SQUAD_BONUS					= 1.1;
 
-const float CNPC_JUMPVELOCITY	= 200.0;
+const float CNPC_JUMPVELOCITY		= 200.0;
 
 const array<string> pPainSounds = 
 {
@@ -50,22 +51,27 @@ const array<string> pDieSounds =
 
 const array<string> arrsCNPCSounds = 
 {
-	"ambience/particle_suck1.wav",
+	"ambience/particle_suck1.wav", //only here for the precache
 	"houndeye/he_attack1.wav",
 	"houndeye/he_attack3.wav",
 	"houndeye/he_blast1.wav",
 	"houndeye/he_blast2.wav",
-	"houndeye/he_blast3.wav"
+	"houndeye/he_blast3.wav",
+	"houndeye/he_idle1.wav",
+	"houndeye/he_idle2.wav",
+	"houndeye/he_idle3.wav"
 };
 
 enum sound_e
 {
-	SND_RESPAWN = 0,
-	SND_ATTACK1,
+	SND_ATTACK1 = 1,
 	SND_ATTACK2,
 	SND_BLAST1,
 	SND_BLAST2,
-	SND_BLAST3
+	SND_BLAST3,
+	SND_IDLE1,
+	SND_IDLE2,
+	SND_IDLE3
 };
 
 enum anim_e
@@ -111,7 +117,7 @@ class weapon_houndeye : CBaseDriveWeapon
 
 	void Precache()
 	{
-		g_Game.PrecacheModel( "models/houndeye.mdl" );
+		g_Game.PrecacheModel( CNPC_MODEL );
 		m_iSpriteTexture = g_Game.PrecacheModel( "sprites/shockwave.spr" );
 
 		for( uint i = 0; i < arrsCNPCSounds.length(); i++ )
@@ -255,6 +261,7 @@ class weapon_houndeye : CBaseDriveWeapon
 			}
 
 			DoIdleAnimation();
+			DoIdleSound();
 			JumpBack();
 			CheckSonicAttack();
 		}
@@ -308,6 +315,14 @@ class weapon_houndeye : CBaseDriveWeapon
 				m_pDriveEnt.ResetSequenceInfo();
 			}
 		}
+	}
+
+	void IdleSound()
+	{
+		if( m_pDriveEnt is null ) return;
+
+		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[Math.RandomLong(SND_IDLE1, SND_IDLE3)], VOL_NORM, ATTN_NORM );
+		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 	}
 
 	void JumpBack()
@@ -668,7 +683,7 @@ class cnpc_houndeye : ScriptBaseAnimating
 
 	void Spawn()
 	{
-		g_EntityFuncs.SetModel( self, "models/houndeye.mdl" );
+		g_EntityFuncs.SetModel( self, CNPC_MODEL );
 		g_EntityFuncs.SetSize( self.pev, CNPC_SIZEMIN, CNPC_SIZEMAX );
 		g_EntityFuncs.SetOrigin( self, pev.origin );
 		g_EngineFuncs.DropToFloor( self.edict() );
@@ -712,7 +727,7 @@ class cnpc_houndeye : ScriptBaseAnimating
 
 		pev.angles.x = 0;
 
-		if( pev.velocity.Length2D() > 0.0 and pev.sequence != ANIM_JUMPBACK )
+		if( m_pOwner.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and pev.velocity.Length2D() > 0.0 and (pev.sequence == ANIM_RUN or pev.sequence == ANIM_WALK) )
 			pev.angles.y = Math.VecToAngles( pev.velocity ).y;
 		else
 			pev.angles.y = m_pOwner.pev.angles.y;

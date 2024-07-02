@@ -9,6 +9,7 @@ const Vector CNPC_SIZEMAX			= Vector( 16, 16, 72 );
 const float CNPC_HEALTH				= 20.0;
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the template itself
 const float CNPC_MODEL_OFFSET	= 32.0; //sometimes the model floats above the ground
+const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
 const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky movement on other players
 
 const float SPEED_WALK					= 40.729595 * CNPC::flModelToGameSpeedModifier; //9.623847
@@ -19,13 +20,6 @@ const float DMG_LEAP						= 10.0;
 const float LEAP_VELOCITY				= 350.0; //velocity to use when the player has no target
 const float LEAP_DISTANCE_MAX	= 650.0;
 const float LEAP_MAX_RANGE			= 1024.0;
-
-const array<string> pAttackSounds = 
-{
-	"headcrab/hc_attack1.wav",
-	"headcrab/hc_attack2.wav",
-	"headcrab/hc_attack3.wav"
-};
 
 const array<string> pPainSounds = 
 {
@@ -40,9 +34,27 @@ const array<string> pDieSounds =
 	"headcrab/hc_die2.wav"
 };
 
-const array<string> pBiteSounds = 
+const array<string> arrsCNPCSounds = 
 {
-	"headcrab/hc_headbite.wav"
+	"ambience/particle_suck1.wav", //only here for the precache
+	"headcrab/hc_attack1.wav",
+	"headcrab/hc_attack2.wav",
+	"headcrab/hc_attack3.wav",
+	"headcrab/hc_headbite.wav",
+	"headcrab/hc_idle1.wav",
+	"headcrab/hc_idle2.wav",
+	"headcrab/hc_idle3.wav"
+};
+
+enum sound_e
+{
+	SND_ATTACK1 = 1,
+	SND_ATTACK2,
+	SND_ATTACK3,
+	SND_BITE,
+	SND_IDLE1,
+	SND_IDLE2,
+	SND_IDLE3
 };
 
 enum anim_e
@@ -80,19 +92,16 @@ class weapon_headcrab : CBaseDriveWeapon
 
 	void Precache()
 	{
-		g_Game.PrecacheModel( "models/headcrab.mdl" );
+		g_Game.PrecacheModel( CNPC_MODEL );
 
-		for( uint i = 0; i < pAttackSounds.length(); i++ )
-			g_SoundSystem.PrecacheSound( pAttackSounds[i] );
+		for( uint i = 0; i < arrsCNPCSounds.length(); i++ )
+			g_SoundSystem.PrecacheSound( arrsCNPCSounds[i] );
 
 		for( uint i = 0; i < pPainSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pPainSounds[i] );
 
 		for( uint i = 0; i < pDieSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pDieSounds[i] );
-
-		for( uint i = 0; i < pBiteSounds.length(); i++ )
-			g_SoundSystem.PrecacheSound( pBiteSounds[i] );
 
 		//Precache these for downloading
 		g_Game.PrecacheGeneric( "sprites/controlnpc/weapon_headcrab.txt" );
@@ -228,9 +237,9 @@ class weapon_headcrab : CBaseDriveWeapon
 			//vecJumpVelocity = m_pPlayer.pev.velocity + g_Engine.v_forward * 400 + g_Engine.v_up * 200;
 		}
 
-		int iSound = Math.RandomLong(0, 2);
+		int iSound = Math.RandomLong(0, SND_ATTACK3);
 		if( iSound != 0 )
-			g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, pAttackSounds[iSound], VOL_NORM, ATTN_IDLE );
+			g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[iSound], VOL_NORM, ATTN_IDLE );
 
 		m_pPlayer.pev.velocity = vecJumpVelocity;
 
@@ -239,23 +248,6 @@ class weapon_headcrab : CBaseDriveWeapon
 
 		cnpc_headcrab@ pDriveEnt = cast<cnpc_headcrab@>(CastToScriptClass(m_pDriveEnt));
 		pDriveEnt.SetTouch( TouchFunction(pDriveEnt.LeapTouch) );
-	}
-
-	void Reload()
-	{
-	}
-
-	void WeaponIdle()
-	{
-		if( self.m_flTimeWeaponIdle > g_Engine.time )
-			return;
-
-		if( m_iState == STATE_ATTACK_LEAP and !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) )
-			return;
-
-		DoIdleAnimation();
-
-		self.m_flTimeWeaponIdle = g_Engine.time + 1.0;
 	}
 
 	void ItemPreFrame()
@@ -271,6 +263,7 @@ class weapon_headcrab : CBaseDriveWeapon
 			}
 
 			DoIdleAnimation();
+			DoIdleSound();
 
 			if( m_flLeapResetCheck > 0.0 and m_flLeapResetCheck < g_Engine.time and m_iState == STATE_ATTACK_LEAP and m_pDriveEnt.m_fSequenceFinished and m_pPlayer.pev.FlagBitSet(FL_ONGROUND) )
 			{
@@ -327,6 +320,14 @@ class weapon_headcrab : CBaseDriveWeapon
 				m_pDriveEnt.ResetSequenceInfo();
 			}
 		}
+	}
+
+	void IdleSound()
+	{
+		if( m_pDriveEnt is null ) return;
+
+		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[Math.RandomLong(SND_IDLE1, SND_IDLE3)], VOL_NORM, ATTN_IDLE );
+		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 	}
 
 	void spawn_driveent()
@@ -390,7 +391,7 @@ class cnpc_headcrab : ScriptBaseAnimating
 
 	void Spawn()
 	{
-		g_EntityFuncs.SetModel( self, "models/headcrab.mdl" );
+		g_EntityFuncs.SetModel( self, CNPC_MODEL );
 		g_EntityFuncs.SetSize( self.pev, CNPC_SIZEMIN, CNPC_SIZEMAX );
 		g_EntityFuncs.SetOrigin( self, pev.origin );
 		g_EngineFuncs.DropToFloor( self.edict() );
@@ -431,7 +432,7 @@ class cnpc_headcrab : ScriptBaseAnimating
 
 		pev.angles.x = 0;
 
-		if( pev.velocity.Length2D() > 0.0 and pev.sequence < ANIM_LEAP1 )
+		if( m_pOwner.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and pev.velocity.Length2D() > 0.0 and (pev.sequence == ANIM_RUN or pev.sequence == ANIM_WALK) )
 			pev.angles.y = Math.VecToAngles( pev.velocity ).y;
 		else
 			pev.angles.y = m_pOwner.pev.angles.y;
@@ -450,7 +451,7 @@ class cnpc_headcrab : ScriptBaseAnimating
 
 		if( !pev.FlagBitSet(FL_ONGROUND) )
 		{
-			g_SoundSystem.EmitSound( self.edict(), CHAN_WEAPON, pBiteSounds[Math.RandomLong(0,(pBiteSounds.length() - 1))], 1.0, ATTN_IDLE );
+			g_SoundSystem.EmitSound( self.edict(), CHAN_WEAPON, arrsCNPCSounds[SND_BITE], 1.0, ATTN_IDLE );
 
 			pOther.TakeDamage( m_pOwner.pev, m_pOwner.pev, DMG_LEAP, DMG_SLASH );
 		}
