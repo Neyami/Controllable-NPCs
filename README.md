@@ -129,6 +129,22 @@ Stealth power replenishes when not in stealth
 <BR>
 
 
+# MINI TURRET #  
+`weapon_mturret` - Give this to the player  
+`info_cnpc_mturret` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Shoot  
+Secondary Attack: Deploy and retire  
+Tertiary Attack: Toggle between first- and third-person view  
+Use: Exit turret  
+
+Turret replenishes ammo when retired  
+
+
+<BR>
+
+
+
 # TURRET #  
 `weapon_turret` - Give this to the player  
 `info_cnpc_turret` - Usable entity that turns the player into the monster upon using. Mappers can place this  
@@ -136,9 +152,10 @@ Stealth power replenishes when not in stealth
 Primary Attack: Shoot  
 Secondary Attack: Deploy and retire  
 Tertiary Attack: Toggle between first- and third-person view  
+Use: Exit turret  
 
 Turret replenishes ammo when retired  
-When active and not shooting, nearby enemies will be highlighted (experimental)  
+When active and not shooting, nearby enemies will be highlighted  
 
 
 <BR>
