@@ -46,19 +46,41 @@
 ]
 
 
+@PointClass base(Monster) size(-16 -16 -32, 16 16 32) studio("models/miniturret.mdl") = info_cnpc_mturret : "Controllable Mini Turret"
+[
+	orientation(Choices) : "Orientation" : 0 =
+	[
+		0 : "Floor Mount"
+		1 : "Ceiling Mount"
+	]
+
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
+
+
 @PointClass base(Monster) size(-32 -32 -32, 32 32 32) studio("models/turret.mdl") = info_cnpc_turret : "Controllable Turret"
 [
-//TODO
-//	orientation(Choices) : "Orientation" : 0 =
-//	[
-//		0 : "Floor Mount"
-//		1 : "Ceiling Mount"
-//	]
+	orientation(Choices) : "Orientation" : 0 =
+	[
+		0 : "Floor Mount"
+		1 : "Ceiling Mount"
+	]
+
 	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
 ]
 
 
 @PointClass base(Monster) size(-16 -16 0, 16 16 72) studio("models/hassassin.mdl") = info_cnpc_fassn : "Controllable Female Assassin"
+[
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
+
+
+
+
+
+
+@PointClass base(Monster) size(-24 -24 0, 24 24 32) studio("models/template.mdl") = info_cnpc_template : "Controllable template"
 [
 	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
 ]
