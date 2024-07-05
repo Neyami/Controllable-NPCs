@@ -1,0 +1,25 @@
+//CNPC
+CNPC_SC_SCREAM0 scientist/scream01
+CNPC_SC_SCREAM1 scientist/scream02
+CNPC_SC_SCREAM2 scientist/scream04
+CNPC_SC_SCREAM3 scientist/scream05
+CNPC_SC_SCREAM4 scientist/scream06
+CNPC_SC_SCREAM5 scientist/scream08
+CNPC_SC_SCREAM6 scientist/scream20
+CNPC_SC_SCREAM7 scientist/scream22
+CNPC_SC_SCREAM8 scientist/scream23
+CNPC_SC_SCREAM9 scientist/scream24
+CNPC_SC_SCREAM10 scientist/scream25
+
+CNPC_SC_QUESTION0 scientist/fascinating(e36) ushouldsee(s60e81) freeman(s50) fascinating(s50)
+CNPC_SC_QUESTION1 scientist/cascade(e35) ushouldsee(s60e81) freeman(s50) cascade(s55)
+CNPC_SC_QUESTION2 scientist/sniffle smellburn(e54) ushouldsee(s60e81) freeman(s50)
+
+CNPC_SC_ANSWER0 scientist/perfume(s83)
+
+CNPC_SC_IDLE0 scientist/containfail(e22) ushouldsee(s60e81) freeman(s50) containfail(s24) _comma sci_fear9 scream03 sci_pain1 scream21
+CNPC_SC_IDLE1 scientist/ahfreeman(e60) ushouldsee(s60e81) freeman(s50)
+CNPC_SC_IDLE2 scientist/canttakemore(e88) ushouldsee(s60e81) freeman(s50) _comma sci_die3 sci_die3 sci_die1 sci_die4
+
+CNPC_SC_HELLO0 scientist/hellofreeman(e50) ushouldsee(s60e81) freeman(s50)
+CNPC_SC_HELLO1 scientist/newhevsuit(e36) ushouldsee(s60e81) freeman(s50) newhevsuit(s49)
