@@ -16,6 +16,7 @@ const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is remove
 const float CNPC_MODEL_OFFSET	= 36.0; //sometimes the model floats above the ground
 const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
 const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
+const bool CNPC_FIDGETANIMS		= true; //does this monster have more than 1 idle animation?
 
 const float SPEED_WALK					= (55.127274 * CNPC::flModelToGameSpeedModifier) * 0.3;
 const float SPEED_RUN					= (151.098679 * CNPC::flModelToGameSpeedModifier) * 0.8;
@@ -89,8 +90,7 @@ enum states_e
 	STATE_WALK,
 	STATE_RUN,
 	STATE_RANGE,
-	STATE_MELEE,
-	STATE_DEATH
+	STATE_MELEE
 };
 
 class weapon_islave : CBaseDriveWeapon
@@ -203,9 +203,7 @@ class weapon_islave : CBaseDriveWeapon
 			m_pPlayer.SetMaxSpeedOverride( 0 );
 			m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 			m_iState = STATE_RANGE;
-			m_pDriveEnt.pev.sequence = ANIM_RANGE;
-			m_pDriveEnt.pev.frame = 0;
-			m_pDriveEnt.ResetSequenceInfo();
+			SetAnim( ANIM_RANGE );
 		}
 		else
 		{
@@ -230,9 +228,7 @@ class weapon_islave : CBaseDriveWeapon
 			m_iSwing = 0;
 			m_pPlayer.SetMaxSpeedOverride( 0 );
 
-			m_pDriveEnt.pev.sequence = ANIM_MELEE;
-			m_pDriveEnt.pev.frame = 0;
-			m_pDriveEnt.ResetSequenceInfo();
+			SetAnim( ANIM_MELEE );
 
 			SetThink( ThinkFunction(this.MeleeAttackThink) );
 			pev.nextthink = g_Engine.time + 0.3;
@@ -296,34 +292,14 @@ class weapon_islave : CBaseDriveWeapon
 		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
 	}
 
-	void Reload() //necessary to prevent the reload-key from interfering?
-	{
-	}
-
-	void WeaponIdle()
-	{
-		if( self.m_flTimeWeaponIdle > g_Engine.time )
-			return;
-
-		DoIdleAnimation();
-
-		self.m_flTimeWeaponIdle = g_Engine.time + 1.0;
-	}
-
 	void ItemPreFrame()
 	{
 		if( m_pDriveEnt !is null )
 		{
-			m_pPlayer.pev.friction = 2; //no sliding!
-
-			if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and m_iState < STATE_RANGE )
-			{
-				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
-				DoMovementAnimation();
-			}
-
+			DoMovementAnimation();
 			DoIdleAnimation();
 			DoIdleSound();
+
 			DoZapAttack();
 			CheckReviveInput();
 		}
@@ -331,6 +307,11 @@ class weapon_islave : CBaseDriveWeapon
 
 	void DoMovementAnimation()
 	{
+		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or m_iState >= STATE_RANGE ) return;
+
+		m_pPlayer.pev.friction = 2; //no sliding!
+		m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
+
 		float flMinWalkVelocity = -VELOCITY_WALK;
 		float flMaxWalkVelocity = VELOCITY_WALK;
 
@@ -340,9 +321,7 @@ class weapon_islave : CBaseDriveWeapon
 			{
 				m_iState = STATE_WALK;
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_WALK) );
-				m_pDriveEnt.pev.sequence = ANIM_WALK;
-				m_pDriveEnt.pev.frame = 0;
-				m_pDriveEnt.ResetSequenceInfo();
+				SetAnim( ANIM_WALK );
 				m_pDriveEnt.pev.framerate = 1.7; //the walking animation is too slow
 			}
 		}
@@ -352,9 +331,7 @@ class weapon_islave : CBaseDriveWeapon
 			{
 				m_iState = STATE_RUN;
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
-				m_pDriveEnt.pev.sequence = ANIM_RUN;
-				m_pDriveEnt.pev.frame = 0;
-				m_pDriveEnt.ResetSequenceInfo();
+				SetAnim( ANIM_RUN );
 			}
 			else
 				m_pPlayer.pev.flTimeStepSound = 9999; //prevents normal footsteps from playing
@@ -375,9 +352,12 @@ class weapon_islave : CBaseDriveWeapon
 				m_iState = STATE_IDLE;
 				m_iZapStage = 0;
 
-				m_pDriveEnt.pev.sequence = ANIM_IDLE;
-				m_pDriveEnt.pev.frame = 0;
-				m_pDriveEnt.ResetSequenceInfo();
+				SetAnim( ANIM_IDLE );
+			}
+			else if( m_iState == STATE_IDLE and CNPC_FIDGETANIMS )
+			{
+				if( m_pDriveEnt.m_fSequenceFinished )
+					SetAnim( m_pDriveEnt.LookupActivity(ACT_IDLE) );
 			}
 		}
 	}

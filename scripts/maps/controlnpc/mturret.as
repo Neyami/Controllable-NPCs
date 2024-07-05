@@ -1006,9 +1006,13 @@ class info_cnpc_mturret : ScriptBaseAnimating
 		set { m_hCNPCWeapon = EHandle(@value); }
 	}
 
+	bool m_bActive;
+
 	private int m_iOrientation;
 	private float m_flRespawnTime; //how long until respawn
 	float m_flTimeToRespawn; //used to check if ready to respawn
+
+	int ObjectCaps() { return m_bActive ? (BaseClass.ObjectCaps() | FCAP_IMPULSE_USE) : BaseClass.ObjectCaps(); }
 
 	bool KeyValue( const string& in szKey, const string& in szValue )
 	{
@@ -1048,6 +1052,7 @@ class info_cnpc_mturret : ScriptBaseAnimating
 		pev.renderamt = 128;
 
 		if( m_flRespawnTime <= 0 ) m_flRespawnTime = CNPC_RESPAWNTIME;
+		m_bActive = true;
 
 		self.SetBoneController( 0, 0 );
 		self.SetBoneController( 1, 0 );
@@ -1072,38 +1077,38 @@ class info_cnpc_mturret : ScriptBaseAnimating
 		}
 	}
 
-	int ObjectCaps() { return (BaseClass.ObjectCaps() | FCAP_IMPULSE_USE); }
-
 	void UseCNPC( CBaseEntity@ pActivator, CBaseEntity@ pCaller, USE_TYPE useType, float flValue  ) 
 	{
-		if( pActivator.pev.FlagBitSet(FL_CLIENT) )
+		if( !m_bActive or !pActivator.pev.FlagBitSet(FL_CLIENT) ) return;
+		if( m_iOrientation == 0 and !pActivator.pev.FlagBitSet(FL_ONGROUND) ) return;
+
+		CustomKeyvalues@ pCustom = pActivator.GetCustomKeyvalues();
+		if( pCustom.GetKeyvalue(CNPC::sCNPCKV).GetInteger() > 0 ) return;
+
+		g_EntityFuncs.SetOrigin( pActivator, pev.origin );
+		pActivator.pev.angles = pev.angles;
+		pActivator.pev.fixangle = FAM_FORCEVIEWANGLES;
+		@m_pCNPCWeapon = g_EntityFuncs.Create( CNPC_WEAPONNAME, pActivator.pev.origin, g_vecZero, true );
+		m_pCNPCWeapon.pev.spawnflags = SF_NORESPAWN | SF_CREATEDWEAPON;
+
+		g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "orientation", "" + m_iOrientation );
+		g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "autodeploy", "1" );
+		g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "startyaw", "" + pev.angles.y );
+		g_EntityFuncs.DispatchSpawn( m_pCNPCWeapon.edict() );
+		m_pCNPCWeapon.Touch( pActivator ); //make sure they pick it up
+
+		SetUse( null );
+		pev.effects |= EF_NODRAW;
+		m_bActive = false;
+
+		if( m_flRespawnTime == -1 )
 		{
-			if( m_iOrientation == 0 and !pActivator.pev.FlagBitSet(FL_ONGROUND) ) return;
-
-			g_EntityFuncs.SetOrigin( pActivator, pev.origin );
-			pActivator.pev.angles = pev.angles;
-			pActivator.pev.fixangle = FAM_FORCEVIEWANGLES;
-			@m_pCNPCWeapon = g_EntityFuncs.Create( CNPC_WEAPONNAME, pActivator.pev.origin, g_vecZero, true );
-			m_pCNPCWeapon.pev.spawnflags = SF_NORESPAWN | SF_CREATEDWEAPON;
-
-			g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "orientation", "" + m_iOrientation );
-			g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "autodeploy", "1" );
-			g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "startyaw", "" + pev.angles.y );
-			g_EntityFuncs.DispatchSpawn( m_pCNPCWeapon.edict() );
-			m_pCNPCWeapon.Touch( pActivator ); //make sure they pick it up
-
-			SetUse( null );
-			pev.effects |= EF_NODRAW;
-
-			if( m_flRespawnTime == -1 )
-			{
-				g_EntityFuncs.Remove( self );
-				return;
-			}
-
-			SetThink( ThinkFunction(this.RespawnThink) );
-			pev.nextthink = g_Engine.time;
+			g_EntityFuncs.Remove( self );
+			return;
 		}
+
+		SetThink( ThinkFunction(this.RespawnThink) );
+		pev.nextthink = g_Engine.time;
 	}
 
 	void RespawnThink()
@@ -1119,6 +1124,7 @@ class info_cnpc_mturret : ScriptBaseAnimating
 			SetUse( UseFunction(this.UseCNPC) );
 			pev.effects &= ~EF_NODRAW;
 			m_flTimeToRespawn = 0.0;
+			m_bActive = true;
 
 			g_SoundSystem.EmitSoundDyn( self.edict(), CHAN_BODY, arrsTurretSounds[SND_RESPAWN], VOL_NORM, 0.3, 0, 90 );
 		}

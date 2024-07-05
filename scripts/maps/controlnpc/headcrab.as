@@ -11,6 +11,7 @@ const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is remove
 const float CNPC_MODEL_OFFSET	= 32.0; //sometimes the model floats above the ground
 const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
 const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky movement on other players
+const bool CNPC_FIDGETANIMS		= true; //does this monster have more than 1 idle animation?
 
 const float SPEED_WALK					= 40.729595 * CNPC::flModelToGameSpeedModifier; //9.623847
 const float SPEED_RUN					= 81.45919 * CNPC::flModelToGameSpeedModifier; //40.729595
@@ -178,9 +179,7 @@ class weapon_headcrab : CBaseDriveWeapon
 			m_pPlayer.SetMaxSpeedOverride( 0 );
 
 			int iAnim = Math.RandomLong(ANIM_LEAP1, ANIM_LEAP3);
-			m_pDriveEnt.pev.sequence = iAnim;
-			m_pDriveEnt.pev.frame = 0;
-			m_pDriveEnt.ResetSequenceInfo();
+			SetAnim( iAnim );
 
 			DoLeapAttack();
 		}
@@ -254,14 +253,7 @@ class weapon_headcrab : CBaseDriveWeapon
 	{
 		if( m_pDriveEnt !is null )
 		{
-			m_pPlayer.pev.friction = 2; //no sliding!
-
-			if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and m_iState < STATE_ATTACK_LEAP )
-			{
-				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
-				DoMovementAnimation();
-			}
-
+			DoMovementAnimation();
 			DoIdleAnimation();
 			DoIdleSound();
 
@@ -275,6 +267,11 @@ class weapon_headcrab : CBaseDriveWeapon
 
 	void DoMovementAnimation()
 	{
+		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or m_iState >= STATE_ATTACK_LEAP ) return;
+
+		m_pPlayer.pev.friction = 2; //no sliding!
+		m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
+
 		float flMinWalkVelocity = -VELOCITY_WALK;
 		float flMaxWalkVelocity = VELOCITY_WALK;
 
@@ -284,9 +281,7 @@ class weapon_headcrab : CBaseDriveWeapon
 			{
 				m_iState = STATE_WALK;
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_WALK) );
-				m_pDriveEnt.pev.sequence = ANIM_WALK;
-				m_pDriveEnt.pev.frame = 0;
-				m_pDriveEnt.ResetSequenceInfo();
+				SetAnim( ANIM_WALK );
 			}
 		}
 		else
@@ -295,9 +290,7 @@ class weapon_headcrab : CBaseDriveWeapon
 			{
 				m_iState = STATE_RUN;
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
-				m_pDriveEnt.pev.sequence = ANIM_RUN;
-				m_pDriveEnt.pev.frame = 0;
-				m_pDriveEnt.ResetSequenceInfo();
+				SetAnim( ANIM_RUN );
 			}
 			else
 				m_pPlayer.pev.flTimeStepSound = 9999; //prevents normal footsteps from playing
@@ -315,9 +308,12 @@ class weapon_headcrab : CBaseDriveWeapon
 			{
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
 				m_iState = STATE_IDLE;
-				m_pDriveEnt.pev.sequence = ANIM_IDLE;
-				m_pDriveEnt.pev.frame = 0;
-				m_pDriveEnt.ResetSequenceInfo();
+				SetAnim( ANIM_IDLE );
+			}
+			else if( m_iState == STATE_IDLE and CNPC_FIDGETANIMS )
+			{
+				if( m_pDriveEnt.m_fSequenceFinished )
+					SetAnim( m_pDriveEnt.LookupActivity(ACT_IDLE) );
 			}
 		}
 	}

@@ -16,6 +16,7 @@ const float CNPC_RESPAWNTIME			= 13.0; //from the point that the weapon is remov
 const float CNPC_MODEL_OFFSET		= 36.0; //sometimes the model floats above the ground
 const float CNPC_IDLESOUND				= 10.0; //how often to check for an idlesound
 const float CNPC_ORIGINUPDATE		= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
+const bool CNPC_FIDGETANIMS		= true; //does this monster have more than 1 idle animation?
 
 const float SPEED_WALK						= 40; //35.94265 * CNPC::flModelToGameSpeedModifier; //35.94265 from model, player = 71.196838
 const float SPEED_RUN						= -1; //220.556808 * CNPC::flModelToGameSpeedModifier; //220.556808 from model, player = 163.624054
@@ -197,9 +198,7 @@ class weapon_houndeye : CBaseDriveWeapon
 
 			m_pPlayer.SetMaxSpeedOverride( 0 );
 			m_iState = STATE_ATTACK_SONIC;
-			m_pDriveEnt.pev.sequence = ANIM_ATTACK_SONIC;
-			m_pDriveEnt.pev.frame = 0;
-			m_pDriveEnt.ResetSequenceInfo();
+			SetAnim( ANIM_ATTACK_SONIC );
 
 			m_flSonicAttack = g_Engine.time + SONIC_CHARGETIME;
 			m_flSpecialEffect = g_Engine.time;
@@ -252,16 +251,10 @@ class weapon_houndeye : CBaseDriveWeapon
 	{
 		if( m_pDriveEnt !is null )
 		{
-			m_pPlayer.pev.friction = 2; //no sliding!
-
-			if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and m_iState < STATE_ATTACK_SONIC )
-			{
-				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
-				DoMovementAnimation();
-			}
-
+			DoMovementAnimation();
 			DoIdleAnimation();
 			DoIdleSound();
+
 			JumpBack();
 			CheckSonicAttack();
 		}
@@ -269,6 +262,11 @@ class weapon_houndeye : CBaseDriveWeapon
 
 	void DoMovementAnimation()
 	{
+		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or m_iState >= STATE_ATTACK_SONIC ) return;
+
+		m_pPlayer.pev.friction = 2; //no sliding!
+		m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
+
 		float flMinWalkVelocity = -VELOCITY_WALK;
 		float flMaxWalkVelocity = VELOCITY_WALK;
 
@@ -278,9 +276,7 @@ class weapon_houndeye : CBaseDriveWeapon
 			{
 				m_iState = STATE_WALK;
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_WALK) );
-				m_pDriveEnt.pev.sequence = ANIM_WALK;
-				m_pDriveEnt.pev.frame = 0;
-				m_pDriveEnt.ResetSequenceInfo();
+				SetAnim( ANIM_WALK );
 			}
 		}
 		else
@@ -289,9 +285,7 @@ class weapon_houndeye : CBaseDriveWeapon
 			{
 				m_iState = STATE_RUN;
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
-				m_pDriveEnt.pev.sequence = ANIM_RUN;
-				m_pDriveEnt.pev.frame = 0;
-				m_pDriveEnt.ResetSequenceInfo();
+				SetAnim( ANIM_RUN );
 			}
 			else
 				m_pPlayer.pev.flTimeStepSound = 9999; //prevents normal footsteps from playing
@@ -310,9 +304,12 @@ class weapon_houndeye : CBaseDriveWeapon
 			{
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) ); //-1
 				m_iState = STATE_IDLE;
-				m_pDriveEnt.pev.sequence = ANIM_IDLE;
-				m_pDriveEnt.pev.frame = 0;
-				m_pDriveEnt.ResetSequenceInfo();
+				SetAnim( ANIM_IDLE );
+			}
+			else if( m_iState == STATE_IDLE and CNPC_FIDGETANIMS )
+			{
+				if( m_pDriveEnt.m_fSequenceFinished )
+					SetAnim( m_pDriveEnt.LookupActivity(ACT_IDLE) );
 			}
 		}
 	}
@@ -347,9 +344,7 @@ class weapon_houndeye : CBaseDriveWeapon
 			{
 				m_pPlayer.SetMaxSpeedOverride( 0 );
 				m_iState = STATE_JUMPBACK;
-				m_pDriveEnt.pev.sequence = ANIM_JUMPBACK;
-				m_pDriveEnt.pev.frame = 0;
-				m_pDriveEnt.ResetSequenceInfo();
+				SetAnim( ANIM_JUMPBACK );
 
 				Math.MakeAimVectors( m_pPlayer.pev.angles );
 				g_EntityFuncs.SetOrigin( m_pPlayer, m_pPlayer.pev.origin + Vector(0, 0, 1) );

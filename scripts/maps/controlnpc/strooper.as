@@ -384,16 +384,10 @@ class weapon_strooper : CBaseDriveWeapon
 	{
 		if( m_pDriveEnt !is null )
 		{
-			m_pPlayer.pev.friction = 2; //no sliding!
-
-			if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and m_iState < STATE_SHOOT )
-			{
-				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) ); //-1
-				DoMovementAnimation();
-			}
-
+			DoMovementAnimation();
 			DoIdleAnimation();
 			DoIdleSound();
+
 			Blink();
 			Shoot();
 			DoAmmoRegen();
@@ -404,6 +398,11 @@ class weapon_strooper : CBaseDriveWeapon
 
 	void DoMovementAnimation()
 	{
+		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or m_iState >= STATE_SHOOT ) return;
+
+		m_pPlayer.pev.friction = 2; //no sliding!
+		m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
+
 		float flMinWalkVelocity = -VELOCITY_WALK;
 		float flMaxWalkVelocity = VELOCITY_WALK;
 

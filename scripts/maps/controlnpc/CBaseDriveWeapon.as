@@ -53,8 +53,8 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		else
 			Math.MakeVectors( m_pPlayer.pev.angles );
 
-		Vector vecStart = self.pev.origin;
-		vecStart.z += self.pev.size.z * 0.5;
+		Vector vecStart = m_pDriveEnt.pev.origin;
+		vecStart.z += m_pDriveEnt.pev.size.z * 0.5;
 		Vector vecEnd = vecStart + (g_Engine.v_forward * flDist );
 
 		g_Utility.TraceHull( vecStart, vecEnd, dont_ignore_monsters, head_hull, m_pPlayer.edict(), tr );
@@ -70,6 +70,128 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		}
 
 		return null;
+	}
+
+	CBaseEntity@ CheckTraceHullHeal( float flDist, int iDamage, int iDmgType )
+	{
+		TraceResult tr;
+
+		Math.MakeVectors( m_pDriveEnt.pev.angles );
+
+		Vector vecStart = m_pDriveEnt.pev.origin;
+		vecStart.z += m_pDriveEnt.pev.size.z * 0.5;
+		Vector vecEnd = vecStart + (g_Engine.v_forward * flDist );
+
+		g_Utility.TraceHull( vecStart, vecEnd, dont_ignore_monsters, head_hull, m_pPlayer.edict(), tr );
+
+		if( tr.pHit !is null )
+		{
+			CBaseEntity@ pEntity = g_EntityFuncs.Instance( tr.pHit );
+
+			if( pEntity.pev.FlagBitSet(FL_CLIENT|FL_MONSTER) )
+			{
+				if( m_pPlayer.IRelationship(pEntity) == R_AL and pEntity.IsAlive() and pEntity.edict() !is m_pPlayer.edict() )
+				{
+					if( pEntity.pev.health >= pEntity.pev.max_health ) return null;
+
+					pEntity.TakeHealth( iDamage, iDmgType ); //DMG_GENERIC
+
+					return pEntity;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	CBaseEntity@ FindNearestFriend()
+	{
+		CBaseEntity@ pFriend = null;
+		CBaseEntity@ pNearest = null;
+		float range = 10000000.0;
+		TraceResult tr;
+		Vector vecStart = m_pPlayer.pev.origin;
+		Vector vecCheck;
+		string sFriend;
+
+		array<string> arrsFriends = 
+		{
+			"cnpc_scientist",
+			"cnpc_barney",
+			"player"/*,
+			"monster_scientist",
+			"monster_sitting_scientist",
+			"monster_barney"*/ //TODO
+		};
+
+		vecStart.z = m_pPlayer.pev.absmax.z;
+
+		// for each type of friend...
+		for( uint i = 0; i < arrsFriends.length(); i++ )
+		{
+			sFriend = arrsFriends[i];
+
+			// for each friend in this bsp...
+			while( (@pFriend = g_EntityFuncs.FindEntityByClassname(pFriend, sFriend)) !is null )
+			{
+				if( !pFriend.pev.FlagBitSet(FL_CLIENT) )
+				{
+					if( pFriend.pev.owner is null or pFriend.pev.owner is m_pPlayer.edict() or pFriend.pev.deadflag > DEAD_NO )
+						continue;
+				}
+
+				if( pFriend.pev.FlagBitSet(FL_CLIENT) and pFriend.edict() is m_pPlayer.edict() ) continue;
+
+				if( !pFriend.pev.FlagBitSet(FL_CLIENT) )
+				{
+					CBaseEntity@ cbeFriendController = GetFriendController(pFriend);
+					if( cbeFriendController is null ) continue;
+
+					cnpc_scientist::weapon_scientist@ pFriendController = cast<cnpc_scientist::weapon_scientist@>(CastToScriptClass(cbeFriendController));
+					if( pFriendController.m_iState != STATE_IDLE ) continue;
+				}
+
+				//pFriendController.m_bAnswerQuestion = true;
+
+				vecCheck = pFriend.pev.origin;
+				vecCheck.z = pFriend.pev.absmax.z;
+
+				// if closer than previous friend, and in range, see if he's visible
+
+				if( range > (vecStart - vecCheck).Length() )
+				{
+					g_Utility.TraceLine( vecStart, vecCheck, ignore_monsters, m_pPlayer.edict(), tr ); //m_pDriveEnt ??
+
+					if( tr.flFraction == 1.0 )
+					{
+						// visible and in range, this is the new nearest scientist
+						if( (vecStart - vecCheck).Length() < 500.0 ) //TALKRANGE_MIN
+						{
+							@pNearest = pFriend;
+							range = (vecStart - vecCheck).Length();
+						}
+					}
+				}
+			}
+		}
+
+		/*if( pNearest !is null )
+			g_Game.AlertMessage( at_notice, "pNearest: %1\n", pNearest.GetClassname() );
+		else
+			g_Game.AlertMessage( at_notice, "pNearest is null!\n" );*/
+
+		return pNearest;
+	}
+
+	CBaseEntity@ GetFriendController( CBaseEntity@ pFriend )
+	{
+		CBasePlayer@ pFriendOwner = cast<CBasePlayer@>( g_EntityFuncs.Instance(pFriend.pev.owner) );
+
+		if( pFriendOwner is null or !pFriendOwner.IsConnected() ) return null;
+		if( pFriendOwner.m_hActiveItem.GetEntity() is null ) return null;
+
+		//g_Game.AlertMessage( at_notice, "Friend controller found!\n" );
+		return pFriendOwner.m_hActiveItem.GetEntity();
 	}
 
 	void SetAnim( int iAnim, float flFrame = 0.0, float flFrameRate = 1.0 )

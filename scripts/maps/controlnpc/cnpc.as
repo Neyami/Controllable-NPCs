@@ -12,6 +12,8 @@
 #include "mturret"
 #include "turret"
 
+#include "scientist"
+
 void MapInit()
 {
 	g_Hooks.RegisterHook( Hooks::Player::ClientPutInServer, @CNPC::ClientPutInServer );
@@ -31,12 +33,15 @@ void MapInit()
 	cnpc_fassn::Register();
 	cnpc_mturret::Register();
 	cnpc_turret::Register();
+
+	cnpc_scientist::Register();
 }
 
 namespace CNPC
 {
 
 int g_iShockTrooperQuestion;
+float g_flTalkWaitTime;
 
 const bool PVP										= false; //TODO
 const float CNPC_SPEAK_DISTANCE	= 768.0;
@@ -59,13 +64,17 @@ const int STROOPER_POSITION	= 16;
 const int GONOME_SLOT				= 1;
 const int GONOME_POSITION		= 17;
 
-//military
+//black mesa etc
 const int FASSN_SLOT					= 2;
 const int FASSN_POSITION			= 10;
 const int MTURRET_SLOT				= 2;
 const int MTURRET_POSITION		= 11;
 const int TURRET_SLOT				= 2;
 const int TURRET_POSITION		= 12;
+
+//friendles
+const int SCIENTIST_SLOT			= 3;
+const int SCIENTIST_POSITION	= 10;
 
 const string sCNPCKV = "$i_cnpc_iscontrollingnpc";
 const string sCNPCKVPainTime = "$f_cnpc_nextpaintime";
@@ -105,7 +114,9 @@ const array<string> arrsCNPCWeapons =
 
 	"weapon_fassn",
 	"weapon_mturret",
-	"weapon_turret"
+	"weapon_turret",
+
+	"weapon_scientist"
 };
 
 enum cnpc_e
@@ -121,8 +132,12 @@ enum cnpc_e
 
 	CNPC_FASSN,
 	CNPC_MTURRET,
-	CNPC_TURRET
+	CNPC_TURRET,
+
+	CNPC_SCIENTIST
 };
+
+enum heads_e { HEAD_GLASSES = 0, HEAD_EINSTEIN = 1, HEAD_LUTHER = 2, HEAD_SLICK = 3 };
 
 HookReturnCode ClientPutInServer( CBasePlayer@ pPlayer)
 {
@@ -270,12 +285,31 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}*/
 
+		case CNPC_SCIENTIST:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.5, 0.75);
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_scientist::pPainSounds[Math.RandomLong(0,(cnpc_scientist::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM ); //TODO GetVoicePitch()
+
+			break;
+		}
+
 		default: break;
 	}
 
 	return HOOK_CONTINUE;
 }
 
+/*
+int CTalkMonster :: GetVoicePitch( void )
+{
+	return m_voicePitch + RANDOM_LONG(0,3);
+} 
+*/
 HookReturnCode PlayerKilled( CBasePlayer@ pPlayer, CBaseEntity@ pAttacker, int iGib )
 {
 	if( pPlayer.m_hActiveItem.GetEntity() !is null )
@@ -403,6 +437,9 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 	int iStartAnim;
 	Vector vecSizeMin, vecSizeMax;
 
+	//scientist
+	int m_iBody;
+
 	int ObjectCaps() { return m_bActive ? (BaseClass.ObjectCaps() | FCAP_IMPULSE_USE) : BaseClass.ObjectCaps(); }
 
 	bool KeyValue( const string& in szKey, const string& in szValue )
@@ -456,8 +493,12 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 				@m_pCNPCWeapon = g_EntityFuncs.Create( sWeaponName, pActivator.pev.origin, g_vecZero, true );
 				m_pCNPCWeapon.pev.spawnflags = SF_NORESPAWN | SF_CREATEDWEAPON;
 
+				if( self.GetClassname() == "info_cnpc_scientist" )
+					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "body", "" + pev.body );
+
 				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "autodeploy", "1" );
 				g_EntityFuncs.DispatchSpawn( m_pCNPCWeapon.edict() );
+				m_pCNPCWeapon.Touch( pActivator ); //make sure they pick it up
 
 				pev.effects |= EF_NODRAW;
 				m_bActive = false;
@@ -474,6 +515,17 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 
 		if( m_flTimeToRespawn > 0.0 and m_flTimeToRespawn <= g_Engine.time )
 		{
+			if( self.GetClassname() == "info_cnpc_scientist" )
+			{
+				// -1 chooses a random head
+				if( m_iBody == -1 )
+					pev.body = Math.RandomLong(0, 3);
+
+				// Luther is black, make his hands black
+				if( pev.body == CNPC::HEAD_LUTHER )
+					pev.skin = 1;
+			}
+
 			pev.effects &= ~EF_NODRAW;
 			m_flTimeToRespawn = 0.0;
 			m_bActive = true;

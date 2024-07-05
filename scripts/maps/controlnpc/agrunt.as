@@ -309,8 +309,6 @@ class weapon_agrunt : CBaseDriveWeapon
 	{
 		if( m_pDriveEnt !is null )
 		{
-			m_pPlayer.pev.friction = 2; //no sliding!
-
 			if( DISABLE_CROUCH )
 			{
 				NetworkMessage disableduck( MSG_ONE, NetworkMessages::SVC_STUFFTEXT, m_pPlayer.edict() );
@@ -320,12 +318,7 @@ class weapon_agrunt : CBaseDriveWeapon
 			else
 				m_pPlayer.pev.view_ofs = Vector( 0.0, 0.0, CNPC_VIEWOFS );
 
-			if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and m_iState < STATE_ATTACK_MELEE )
-			{
-				m_pPlayer.SetMaxSpeedOverride( -1 );
-				DoMovementAnimation();
-			}
-
+			DoMovementAnimation();
 			DoIdleAnimation();
 			DoIdleSound();
 
@@ -337,98 +330,13 @@ class weapon_agrunt : CBaseDriveWeapon
 		}
 	}
 
-	void HornetAttackThink()
-	{
-		if( m_pPlayer is null or m_pDriveEnt is null or m_iState != STATE_ATTACK_HORNET or m_flStopHornetAttack < g_Engine.time or m_bShotBlocked )
-		{
-			SetThink( null );
-			return;
-		}
-
-		if( CheckIfShotIsBlocked(CNPC_FIRE_MINRANGE) )
-		{
-			SetThink( null );
-			m_bShotBlocked = true;
-			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + 0.5;
-			DoIdleAnimation();
-			return;
-		}
-
-		ShootHornet();
-		pev.nextthink = g_Engine.time + HORNET_REFIRE;
-	}
-
-	void ShootHornet()
-	{
-		if( m_pDriveEnt !is null and m_pPlayer.IsAlive() )
-		{
-			Vector vecAngle, vecOrigin, vecMuzzle;
-			vecAngle = m_pPlayer.pev.v_angle;
-
-			if( vecAngle.x < -44.5 ) vecAngle.x = -44.5;
-			if( vecAngle.x > 32.0 ) vecAngle.x = 32.0;
-
-			Math.MakeVectors( vecAngle );
-			m_pDriveEnt.GetAttachment( 0, vecOrigin, void );
-
-			m_pDriveEnt.pev.effects = EF_MUZZLEFLASH;
-
-			vecMuzzle = vecOrigin + g_Engine.v_forward * 32;
-
-			NetworkMessage m1( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecMuzzle );
-				m1.WriteByte( TE_SPRITE );
-				m1.WriteCoord( vecMuzzle.x );
-				m1.WriteCoord( vecMuzzle.y );
-				m1.WriteCoord( vecMuzzle.z );
-				m1.WriteShort( m_iAgruntMuzzleFlash );
-				m1.WriteByte( 6 ); // size * 10
-				m1.WriteByte( 128 ); // brightness
-			m1.End();
-
-			CBaseEntity@ pHornet = g_EntityFuncs.Create( "hornet", vecOrigin, m_pPlayer.pev.v_angle, false, m_pPlayer.edict() );
-			pHornet.pev.velocity = g_Engine.v_forward * 300;
-
-			switch( Math.RandomLong(0, 2) )
-			{
-				case 0: g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, "agrunt/ag_fire1.wav", VOL_NORM, ATTN_NORM ); break;
-				case 1: g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, "agrunt/ag_fire2.wav", VOL_NORM, ATTN_NORM ); break;
-				case 2: g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, "agrunt/ag_fire3.wav", VOL_NORM, ATTN_NORM ); break;
-			}
-		}
-	}
-
-	void MeleeAttackThink()
-	{
-		if( m_pPlayer is null or !m_pPlayer.IsAlive() or m_pDriveEnt is null )
-		{
-			SetThink( null );
-			return;
-		}
-
-		CBaseEntity@ pHurt = CheckTraceHullAttack( MELEE_RANGE, MELEE_DAMAGE, DMG_CLUB );
-		
-		if( pHurt !is null )
-		{
-			pHurt.pev.punchangle.y = (m_iRandomAttack == 3) ? -25.0 : 25.0;
-			pHurt.pev.punchangle.x = 8.0;
-
-			if( (pHurt.pev.flags & (FL_CLIENT)) == 1 )
-				pHurt.pev.velocity = pHurt.pev.velocity - g_Engine.v_right * ((m_iRandomAttack == 3) ? 250.0 : -250.0);
-
-			g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, pAttackHitSounds[Math.RandomLong(0,(pAttackHitSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, 100 + Math.RandomLong(-5, 5) );
-
-			Vector vecArmPos, vecArmAng;
-			m_pDriveEnt.GetAttachment( 0, vecArmPos, vecArmAng );
-			g_WeaponFuncs.SpawnBlood( vecArmPos, pHurt.BloodColor(), 25 );
-		}
-		else
-			g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, pAttackMissSounds[Math.RandomLong(0,(pAttackMissSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, 100 + Math.RandomLong(-5, 5) );
-
-		SetThink( null );
-	}
-
 	void DoMovementAnimation()
 	{
+		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or m_iState >= STATE_ATTACK_MELEE ) return;
+
+		m_pPlayer.pev.friction = 2; //no sliding!
+		m_pPlayer.SetMaxSpeedOverride( -1 );
+
 		float flMinWalkVelocity = -150.0;
 		float flMaxWalkVelocity = 150.0;
 
@@ -536,6 +444,96 @@ class weapon_agrunt : CBaseDriveWeapon
 			m_flNextIdleSound = g_Engine.time + ( 10 + Math.RandomFloat(0.0, 10.0) );
 		else
 			m_flNextIdleSound = g_Engine.time + Math.RandomFloat( 0.5, 1.0 );
+	}
+
+	void HornetAttackThink()
+	{
+		if( m_pPlayer is null or m_pDriveEnt is null or m_iState != STATE_ATTACK_HORNET or m_flStopHornetAttack < g_Engine.time or m_bShotBlocked )
+		{
+			SetThink( null );
+			return;
+		}
+
+		if( CheckIfShotIsBlocked(CNPC_FIRE_MINRANGE) )
+		{
+			SetThink( null );
+			m_bShotBlocked = true;
+			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + 0.5;
+			DoIdleAnimation();
+			return;
+		}
+
+		ShootHornet();
+		pev.nextthink = g_Engine.time + HORNET_REFIRE;
+	}
+
+	void ShootHornet()
+	{
+		if( m_pDriveEnt !is null and m_pPlayer.IsAlive() )
+		{
+			Vector vecAngle, vecOrigin, vecMuzzle;
+			vecAngle = m_pPlayer.pev.v_angle;
+
+			if( vecAngle.x < -44.5 ) vecAngle.x = -44.5;
+			if( vecAngle.x > 32.0 ) vecAngle.x = 32.0;
+
+			Math.MakeVectors( vecAngle );
+			m_pDriveEnt.GetAttachment( 0, vecOrigin, void );
+
+			m_pDriveEnt.pev.effects = EF_MUZZLEFLASH;
+
+			vecMuzzle = vecOrigin + g_Engine.v_forward * 32;
+
+			NetworkMessage m1( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecMuzzle );
+				m1.WriteByte( TE_SPRITE );
+				m1.WriteCoord( vecMuzzle.x );
+				m1.WriteCoord( vecMuzzle.y );
+				m1.WriteCoord( vecMuzzle.z );
+				m1.WriteShort( m_iAgruntMuzzleFlash );
+				m1.WriteByte( 6 ); // size * 10
+				m1.WriteByte( 128 ); // brightness
+			m1.End();
+
+			CBaseEntity@ pHornet = g_EntityFuncs.Create( "hornet", vecOrigin, m_pPlayer.pev.v_angle, false, m_pPlayer.edict() );
+			pHornet.pev.velocity = g_Engine.v_forward * 300;
+
+			switch( Math.RandomLong(0, 2) )
+			{
+				case 0: g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, "agrunt/ag_fire1.wav", VOL_NORM, ATTN_NORM ); break;
+				case 1: g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, "agrunt/ag_fire2.wav", VOL_NORM, ATTN_NORM ); break;
+				case 2: g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, "agrunt/ag_fire3.wav", VOL_NORM, ATTN_NORM ); break;
+			}
+		}
+	}
+
+	void MeleeAttackThink()
+	{
+		if( m_pPlayer is null or !m_pPlayer.IsAlive() or m_pDriveEnt is null )
+		{
+			SetThink( null );
+			return;
+		}
+
+		CBaseEntity@ pHurt = CheckTraceHullAttack( MELEE_RANGE, MELEE_DAMAGE, DMG_CLUB );
+		
+		if( pHurt !is null )
+		{
+			pHurt.pev.punchangle.y = (m_iRandomAttack == 3) ? -25.0 : 25.0;
+			pHurt.pev.punchangle.x = 8.0;
+
+			if( (pHurt.pev.flags & (FL_CLIENT)) == 1 )
+				pHurt.pev.velocity = pHurt.pev.velocity - g_Engine.v_right * ((m_iRandomAttack == 3) ? 250.0 : -250.0);
+
+			g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, pAttackHitSounds[Math.RandomLong(0,(pAttackHitSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, 100 + Math.RandomLong(-5, 5) );
+
+			Vector vecArmPos, vecArmAng;
+			m_pDriveEnt.GetAttachment( 0, vecArmPos, vecArmAng );
+			g_WeaponFuncs.SpawnBlood( vecArmPos, pHurt.BloodColor(), 25 );
+		}
+		else
+			g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, pAttackMissSounds[Math.RandomLong(0,(pAttackMissSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, 100 + Math.RandomLong(-5, 5) );
+
+		SetThink( null );
 	}
 
 	void CheckGrenadeInput()
