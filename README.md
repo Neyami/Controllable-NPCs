@@ -10,7 +10,11 @@ A work in progress.
 7) PROFIT
 
 The only way to revert to a normal player is to die :ayaya:  
-Only the Alien Slave and Alien Grunt can "strafe" at the moment  
+
+Turrets can be exited with the Use-key  
+
+If you want to use custom sentences (scientist only for now), set `USE_CUSTOM_SENTENCES` to true,  
+and add the contents of sound/default_sentences.txt to the bottom of either svencoop\sound\default_sentences.txt, or copy that file into svencood_addon\sound\ (preferable)
 
 <BR>
 
@@ -144,7 +148,6 @@ Turret replenishes ammo when retired
 <BR>
 
 
-
 # TURRET #  
 `weapon_turret` - Give this to the player  
 `info_cnpc_turret` - Usable entity that turns the player into the monster upon using. Mappers can place this  
@@ -159,3 +162,20 @@ When active and not shooting, nearby enemies will be highlighted
 
 
 <BR>
+
+
+
+# SCIENTIST #  
+`weapon_scientist` - Give this to the player  
+`info_cnpc_scientist` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Heal friendlies if the syringe is out  
+Secondary Attack: **AAAAAAAAAAAAAHHHHHHHHHHHHHHH**  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: Toggle syringe  
+
+Healing ammo replenishes when the syringe isn't out  
+
+
+<BR>
+
