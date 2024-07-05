@@ -1,3 +1,4 @@
+//XEN
 @PointClass base(Monster) size(-16 -16 0, 16 16 36) studio("models/headcrab.mdl") = info_cnpc_headcrab : "Controllable Headcrab"
 [
 	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
@@ -46,6 +47,8 @@
 ]
 
 
+
+//BLACK MESA etc
 @PointClass base(Monster) size(-16 -16 -32, 16 16 32) studio("models/miniturret.mdl") = info_cnpc_mturret : "Controllable Mini Turret"
 [
 	orientation(Choices) : "Orientation" : 0 =
@@ -78,9 +81,17 @@
 
 
 
-
-
-@PointClass base(Monster) size(-24 -24 0, 24 24 32) studio("models/template.mdl") = info_cnpc_template : "Controllable template"
+//FRIENDLIES
+@PointClass base(Monster) size(-16 -16 0, 16 16 72) studio("models/scientist.mdl") = info_cnpc_scientist : "Controllable Scientist"
 [
+	body(Choices) : "Body" : -1 =
+	[
+		-1 : "Random"
+		0 : "Glasses"
+		1 : "Einstein"
+		2 : "Luther"
+		3 : "Slick"
+	]
+
 	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
 ]
