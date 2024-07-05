@@ -307,9 +307,10 @@ class weapon_islave : CBaseDriveWeapon
 
 	void DoMovementAnimation()
 	{
+		m_pPlayer.pev.friction = 2; //no sliding!
+
 		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or m_iState >= STATE_RANGE ) return;
 
-		m_pPlayer.pev.friction = 2; //no sliding!
 		m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
 
 		float flMinWalkVelocity = -VELOCITY_WALK;

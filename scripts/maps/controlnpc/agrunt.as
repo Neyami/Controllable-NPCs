@@ -332,9 +332,10 @@ class weapon_agrunt : CBaseDriveWeapon
 
 	void DoMovementAnimation()
 	{
+		m_pPlayer.pev.friction = 2; //no sliding!
+
 		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or m_iState >= STATE_ATTACK_MELEE ) return;
 
-		m_pPlayer.pev.friction = 2; //no sliding!
 		m_pPlayer.SetMaxSpeedOverride( -1 );
 
 		float flMinWalkVelocity = -150.0;
