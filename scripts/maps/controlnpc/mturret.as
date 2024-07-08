@@ -703,7 +703,8 @@ class weapon_mturret : CBaseDriveWeapon
 		m_pPlayer.pev.movetype = MOVETYPE_NONE;
 		m_pPlayer.pev.flags |= FL_FLY;
 		m_pPlayer.pev.effects |= EF_NODRAW;
-		m_pPlayer.pev.fuser4 = 1; //disable jump
+		m_pPlayer.pev.iuser3 = 1; //disable ducking
+		m_pPlayer.pev.fuser4 = 1; //disable jumping
 		m_pPlayer.pev.max_health = CNPC_HEALTH;
 		m_pPlayer.pev.health = CNPC_HEALTH;
 		m_pPlayer.m_bloodColor = DONT_BLEED;
@@ -780,7 +781,8 @@ class weapon_mturret : CBaseDriveWeapon
 			g_EntityFuncs.Remove( m_hEpilepsyPreventer.GetEntity() );
 
 		g_PlayerFuncs.HudToggleElement( m_pPlayer, HUD_CHANNEL_AMMO, false );
-		m_pPlayer.pev.fuser4 = 0; //enable jump
+		m_pPlayer.pev.iuser3 = 0; //enable ducking
+		m_pPlayer.pev.fuser4 = 0; //enable jumping
 		m_pPlayer.pev.view_ofs = Vector( 0, 0, 28 );
 		m_pPlayer.pev.max_health = 100;
 		m_pPlayer.pev.movetype = MOVETYPE_WALK;

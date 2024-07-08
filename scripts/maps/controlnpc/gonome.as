@@ -704,7 +704,8 @@ class weapon_gonome : CBaseDriveWeapon
 		@m_pDriveEnt = cast<CBaseAnimating@>( g_EntityFuncs.Create("cnpc_gonome", vecOrigin, Vector(0, m_pPlayer.pev.angles.y, 0), false, m_pPlayer.edict()) );
 
 		m_pPlayer.pev.effects |= EF_NODRAW;
-		m_pPlayer.pev.fuser4 = 1; //disable jump
+		m_pPlayer.pev.iuser3 = 1; //disable ducking
+		m_pPlayer.pev.fuser4 = 1; //disable jumping
 		m_pPlayer.pev.max_health = CNPC_HEALTH;
 		m_pPlayer.pev.health = CNPC_HEALTH;
 		m_pPlayer.m_bloodColor = BLOOD_COLOR_GREEN;
@@ -757,7 +758,8 @@ class weapon_gonome : CBaseDriveWeapon
 
 	void ResetPlayer()
 	{
-		m_pPlayer.pev.fuser4 = 0; //enable jump
+		m_pPlayer.pev.iuser3 = 0; //enable ducking
+		m_pPlayer.pev.fuser4 = 0; //enable jumping
 		m_pPlayer.pev.view_ofs = Vector( 0, 0, 28 );
 		m_pPlayer.pev.max_health = 100;
 		m_pPlayer.m_bloodColor = BLOOD_COLOR_RED;

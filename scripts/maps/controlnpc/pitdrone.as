@@ -284,11 +284,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 			m_pPlayer.pev.friction = 2; //no sliding!
 
 			if( DISABLE_CROUCH )
-			{
-				NetworkMessage disableduck( MSG_ONE, NetworkMessages::SVC_STUFFTEXT, m_pPlayer.edict() );
-					disableduck.WriteString( "-duck\n" );
-				disableduck.End();
-			}
+				m_pPlayer.pev.iuser3 = 1;
 			else
 				m_pPlayer.pev.view_ofs = Vector( 0.0, 0.0, CNPC_VIEWOFS );
 
@@ -607,7 +603,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 		g_EntityFuncs.DispatchSpawn( m_pDriveEnt.edict() );
 
 		m_pPlayer.pev.effects |= EF_NODRAW;
-		m_pPlayer.pev.fuser4 = 1; //disable jump
+		m_pPlayer.pev.fuser4 = 1; //disable jumping
 		m_pPlayer.pev.view_ofs = Vector( 0.0, 0.0, CNPC_VIEWOFS );
 		m_pPlayer.pev.max_health = CNPC_HEALTH;
 		m_pPlayer.pev.health = CNPC_HEALTH;
@@ -627,7 +623,8 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 	void ResetPlayer()
 	{
-		m_pPlayer.pev.fuser4 = 0; //enable jump
+		m_pPlayer.pev.iuser3 = 1; //disable ducking
+		m_pPlayer.pev.fuser4 = 1; //disable jumping
 		m_pPlayer.pev.view_ofs = Vector( 0, 0, 28 );
 		m_pPlayer.pev.max_health = 100;
 		m_pPlayer.m_bloodColor = BLOOD_COLOR_RED;
