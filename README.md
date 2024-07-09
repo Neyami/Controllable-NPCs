@@ -188,6 +188,7 @@ Primary Attack: Fire the weapon when aiming, or kick when not aiming
 Secondary Attack: Aim  
 Tertiary Attack: Toggle between first- and third-person view  
 Reload: M16 will launch a contact grenade, the other weapons will toss a grenade, look straight down~ish to place a grenade on the ground  
+Duck: Crouch, most weapons can be fired while crouching  
 
 Refer to `controlnpc.fgd` to see the keyvalues that set the weapons  
 
