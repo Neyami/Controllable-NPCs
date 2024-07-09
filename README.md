@@ -12,6 +12,9 @@ A work in progress.
 The only way to revert to a normal player is to die :ayaya:  
 Turrets can be exited with the Use-key  
 
+Refer to `controlnpc.fgd` to see the keyvalues that can be set for the `info_cnpc_*` entities
+
+
 If you want to use custom sentences (scientist only for now), set `USE_CUSTOM_SENTENCES` to true,  
 and add the contents of sound/default_sentences.txt to the bottom of either svencoop\sound\default_sentences.txt, or copy that file into svencood_addon\sound\ (preferable)
 
