@@ -16,7 +16,6 @@ const float CNPC_VIEWOFS_FPV		= 28.0; //camera height offset
 const float CNPC_VIEWOFS_TPV		= 28.0;
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the scientist itself
 const float CNPC_MODEL_OFFSET	= 36.0; //sometimes the model floats above the ground
-const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
 const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
 const bool CNPC_FIDGETANIMS		= true; //does this monster have more than 1 idle animation?
 const float CNPC_HEADRESETTIME	= 2.0;
@@ -112,7 +111,6 @@ class weapon_scientist : CBaseDriveWeapon
 		self.m_iDefaultAmmo = AMMO_MAX;
 
 		m_iState = STATE_IDLE;
-		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 		m_bAnswerQuestion = false;
 		m_flResetHead = 0.0;
 		m_bSyringeOut = false;
@@ -421,8 +419,6 @@ class weapon_scientist : CBaseDriveWeapon
 
 			IdleHeadTurn( pentFriend.pev.origin );
 
-			m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
-
 			return;
 		}
 
@@ -445,8 +441,6 @@ class weapon_scientist : CBaseDriveWeapon
 				CNPC::g_flTalkWaitTime = m_flResetHead = g_Engine.time + Math.RandomFloat(4.8, 5.2);
 			}
 
-			m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
-
 			return;
 		}
 
@@ -459,6 +453,120 @@ class weapon_scientist : CBaseDriveWeapon
 
 		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;*/
 	}
+/*
+int CTalkMonster :: FIdleSpeak ( void )
+{ 
+	// try to start a conversation, or make statement
+	int pitch;
+	const char *szIdleGroup;
+	const char *szQuestionGroup;
+	float duration;
+
+	if (!FOkToSpeak())
+		return FALSE;
+
+	// set idle groups based on pre/post disaster
+	if (FBitSet(pev->spawnflags, SF_MONSTER_PREDISASTER))
+	{
+		szIdleGroup = m_szGrp[TLK_PIDLE];
+		szQuestionGroup = m_szGrp[TLK_PQUESTION];
+		// set global min delay for next conversation
+		duration = RANDOM_FLOAT(4.8, 5.2);
+	}
+	else
+	{
+		szIdleGroup = m_szGrp[TLK_IDLE];
+		szQuestionGroup = m_szGrp[TLK_QUESTION];
+		// set global min delay for next conversation
+		duration = RANDOM_FLOAT(2.8, 3.2);
+
+	}
+
+	pitch = GetVoicePitch();
+		
+	// player using this entity is alive and wounded?
+	CBaseEntity *pTarget = m_hTargetEnt;
+
+	if ( pTarget != NULL )
+	{
+		if ( pTarget->IsPlayer() )
+		{
+			if ( pTarget->IsAlive() )
+			{
+				m_hTalkTarget = m_hTargetEnt;
+				if (!FBitSet(m_bitsSaid, bit_saidDamageHeavy) && 
+					(m_hTargetEnt->pev->health <= m_hTargetEnt->pev->max_health / 8))
+				{
+					//EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, m_szGrp[TLK_PLHURT3], 1.0, ATTN_IDLE, 0, pitch);
+					PlaySentence( m_szGrp[TLK_PLHURT3], duration, VOL_NORM, ATTN_IDLE );
+					SetBits(m_bitsSaid, bit_saidDamageHeavy);
+					return TRUE;
+				}
+				else if (!FBitSet(m_bitsSaid, bit_saidDamageMedium) && 
+					(m_hTargetEnt->pev->health <= m_hTargetEnt->pev->max_health / 4))
+				{
+					//EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, m_szGrp[TLK_PLHURT2], 1.0, ATTN_IDLE, 0, pitch);
+					PlaySentence( m_szGrp[TLK_PLHURT2], duration, VOL_NORM, ATTN_IDLE );
+					SetBits(m_bitsSaid, bit_saidDamageMedium);
+					return TRUE;
+				}
+				else if (!FBitSet(m_bitsSaid, bit_saidDamageLight) &&
+					(m_hTargetEnt->pev->health <= m_hTargetEnt->pev->max_health / 2))
+				{
+					//EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, m_szGrp[TLK_PLHURT1], 1.0, ATTN_IDLE, 0, pitch);
+					PlaySentence( m_szGrp[TLK_PLHURT1], duration, VOL_NORM, ATTN_IDLE );
+					SetBits(m_bitsSaid, bit_saidDamageLight);
+					return TRUE;
+				}
+			}
+			else
+			{
+				//!!!KELLY - here's a cool spot to have the talkmonster talk about the dead player if we want.
+				// "Oh dear, Gordon Freeman is dead!" -Scientist
+				// "Damn, I can't do this without you." -Barney
+			}
+		}
+	}
+
+	// if there is a friend nearby to speak to, play sentence, set friend's response time, return
+	CBaseEntity *pFriend = FindNearestFriend(FALSE);
+
+	if (pFriend && !(pFriend->IsMoving()) && (RANDOM_LONG(0,99) < 75))
+	{
+		PlaySentence( szQuestionGroup, duration, VOL_NORM, ATTN_IDLE );
+		//SENTENCEG_PlayRndSz( ENT(pev), szQuestionGroup, 1.0, ATTN_IDLE, 0, pitch );
+
+		// force friend to answer
+		CTalkMonster *pTalkMonster = (CTalkMonster *)pFriend;
+		m_hTalkTarget = pFriend;
+		pTalkMonster->SetAnswerQuestion( this ); // UNDONE: This is EVIL!!!
+		pTalkMonster->m_flStopTalkTime = m_flStopTalkTime;
+
+		m_nSpeak++;
+		return TRUE;
+	}
+
+	// otherwise, play an idle statement, try to face client when making a statement.
+	if ( RANDOM_LONG(0,1) )
+	{
+		//SENTENCEG_PlayRndSz( ENT(pev), szIdleGroup, 1.0, ATTN_IDLE, 0, pitch );
+		CBaseEntity *pFriend = FindNearestFriend(TRUE);
+
+		if ( pFriend )
+		{
+			m_hTalkTarget = pFriend;
+			PlaySentence( szIdleGroup, duration, VOL_NORM, ATTN_IDLE );
+			m_nSpeak++;
+			return TRUE;
+		}
+	}
+
+	// didn't speak
+	Talk( 0 );
+	CTalkMonster::g_talkWaitTime = 0;
+	return FALSE;
+}
+*/
 
 	void ResetHead()
 	{
@@ -847,4 +955,5 @@ void Register()
 */
 
 /* TODO
+	Proper Idle talking
 */

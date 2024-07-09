@@ -4,7 +4,7 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 
 	int m_iState;
 	int m_iAutoDeploy;
-	float m_flNextIdleSound;
+	float m_flNextIdleCheck;
 
 	protected CBasePlayer@ m_pPlayer
 	{
@@ -32,11 +32,13 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 
 	void DoIdleSound()
 	{
+		if( m_flNextIdleCheck > g_Engine.time ) return;
 		if( m_iState != STATE_IDLE ) return;
-		if( m_flNextIdleSound > g_Engine.time ) return;
 
 		if( Math.RandomLong(0, 99) == 0 )
 			IdleSound();
+
+		m_flNextIdleCheck = g_Engine.time + 0.1;
 	}
 
 	void IdleSound() {}

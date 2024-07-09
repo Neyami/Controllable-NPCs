@@ -8,7 +8,6 @@ const Vector CNPC_SIZEMAX			= Vector(16, 16, 72);
 
 const float CNPC_HEALTH				= 60.0;
 const float CNPC_MODEL_OFFSET	= 32.0; //sometimes the model floats above the ground
-const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
 const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the template itself
 
@@ -580,7 +579,6 @@ class weapon_pitdrone : CBaseDriveWeapon
 		if( m_pDriveEnt is null ) return;
 
 		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[Math.RandomLong(SND_IDLE1, SND_IDLE3)], VOL_NORM, ATTN_NORM );
-		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 	}
 
 	void StopMeleeAttack()

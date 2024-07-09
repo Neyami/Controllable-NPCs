@@ -14,7 +14,6 @@ const float CNPC_VIEWOFS_FPV		= 28.0; //camera height offset
 const float CNPC_VIEWOFS_TPV		= 28.0;
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the islave itself
 const float CNPC_MODEL_OFFSET	= 36.0; //sometimes the model floats above the ground
-const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
 const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
 const bool CNPC_FIDGETANIMS		= true; //does this monster have more than 1 idle animation?
 
@@ -114,7 +113,6 @@ class weapon_islave : CBaseDriveWeapon
 		m_iSwing = 0;
 		m_iZapStage = 0;
 		m_bReviveZap = false;
-		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 
 		self.FallInit();
 	}
@@ -201,7 +199,6 @@ class weapon_islave : CBaseDriveWeapon
 			if( m_iState == STATE_MELEE or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
 
 			m_pPlayer.SetMaxSpeedOverride( 0 );
-			m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 			m_iState = STATE_RANGE;
 			SetAnim( ANIM_RANGE );
 		}
@@ -223,7 +220,6 @@ class weapon_islave : CBaseDriveWeapon
 		{
 			if( m_iState == STATE_RANGE or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
 
-			m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 			m_iState = STATE_MELEE;
 			m_iSwing = 0;
 			m_pPlayer.SetMaxSpeedOverride( 0 );
@@ -368,11 +364,7 @@ class weapon_islave : CBaseDriveWeapon
 		if( m_pDriveEnt is null ) return;
 
 		if( Math.RandomLong(0, 2) == 0 )
-		{
 			g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "SLV_IDLE", 0.85, ATTN_NORM, 0, m_iVoicePitch );
-
-			m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
-		}
 	}
 
 	void DoZapAttack()

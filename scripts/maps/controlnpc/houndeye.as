@@ -14,7 +14,6 @@ const float CNPC_VIEWOFS_FPV			= 0.0; //camera height offset
 const float CNPC_VIEWOFS_TPV			= 0.0;
 const float CNPC_RESPAWNTIME			= 13.0; //from the point that the weapon is removed, not the houndeye itself
 const float CNPC_MODEL_OFFSET		= 36.0; //sometimes the model floats above the ground
-const float CNPC_IDLESOUND				= 10.0; //how often to check for an idlesound
 const float CNPC_ORIGINUPDATE		= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
 const bool CNPC_FIDGETANIMS		= true; //does this monster have more than 1 idle animation?
 
@@ -320,7 +319,6 @@ class weapon_houndeye : CBaseDriveWeapon
 		if( m_pDriveEnt is null ) return;
 
 		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[Math.RandomLong(SND_IDLE1, SND_IDLE3)], VOL_NORM, ATTN_NORM );
-		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 	}
 
 	void JumpBack()

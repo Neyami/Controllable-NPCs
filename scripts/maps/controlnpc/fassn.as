@@ -473,20 +473,6 @@ class weapon_fassn : CBaseDriveWeapon
 		}		
 	}
 
-	void Reload() //necessary to prevent the reload-key from interfering?
-	{
-	}
-
-	void WeaponIdle()
-	{
-		if( self.m_flTimeWeaponIdle > g_Engine.time )
-			return;
-
-		DoIdleAnimation();
-
-		self.m_flTimeWeaponIdle = g_Engine.time + 1.0;
-	}
-
 	void ItemPreFrame()
 	{
 		if( m_pDriveEnt !is null )

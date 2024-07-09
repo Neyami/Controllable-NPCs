@@ -13,7 +13,6 @@ const bool DISABLE_CROUCH			= true;
 const float CNPC_VIEWOFS				= 40.0; //camera height offset
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the shocktrooper itself
 const float CNPC_MODEL_OFFSET	= 32.0; //sometimes the model floats above the ground
-const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
 const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
 
 const float CD_HORNET					= 2.0;
@@ -108,6 +107,8 @@ enum states_e
 
 class weapon_agrunt : CBaseDriveWeapon
 {
+	private float m_flNextSpeakTime;
+	private float m_flNextWordTime;
 	private int m_iLastWord;
 
 	private int m_iAgruntMuzzleFlash;
@@ -132,7 +133,7 @@ class weapon_agrunt : CBaseDriveWeapon
 		m_iRandomAttack = 0;
 		m_bShotBlocked = false;
 		m_iLastWord = 0;
-		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
+		m_flNextSpeakTime	= m_flNextWordTime = g_Engine.time + 10 + Math.RandomFloat(0, 10);
 		m_flNextGrenade = 0.0;
 		m_bHasThrownGrenade = false;
 		m_bIsFallingHard = false;
@@ -429,22 +430,26 @@ class weapon_agrunt : CBaseDriveWeapon
 	void IdleSound()
 	{
 		if( m_pDriveEnt is null ) return;
+		if( m_flNextSpeakTime > g_Engine.time ) return;
 
-		int num = -1;
-
-		do
+		if( m_flNextWordTime < g_Engine.time )
 		{
-			num = Math.RandomLong( 0,3 );
-		} while( num == m_iLastWord );
+			int num = -1;
 
-		m_iLastWord = num;
+			do
+			{
+				num = Math.RandomLong( 0,3 );
+			} while( num == m_iLastWord );
 
-		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, pIdleSounds[num], VOL_NORM, ATTN_NORM );
+			m_iLastWord = num;
 
-		if( Math.RandomLong(1, 10) <= 1 )
-			m_flNextIdleSound = g_Engine.time + ( 10 + Math.RandomFloat(0.0, 10.0) );
-		else
-			m_flNextIdleSound = g_Engine.time + Math.RandomFloat( 0.5, 1.0 );
+			g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, pIdleSounds[num], VOL_NORM, ATTN_NORM );
+
+			if( Math.RandomLong(1, 10) <= 1 )
+				m_flNextWordTime = m_flNextSpeakTime = g_Engine.time + ( 10 + Math.RandomFloat(0.0, 10.0) );
+			else
+				m_flNextWordTime = g_Engine.time + Math.RandomFloat( 0.5, 1.0 );
+		}
 	}
 
 	void HornetAttackThink()

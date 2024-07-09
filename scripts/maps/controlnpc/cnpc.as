@@ -8,6 +8,7 @@
 #include "strooper"
 #include "gonome"
 
+#include "hgrunt"
 #include "fassn"
 #include "mturret"
 #include "turret"
@@ -35,12 +36,14 @@ void MapInit()
 	cnpc_turret::Register();
 
 	cnpc_scientist::Register();
+	cnpc_hgrunt::Register();
 }
 
 namespace CNPC
 {
 
 int g_iShockTrooperQuestion;
+int g_iGruntQuestion;
 float g_flTalkWaitTime;
 
 const bool PVP										= false; //TODO
@@ -75,6 +78,8 @@ const int TURRET_POSITION		= 12;
 //friendles
 const int SCIENTIST_SLOT			= 3;
 const int SCIENTIST_POSITION	= 10;
+const int HGRUNT_SLOT				= 1;
+const int HGRUNT_POSITION		= 11;
 
 const string sCNPCKV = "$i_cnpc_iscontrollingnpc";
 const string sCNPCKVPainTime = "$f_cnpc_nextpaintime";
@@ -116,7 +121,8 @@ const array<string> arrsCNPCWeapons =
 	"weapon_mturret",
 	"weapon_turret",
 
-	"weapon_scientist"
+	"weapon_scientist",
+	"weapon_hgrunt"
 };
 
 enum cnpc_e
@@ -134,7 +140,8 @@ enum cnpc_e
 	CNPC_MTURRET,
 	CNPC_TURRET,
 
-	CNPC_SCIENTIST
+	CNPC_SCIENTIST,
+	CNPC_HGRUNT
 };
 
 enum heads_e { HEAD_GLASSES = 0, HEAD_EINSTEIN = 1, HEAD_LUTHER = 2, HEAD_SLICK = 3 };
@@ -294,6 +301,20 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
 
 			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_scientist::pPainSounds[Math.RandomLong(0,(cnpc_scientist::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM ); //TODO GetVoicePitch()
+
+			break;
+		}
+
+		case CNPC_HGRUNT:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + 1.0;
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			if( Math.RandomLong(0, 6) <= 4 )
+				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_hgrunt::pPainSounds[Math.RandomLong(0,(cnpc_hgrunt::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 
 			break;
 		}
@@ -495,6 +516,13 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 
 				if( self.GetClassname() == "info_cnpc_scientist" )
 					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "body", "" + pev.body );
+
+				if( self.GetClassname() == "info_cnpc_hgrunt" )
+				{
+					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "weapons", "" + pev.weapons );
+					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "skin", "" + pev.skin );
+					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "body", "" + pev.body );
+				}
 
 				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "autodeploy", "1" );
 				g_EntityFuncs.DispatchSpawn( m_pCNPCWeapon.edict() );

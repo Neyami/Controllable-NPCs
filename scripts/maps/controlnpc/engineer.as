@@ -1,57 +1,62 @@
-namespace cnpc_headcrab
+namespace cnpc_engineer
 {
+
+bool CNPC_FIRSTPERSON				= false;
 	
-const string CNPC_WEAPONNAME	= "weapon_headcrab";
-const string CNPC_MODEL				= "models/headcrab.mdl";
-const Vector CNPC_SIZEMIN			= Vector( -16, -16, 0 );
-const Vector CNPC_SIZEMAX			= Vector( 16, 16, 72 );
+const string CNPC_WEAPONNAME		= "weapon_engineer";
+const string CNPC_MODEL					= "models/sandstone/engineer.mdl";
+const Vector CNPC_SIZEMIN				= Vector( -24, -24, 0 );
+const Vector CNPC_SIZEMAX				= Vector( 24, 24, 72 );
 
-const float CNPC_HEALTH				= 20.0;
-const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the template itself
+const float CNPC_HEALTH				= 120.0;
+const float CNPC_VIEWOFS_FPV		= 28.0; //camera height offset
+const float CNPC_VIEWOFS_TPV		= 28.0;
+const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the engineer itself
 const float CNPC_MODEL_OFFSET	= 32.0; //sometimes the model floats above the ground
-const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky movement on other players
-const bool CNPC_FIDGETANIMS		= true; //does this monster have more than 1 idle animation?
+const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
+const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
+const bool CNPC_FIDGETANIMS		= false; //does this monster have more than 1 idle animation?
 
-const float SPEED_WALK					= 40.729595 * CNPC::flModelToGameSpeedModifier; //9.623847
-const float SPEED_RUN					= 81.45919 * CNPC::flModelToGameSpeedModifier; //40.729595
-const float VELOCITY_WALK			= 50.0; //if the player's velocity is this or lower, use the walking animation
-const float CD_LEAP						= 2.0;
-const float DMG_LEAP						= 10.0;
-const float LEAP_VELOCITY				= 350.0; //velocity to use when the player has no target
-const float LEAP_DISTANCE_MAX	= 650.0;
-const float LEAP_MAX_RANGE			= 1024.0;
+const float SPEED_WALK					= -1; //40.729595 * CNPC::flModelToGameSpeedModifier; //
+const float SPEED_RUN					= -1; //81.45919 * CNPC::flModelToGameSpeedModifier; //
+const float VELOCITY_WALK			= 150.0; //if the player's velocity is this or lower, use the walking animation
+const float CD_PRIMARY					= 2.0;
+
+const array<string> pIdleSounds = 
+{
+	"template/hc_idle4.wav",
+	"template/hc_idle5.wav"
+};
 
 const array<string> pPainSounds = 
 {
-	"headcrab/hc_pain1.wav",
-	"headcrab/hc_pain2.wav",
-	"headcrab/hc_pain3.wav"
+	"template/hc_pain1.wav",
+	"template/hc_pain2.wav",
+	"template/hc_pain3.wav"
 };
 
 const array<string> pDieSounds = 
 {
-	"headcrab/hc_die1.wav",
-	"headcrab/hc_die2.wav"
+	"template/hc_die1.wav",
+	"template/hc_die2.wav"
 };
 
 const array<string> arrsCNPCSounds = 
 {
 	"ambience/particle_suck1.wav", //only here for the precache
-	"headcrab/hc_attack1.wav",
-	"headcrab/hc_attack2.wav",
-	"headcrab/hc_attack3.wav",
-	"headcrab/hc_headbite.wav",
-	"headcrab/hc_idle1.wav",
-	"headcrab/hc_idle2.wav",
-	"headcrab/hc_idle3.wav"
+	"template/cnpcsound.wav",
+	"template/cnpcsound.wav",
+	"template/cnpcsound.wav",
+	"template/hc_idle1.wav",
+	"template/hc_idle2.wav",
+	"template/hc_idle3.wav"
 };
 
 enum sound_e
 {
-	SND_ATTACK1 = 1,
-	SND_ATTACK2,
-	SND_ATTACK3,
-	SND_BITE,
+	SND_ONE = 1,
+	SND_TWO,
+	SND_THREE,
 	SND_IDLE1,
 	SND_IDLE2,
 	SND_IDLE3
@@ -59,13 +64,23 @@ enum sound_e
 
 enum anim_e
 {
-	ANIM_IDLE = 0,
-	ANIM_WALK = 3,
+	ANIM_WALK = 0,
 	ANIM_RUN,
-	ANIM_DEATH = 7,
-	ANIM_LEAP1 = 10,
-	ANIM_LEAP2,
-	ANIM_LEAP3
+	ANIM_IDLE = 6,
+	ANIM_MELEE = 10,
+	ANIM_CROUCH_IDLE,
+	ANIM_CROUCH_SHOOT = 13,
+	ANIM_RANGE,
+	ANIM_RELOAD,
+	ANIM_GRENADE_DROP = 19,
+	ANIM_WALK_LIMP,
+	ANIM_RUN_LIMP,
+	ANIM_DEATH1 = 24,
+	ANIM_DEATH2,
+	ANIM_DEATH3,
+	ANIM_DEATH4,
+	ANIM_DEATH5,
+	ANIM_DEATH6
 };
 
 enum states_e
@@ -73,19 +88,17 @@ enum states_e
 	STATE_IDLE = 0,
 	STATE_WALK,
 	STATE_RUN,
-	STATE_ATTACK_LEAP
+	STATE_ATTACK
 };
 
-class weapon_headcrab : CBaseDriveWeapon
+class weapon_engineer : CBaseDriveWeapon
 {
-	private float m_flLeapResetCheck;
-
 	void Spawn()
 	{
 		Precache();
 
 		m_iState = STATE_IDLE;
-		m_flLeapResetCheck = 0.0;
+		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 
 		self.FallInit();
 	}
@@ -97,6 +110,9 @@ class weapon_headcrab : CBaseDriveWeapon
 		for( uint i = 0; i < arrsCNPCSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( arrsCNPCSounds[i] );
 
+		for( uint i = 0; i < pIdleSounds.length(); i++ )
+			g_SoundSystem.PrecacheSound( pIdleSounds[i] );
+
 		for( uint i = 0; i < pPainSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pPainSounds[i] );
 
@@ -104,17 +120,17 @@ class weapon_headcrab : CBaseDriveWeapon
 			g_SoundSystem.PrecacheSound( pDieSounds[i] );
 
 		//Precache these for downloading
-		g_Game.PrecacheGeneric( "sprites/controlnpc/weapon_headcrab.txt" );
-		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_headcrab.spr" );
-		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_headcrab_sel.spr" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/weapon_engineer.txt" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_engineer.spr" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_engineer_sel.spr" );
 	}
 
 	bool GetItemInfo( ItemInfo& out info )
 	{
 		info.iMaxAmmo1	= -1;
 		info.iMaxClip		= WEAPON_NOCLIP;
-		info.iSlot				= CNPC::HEADCRAB_SLOT - 1;
-		info.iPosition		= CNPC::HEADCRAB_POSITION - 1;
+		info.iSlot				= CNPC::ENGINEER_SLOT - 1;
+		info.iPosition		= CNPC::ENGINEER_POSITION - 1;
 		info.iFlags 			= 0;
 		info.iWeight			= 0; //-1 ??
 
@@ -165,22 +181,8 @@ class weapon_headcrab : CBaseDriveWeapon
 
 	void PrimaryAttack()
 	{
-		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) )
-		{
-			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.3;
-			return;
-		}
-
 		if( m_pDriveEnt !is null )
 		{
-			m_iState = STATE_ATTACK_LEAP;
-			m_flLeapResetCheck = g_Engine.time + 0.3;
-			m_pPlayer.SetMaxSpeedOverride( 0 );
-
-			int iAnim = Math.RandomLong(ANIM_LEAP1, ANIM_LEAP3);
-			SetAnim( iAnim );
-
-			DoLeapAttack();
 		}
 		else
 		{
@@ -190,62 +192,30 @@ class weapon_headcrab : CBaseDriveWeapon
 			return;
 		}
 
-		self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + CD_LEAP;
-		self.m_flTimeWeaponIdle = g_Engine.time + CD_LEAP;
+		self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + CD_PRIMARY;
+		self.m_flTimeWeaponIdle = g_Engine.time + CD_PRIMARY;
 	}
 
-	void DoLeapAttack()
+	void TertiaryAttack()
 	{
-		m_pPlayer.pev.flags &= ~FL_ONGROUND;
-		Math.MakeVectors( m_pPlayer.pev.angles );
-		
-		Vector vecJumpVelocity;
-		CBaseEntity@ pTarget = g_Utility.FindEntityForward( m_pPlayer, LEAP_MAX_RANGE );
-
-		if( pTarget !is null and pTarget.pev.FlagBitSet(FL_MONSTER) and pTarget.IsAlive() and pTarget.pev.takedamage != DAMAGE_NO )
+		if( !CNPC_FIRSTPERSON )
 		{
-			g_EntityFuncs.SetOrigin( m_pPlayer, m_pPlayer.pev.origin + Vector(0, 0, 10) );// take him off ground so engine doesn't instantly reset onground 
-
-			float gravity = g_EngineFuncs.CVarGetFloat( "sv_gravity" );
-			if( gravity <= 1 )
-				gravity = 1;
-
-			float height = ( pTarget.pev.origin.z + pTarget.pev.view_ofs.z - m_pPlayer.pev.origin.z );
-			if( height < 32 )
-				height = 32;
-
-			float speed = sqrt( 2 * gravity * height );
-			float time = speed / gravity;
-
-			vecJumpVelocity = ( pTarget.pev.origin + pTarget.pev.view_ofs - m_pPlayer.pev.origin );
-			vecJumpVelocity = vecJumpVelocity * ( 1.0 / time );
-
-			vecJumpVelocity.z = speed;
-
-			float distance = vecJumpVelocity.Length();
-			
-			if( distance > LEAP_DISTANCE_MAX )
-				vecJumpVelocity = vecJumpVelocity * ( LEAP_DISTANCE_MAX / distance );
+			m_pPlayer.SetViewMode( ViewMode_FirstPerson );
+			m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_FPV );
+			DoFirstPersonView();
+			CNPC_FIRSTPERSON = true;
 		}
 		else
 		{
-			g_EntityFuncs.SetOrigin( m_pPlayer, m_pPlayer.pev.origin + Vector(0, 0, 1) );
-			vecJumpVelocity = Vector( g_Engine.v_forward.x, g_Engine.v_forward.y, g_Engine.v_up.z ) * LEAP_VELOCITY;
-			//Math.MakeVectors( m_pPlayer.pev.v_angle );
-			//vecJumpVelocity = m_pPlayer.pev.velocity + g_Engine.v_forward * 400 + g_Engine.v_up * 200;
+			cnpc_engineer@ pDriveEnt = cast<cnpc_engineer@>(CastToScriptClass(m_pDriveEnt));
+			if( pDriveEnt !is null and pDriveEnt.m_hRenderEntity.IsValid() ) g_EntityFuncs.Remove( pDriveEnt.m_hRenderEntity.GetEntity() );
+
+			m_pPlayer.SetViewMode( ViewMode_ThirdPerson );
+			m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_TPV );
+			CNPC_FIRSTPERSON = false;
 		}
 
-		int iSound = Math.RandomLong(0, SND_ATTACK3);
-		if( iSound != 0 )
-			g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[iSound], VOL_NORM, ATTN_IDLE );
-
-		m_pPlayer.pev.velocity = vecJumpVelocity;
-
-		m_pDriveEnt.pev.solid = SOLID_SLIDEBOX;
-		m_pDriveEnt.pev.movetype = MOVETYPE_TOSS;
-
-		cnpc_headcrab@ pDriveEnt = cast<cnpc_headcrab@>(CastToScriptClass(m_pDriveEnt));
-		pDriveEnt.SetTouch( TouchFunction(pDriveEnt.LeapTouch) );
+		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
 	}
 
 	void ItemPreFrame()
@@ -255,12 +225,6 @@ class weapon_headcrab : CBaseDriveWeapon
 			DoMovementAnimation();
 			DoIdleAnimation();
 			DoIdleSound();
-
-			if( m_flLeapResetCheck > 0.0 and m_flLeapResetCheck < g_Engine.time and m_iState == STATE_ATTACK_LEAP and m_pDriveEnt.m_fSequenceFinished and m_pPlayer.pev.FlagBitSet(FL_ONGROUND) )
-			{
-				m_flLeapResetCheck = 0.0;
-				DoIdleAnimation();
-			}
 		}
 	}
 
@@ -268,7 +232,7 @@ class weapon_headcrab : CBaseDriveWeapon
 	{
 		m_pPlayer.pev.friction = 2; //no sliding!
 
-		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or m_iState >= STATE_ATTACK_LEAP ) return;
+		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or m_iState >= STATE_ATTACK ) return;
 
 		m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
 
@@ -300,7 +264,6 @@ class weapon_headcrab : CBaseDriveWeapon
 	void DoIdleAnimation()
 	{
 		if( m_pDriveEnt is null ) return;
-		if( m_iState == STATE_ATTACK_LEAP and !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
 
 		if( m_pPlayer.pev.velocity.Length() <= 10.0 )
 		{
@@ -320,9 +283,8 @@ class weapon_headcrab : CBaseDriveWeapon
 
 	void IdleSound()
 	{
-		if( m_pDriveEnt is null ) return;
-
-		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[Math.RandomLong(SND_IDLE1, SND_IDLE3)], VOL_NORM, ATTN_IDLE );
+		//SOUND HERE
+		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 	}
 
 	void spawn_driveent()
@@ -333,28 +295,66 @@ class weapon_headcrab : CBaseDriveWeapon
 			return;
 		}
 
-		@m_pDriveEnt = cast<CBaseAnimating@>( g_EntityFuncs.Create("cnpc_headcrab", m_pPlayer.pev.origin, m_pPlayer.pev.angles, true, m_pPlayer.edict()) );
+		m_pPlayer.pev.velocity = g_vecZero;
+		Vector vecOrigin = m_pPlayer.pev.origin;
+
+		vecOrigin.z -= CNPC_MODEL_OFFSET;
+
+		@m_pDriveEnt = cast<CBaseAnimating@>( g_EntityFuncs.Create("cnpc_engineer", vecOrigin, Vector(0, m_pPlayer.pev.angles.y, 0), true, m_pPlayer.edict()) );
+
+		m_pDriveEnt.pev.set_controller( 0,  127 );
 
 		g_EntityFuncs.DispatchSpawn( m_pDriveEnt.edict() );
 
 		m_pPlayer.pev.effects |= EF_NODRAW;
 		m_pPlayer.pev.iuser3 = 1; //disable ducking
 		m_pPlayer.pev.fuser4 = 1; //disable jumping
-		m_pPlayer.pev.view_ofs = Vector( 0, 0, 0 );
 		m_pPlayer.pev.max_health = CNPC_HEALTH;
 		m_pPlayer.pev.health = CNPC_HEALTH;
-		m_pPlayer.m_bloodColor = BLOOD_COLOR_YELLOW;
+		m_pPlayer.m_bloodColor = BLOOD_COLOR_RED;
 
 		self.m_bExclusiveHold = true;
 
-		m_pPlayer.SetViewMode( ViewMode_ThirdPerson );
+		if( CNPC_FIRSTPERSON )
+		{
+			m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_FPV );
+			DoFirstPersonView();
+		}
+		else
+		{
+			m_pPlayer.SetViewMode( ViewMode_ThirdPerson );
+			m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_TPV );
+		}
 
 		NetworkMessage m1( MSG_ONE, NetworkMessages::SVC_STUFFTEXT, m_pPlayer.edict() );
 			m1.WriteString( "cam_idealdist 128\n" );
 		m1.End();
 
 		CustomKeyvalues@ pCustom = m_pPlayer.GetCustomKeyvalues();
-		pCustom.SetKeyvalue( CNPC::sCNPCKV, CNPC::CNPC_HEADCRAB );
+		pCustom.SetKeyvalue( CNPC::sCNPCKV, CNPC::CNPC_ENGINEER );
+	}
+
+	void DoFirstPersonView()
+	{
+		cnpc_engineer@ pDriveEnt = cast<cnpc_engineer@>(CastToScriptClass(m_pDriveEnt));
+		if( pDriveEnt is null ) return;
+
+		string szDriveEntTargetName = "cnpc_engineer_pid_" + m_pPlayer.entindex();
+		m_pDriveEnt.pev.targetname = szDriveEntTargetName;
+
+		dictionary keys;
+		keys[ "target" ] = szDriveEntTargetName;
+		keys[ "rendermode" ] = "2"; //kRenderTransTexture
+		keys[ "renderamt" ] = "0";
+		keys[ "spawnflags" ] = "64"; //Affect Activator (ignore netname)
+
+		CBaseEntity@ pRender = g_EntityFuncs.CreateEntity( "env_render_individual", keys );
+
+		if( pRender !is null )
+		{
+			pRender.Use( m_pPlayer, pRender, USE_ON, 0.0 );
+			pDriveEnt.m_hRenderEntity = EHandle( pRender );
+		}
 	}
 
 	void ResetPlayer()
@@ -377,19 +377,20 @@ class weapon_headcrab : CBaseDriveWeapon
 	}
 }
 
-class cnpc_headcrab : ScriptBaseAnimating
+class cnpc_engineer : ScriptBaseAnimating
 {
 	protected CBasePlayer@ m_pOwner
 	{
 		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
 	}
 
+	EHandle m_hRenderEntity;
 	private float m_flNextOriginUpdate; //hopefully fixes hacky movement on other players
 
 	void Spawn()
 	{
 		g_EntityFuncs.SetModel( self, CNPC_MODEL );
-		g_EntityFuncs.SetSize( self.pev, CNPC_SIZEMIN, CNPC_SIZEMAX );
+		g_EntityFuncs.SetSize( self.pev, Vector(-16, -16, 0), Vector(16, 16, 72) );
 		g_EntityFuncs.SetOrigin( self, pev.origin );
 		g_EngineFuncs.DropToFloor( self.edict() );
 
@@ -410,6 +411,9 @@ class cnpc_headcrab : ScriptBaseAnimating
 	{
 		if( m_pOwner is null or !m_pOwner.IsConnected() or m_pOwner.pev.deadflag != DEAD_NO )
 		{
+			if( m_hRenderEntity.IsValid() )
+				g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );
+
 			pev.velocity = g_vecZero;
 			SetThink( ThinkFunction(this.DieThink) );
 			pev.nextthink = g_Engine.time;
@@ -441,27 +445,9 @@ class cnpc_headcrab : ScriptBaseAnimating
 		pev.nextthink = g_Engine.time + 0.01;
 	}
 
-	void LeapTouch( CBaseEntity@ pOther )
-	{
-		if( pOther.pev.takedamage == DAMAGE_NO )
-			return;
-
-		if( !pev.FlagBitSet(FL_ONGROUND) )
-		{
-			g_SoundSystem.EmitSound( self.edict(), CHAN_WEAPON, arrsCNPCSounds[SND_BITE], 1.0, ATTN_IDLE );
-
-			pOther.TakeDamage( m_pOwner.pev, m_pOwner.pev, DMG_LEAP, DMG_SLASH );
-		}
-
-		pev.solid = SOLID_NOT;
-		pev.movetype = MOVETYPE_NOCLIP;
-
-		SetTouch( null );
-	}
-
 	void DieThink()
 	{
-		pev.sequence = ANIM_DEATH;
+		pev.sequence = Math.RandomLong( ANIM_DEATH1, ANIM_DEATH6 );
 		pev.frame = 0;
 		self.ResetSequenceInfo();
 
@@ -512,9 +498,9 @@ class cnpc_headcrab : ScriptBaseAnimating
 	}
 }
 
-final class info_cnpc_headcrab : CNPCSpawnEntity
+final class info_cnpc_engineer : CNPCSpawnEntity
 {
-	info_cnpc_headcrab()
+	info_cnpc_engineer()
 	{
 		sWeaponName = CNPC_WEAPONNAME;
 		sModel = CNPC_MODEL;
@@ -523,21 +509,26 @@ final class info_cnpc_headcrab : CNPCSpawnEntity
 		vecSizeMin = CNPC_SIZEMIN;
 		vecSizeMax = CNPC_SIZEMAX;
 	}
+
+	void DoSpecificStuff()
+	{
+		pev.set_controller( 0,  127 );
+	}
 }
 
 void Register()
 {
-	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_headcrab::info_cnpc_headcrab", "info_cnpc_headcrab" );
-	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_headcrab::cnpc_headcrab", "cnpc_headcrab" );
-	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_headcrab::weapon_headcrab", CNPC_WEAPONNAME );
+	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_engineer::info_cnpc_engineer", "info_cnpc_engineer" );
+	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_engineer::cnpc_engineer", "cnpc_engineer" );
+	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_engineer::weapon_engineer", CNPC_WEAPONNAME );
 	g_ItemRegistry.RegisterWeapon( CNPC_WEAPONNAME, "controlnpc" );
 
-	g_Game.PrecacheOther( "info_cnpc_headcrab" );
-	g_Game.PrecacheOther( "cnpc_headcrab" );
+	g_Game.PrecacheOther( "info_cnpc_engineer" );
+	g_Game.PrecacheOther( "cnpc_engineer" );
 	g_Game.PrecacheOther( CNPC_WEAPONNAME );
 }
 
-} //namespace cnpc_headcrab END
+} //namespace cnpc_engineer END
 
 /* FIXME
 */

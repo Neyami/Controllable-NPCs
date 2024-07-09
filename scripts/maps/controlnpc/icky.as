@@ -15,7 +15,6 @@ const float CNPC_CAMDIST				= 256.0;
 const float CNPC_VIEWOFS_FPV		= 0.0; //camera height offset
 const float CNPC_VIEWOFS_TPV		= 40.0;
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the icky itself
-const float CNPC_IDLESOUND			= 10.0; //how often to check for an idlesound
 const float CNPC_FLOATTIME			= 20.0; //the body will stick around for this long
 
 const float SPEED_RUN_MAX			= 300.0;
@@ -457,7 +456,6 @@ class weapon_icky : CBaseDriveWeapon
 		if( m_pDriveEnt is null ) return;
 
 		g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[Math.RandomLong(SND_IDLE1, SND_IDLE4)], VOL_NORM, 0.6, 0, Math.RandomLong(95, 105) );
-		m_flNextIdleSound = g_Engine.time + CNPC_IDLESOUND;
 	}
 
 	void spawn_driveent()
