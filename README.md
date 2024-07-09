@@ -5,12 +5,11 @@ A work in progress.
 2) Add `map_script controlnpc/cnpc` to the map.cfg
 3) uuuuuuuuuuuuhhhhhhhh
 4) Place or spawn `info_cnpc_monstername`, add weapon_name to the map.cfg, or `.player_give @me weapon_name`
-5) Press the primary attack to turn into the monster
+5) Press the primary attack to turn into the monster, or use the holographic representation  
 6) ????
 7) PROFIT
 
 The only way to revert to a normal player is to die :ayaya:  
-
 Turrets can be exited with the Use-key  
 
 If you want to use custom sentences (scientist only for now), set `USE_CUSTOM_SENTENCES` to true,  
@@ -175,6 +174,22 @@ Tertiary Attack: Toggle between first- and third-person view
 Reload: Toggle syringe  
 
 Healing ammo replenishes when the syringe isn't out  
+
+
+<BR>
+
+
+
+# HUMAN GRUNT #  
+`weapon_hgrunt` - Give this to the player  
+`info_cnpc_hgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Fire the weapon when aiming, or kick when not aiming  
+Secondary Attack: Aim  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: M16 will launch a contact grenade, the other weapons will toss a grenade, look straight down~ish to place a grenade on the ground  
+
+Refer to `controlnpc.fgd` to see the keyvalues that set the weapons  
 
 
 <BR>
