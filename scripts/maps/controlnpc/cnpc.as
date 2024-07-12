@@ -14,6 +14,7 @@
 #include "turret"
 
 #include "scientist"
+#include "engineer"
 
 void MapInit()
 {
@@ -31,12 +32,13 @@ void MapInit()
 	cnpc_strooper::Register();
 	cnpc_gonome::Register();
 
+	cnpc_hgrunt::Register();
 	cnpc_fassn::Register();
 	cnpc_mturret::Register();
 	cnpc_turret::Register();
 
 	cnpc_scientist::Register();
-	cnpc_hgrunt::Register();
+	cnpc_engineer::Register();
 }
 
 namespace CNPC
@@ -44,6 +46,7 @@ namespace CNPC
 
 int g_iShockTrooperQuestion;
 int g_iGruntQuestion;
+int g_iTorchAllyQuestion;
 float g_flTalkWaitTime;
 
 const bool PVP										= false; //TODO
@@ -68,18 +71,20 @@ const int GONOME_SLOT				= 1;
 const int GONOME_POSITION		= 17;
 
 //black mesa etc
+const int HGRUNT_SLOT				= 2;
+const int HGRUNT_POSITION		= 10;
 const int FASSN_SLOT					= 2;
-const int FASSN_POSITION			= 10;
+const int FASSN_POSITION			= 11;
 const int MTURRET_SLOT				= 2;
-const int MTURRET_POSITION		= 11;
+const int MTURRET_POSITION		= 12;
 const int TURRET_SLOT				= 2;
-const int TURRET_POSITION		= 12;
+const int TURRET_POSITION		= 13;
 
 //friendles
 const int SCIENTIST_SLOT			= 3;
 const int SCIENTIST_POSITION	= 10;
-const int HGRUNT_SLOT				= 1;
-const int HGRUNT_POSITION		= 11;
+const int ENGINEER_SLOT			= 3;
+const int ENGINEER_POSITION	= 11;
 
 const string sCNPCKV = "$i_cnpc_iscontrollingnpc";
 const string sCNPCKVPainTime = "$f_cnpc_nextpaintime";
@@ -117,12 +122,13 @@ const array<string> arrsCNPCWeapons =
 	"weapon_strooper",
 	"weapon_gonome",
 
+	"weapon_hgrunt",
 	"weapon_fassn",
 	"weapon_mturret",
 	"weapon_turret",
 
 	"weapon_scientist",
-	"weapon_hgrunt"
+	"weapon_engineer"
 };
 
 enum cnpc_e
@@ -136,12 +142,13 @@ enum cnpc_e
 	CNPC_STROOPER,
 	CNPC_GONOME,
 
+	CNPC_HGRUNT,
 	CNPC_FASSN,
 	CNPC_MTURRET,
 	CNPC_TURRET,
 
 	CNPC_SCIENTIST,
-	CNPC_HGRUNT
+	CNPC_ENGINEER
 };
 
 enum heads_e { HEAD_GLASSES = 0, HEAD_EINSTEIN = 1, HEAD_LUTHER = 2, HEAD_SLICK = 3 };
@@ -271,6 +278,20 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
+		case CNPC_HGRUNT:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + 1.0;
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			if( Math.RandomLong(0, 6) <= 4 )
+				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_hgrunt::pPainSounds[Math.RandomLong(0,(cnpc_hgrunt::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+
+			break;
+		}
+
 		/*TODO, add berserk mode??
 		case CNPC_TURRET:
 		{
@@ -305,7 +326,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
-		case CNPC_HGRUNT:
+		case CNPC_ENGINEER:
 		{
 			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
 				return HOOK_CONTINUE;
@@ -313,8 +334,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			float flNextPainTime = g_Engine.time + 1.0;
 			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
 
-			if( Math.RandomLong(0, 6) <= 4 )
-				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_hgrunt::pPainSounds[Math.RandomLong(0,(cnpc_hgrunt::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_engineer::pPainSounds[Math.RandomLong(0,(cnpc_engineer::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 
 			break;
 		}

@@ -53,7 +53,8 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		if( bUseViewAngles )
 			Math.MakeVectors( m_pPlayer.pev.v_angle );
 		else
-			Math.MakeVectors( m_pPlayer.pev.angles );
+			Math.MakeVectors( m_pDriveEnt.pev.angles );
+			//Math.MakeVectors( m_pPlayer.pev.angles );
 
 		Vector vecStart = m_pDriveEnt.pev.origin;
 		vecStart.z += m_pDriveEnt.pev.size.z * 0.5;

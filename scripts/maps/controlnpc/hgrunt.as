@@ -494,7 +494,7 @@ class weapon_hgrunt : CBaseDriveWeapon
 		{
 			case HGRUNT_MP5:
 			{
-				Vector vecShellVelocity = g_Engine.v_right * Math.RandomFloat(40,90) + g_Engine.v_up * Math.RandomFloat(75,200) + g_Engine.v_forward * Math.RandomFloat(-40, 40);
+				Vector vecShellVelocity = g_Engine.v_right * Math.RandomFloat(40, 90) + g_Engine.v_up * Math.RandomFloat(75, 200) + g_Engine.v_forward * Math.RandomFloat(-40, 40);
 				g_EntityFuncs.EjectBrass( vecShootOrigin + vecShootDir * 24, vecShellVelocity, m_pDriveEnt.pev.angles.y, m_iShell, TE_BOUNCE_SHELL );
 				m_pDriveEnt.FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048.0, BULLET_MONSTER_MP5, 0, MP5_DAMAGE, m_pPlayer.pev );
 
@@ -503,7 +503,7 @@ class weapon_hgrunt : CBaseDriveWeapon
 
 			case HGRUNT_SHOTGUN:
 			{
-				Vector vecShellVelocity = g_Engine.v_right * Math.RandomFloat(40,90) + g_Engine.v_up * Math.RandomFloat(75,200) + g_Engine.v_forward * Math.RandomFloat(-40, 40);
+				Vector vecShellVelocity = g_Engine.v_right * Math.RandomFloat(40, 90) + g_Engine.v_up * Math.RandomFloat(75, 200) + g_Engine.v_forward * Math.RandomFloat(-40, 40);
 				g_EntityFuncs.EjectBrass( vecShootOrigin + vecShootDir * 24, vecShellVelocity, m_pDriveEnt.pev.angles.y, m_iShotgunShell, TE_BOUNCE_SHOTSHELL );
 				m_pDriveEnt.FireBullets( SHOTGUN_PELLETS, vecShootOrigin, vecShootDir, VECTOR_CONE_15DEGREES, 2048.0, BULLET_PLAYER_BUCKSHOT, 0, SHOTGUN_DAMAGE, m_pPlayer.pev );
 
@@ -512,7 +512,7 @@ class weapon_hgrunt : CBaseDriveWeapon
 
 			case HGRUNT_M16:
 			{
-				Vector vecShellVelocity = g_Engine.v_right * Math.RandomFloat(40,90) + g_Engine.v_up * Math.RandomFloat(75,200) + g_Engine.v_forward * Math.RandomFloat(-40, 40);
+				Vector vecShellVelocity = g_Engine.v_right * Math.RandomFloat(40, 90) + g_Engine.v_up * Math.RandomFloat(75, 200) + g_Engine.v_forward * Math.RandomFloat(-40, 40);
 				g_EntityFuncs.EjectBrass( vecShootOrigin + vecShootDir * 24, vecShellVelocity, m_pDriveEnt.pev.angles.y, m_iShell, TE_BOUNCE_SHELL );
 				m_pDriveEnt.FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048.0, BULLET_MONSTER_SAW, 0, M16_DAMAGE, m_pPlayer.pev );
 
@@ -521,7 +521,7 @@ class weapon_hgrunt : CBaseDriveWeapon
 
 			case HGRUNT_SNIPER:
 			{
-				Vector vecShellVelocity = g_Engine.v_right * Math.RandomFloat(40,90) + g_Engine.v_up * Math.RandomFloat(75,200) + g_Engine.v_forward * Math.RandomFloat(-40, 40);
+				Vector vecShellVelocity = g_Engine.v_right * Math.RandomFloat(40, 90) + g_Engine.v_up * Math.RandomFloat(75, 200) + g_Engine.v_forward * Math.RandomFloat(-40, 40);
 				g_EntityFuncs.EjectBrass( vecShootOrigin + vecShootDir * 24, vecShellVelocity, m_pDriveEnt.pev.angles.y, m_iShell, TE_BOUNCE_SHELL );
 				m_pDriveEnt.FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_2DEGREES, 2048.0, BULLET_MONSTER_SAW, 0, SNIPER_DAMAGE, m_pPlayer.pev );
 
@@ -562,11 +562,6 @@ class weapon_hgrunt : CBaseDriveWeapon
 				{
 					SetAnim( ANIM_AIM_RPG );
 					self.m_flNextPrimaryAttack = g_Engine.time + 0.2;
-
-					if( m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) > 0 )
-					{
-						//m_bSpotActive
-					}
 				}
 				else
 				{
@@ -601,10 +596,6 @@ class weapon_hgrunt : CBaseDriveWeapon
 				g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[SND_KICKHITWALL], VOL_NORM, ATTN_NORM, 0, 100 + Math.RandomLong(-5, 5) );
 			else
 				g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[Math.RandomLong(SND_KICKHIT1, SND_KICKHIT3)], VOL_NORM, ATTN_NORM, 0, 100 + Math.RandomLong(-5, 5) );
-
-			Vector vecArmPos, vecArmAng;
-			m_pDriveEnt.GetAttachment( 0, vecArmPos, vecArmAng );
-			g_WeaponFuncs.SpawnBlood( vecArmPos, pHurt.BloodColor(), 25 );
 		}
 		else
 			g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[SND_KICKMISS], VOL_NORM, ATTN_NORM, 0, 100 + Math.RandomLong(-5, 5) );
@@ -758,47 +749,25 @@ class weapon_hgrunt : CBaseDriveWeapon
 				// ask question or make statement
 				switch( Math.RandomLong(0, 2) )
 				{
-					case 0: // check in
-					{
-						g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "HG_CHECK", 0.35, ATTN_NORM, 0, m_iVoicePitch );
-						CNPC::g_iGruntQuestion = 1;
+					 // check in
+					case 0: { g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "HG_CHECK", 0.35, ATTN_NORM, 0, m_iVoicePitch ); CNPC::g_iGruntQuestion = 1; break; }
 
-						break;
-					}
+					// question
+					case 1: { g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "HG_QUEST", 0.35, ATTN_NORM, 0, m_iVoicePitch ); CNPC::g_iGruntQuestion = 2; break; }
 
-					case 1: // question
-					{
-						g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "HG_QUEST", 0.35, ATTN_NORM, 0, m_iVoicePitch );
-						CNPC::g_iGruntQuestion = 2;
-
-						break;
-					}
-
-					case 2: // statement
-					{
-						g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "HG_IDLE", 0.35, ATTN_NORM, 0, m_iVoicePitch );
-
-						break;
-					}
+					// statement
+					case 2: {g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "HG_IDLE", 0.35, ATTN_NORM, 0, m_iVoicePitch ); break; }
 				}
 			}
 			else
 			{
 				switch( CNPC::g_iGruntQuestion )
 				{
-					case 1: // check in
-					{
-						g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "HG_CLEAR", 0.35, ATTN_NORM, 0, m_iVoicePitch );
+					// check in
+					case 1: { g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "HG_CLEAR", 0.35, ATTN_NORM, 0, m_iVoicePitch ); break; }
 
-						break;
-					}
-
-					case 2: // question
-					{
-						g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "HG_ANSWER", 0.35, ATTN_NORM, 0, m_iVoicePitch );
-
-						break;
-					}
+					// question
+					case 2: { g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "HG_ANSWER", 0.35, ATTN_NORM, 0, m_iVoicePitch ); break;}
 				}
 
 				CNPC::g_iGruntQuestion = 0;
@@ -1174,7 +1143,7 @@ class cnpc_hgrunt : ScriptBaseAnimating
 	void Spawn()
 	{
 		g_EntityFuncs.SetModel( self, CNPC_MODEL );
-		g_EntityFuncs.SetSize( self.pev, Vector(-16, -16, 0), Vector(16, 16, 72) );
+		g_EntityFuncs.SetSize( self.pev, CNPC_SIZEMIN, CNPC_SIZEMAX );
 		g_EntityFuncs.SetOrigin( self, pev.origin );
 		g_EngineFuncs.DropToFloor( self.edict() );
 
