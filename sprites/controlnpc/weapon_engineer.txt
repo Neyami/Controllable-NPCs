@@ -1,0 +1,5 @@
+4
+weapon				640		controlnpc/ui_hgrunt		0	170	0	45
+weapon_s			640		controlnpc/ui_hgrunt_sel		0	170	0	45
+crosshair			640		ofch1		0	0	24	24
+ammo				640		640hud7		24	60	24	24
