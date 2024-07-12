@@ -118,6 +118,24 @@ Use: Hold to feed on dead humanoids to regenerate health
 <BR>
 
 
+
+# HUMAN GRUNT #  
+`weapon_hgrunt` - Give this to the player  
+`info_cnpc_hgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Fire the weapon when aiming, or kick when not aiming  
+Secondary Attack: Aim  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: M16 will launch a contact grenade, the other weapons will toss a grenade, look straight down~ish to place a grenade on the ground  
+Duck: Crouch, most weapons can be fired while crouching  
+
+Refer to `controlnpc.fgd` to see the keyvalues that set the weapons  
+
+
+<BR>
+
+
+
 # HUMAN ASSASSIN #  
 `weapon_fassn` - Give this to the player  
 `info_cnpc_fassn` - Usable entity that turns the player into the monster upon using. Mappers can place this  
@@ -166,7 +184,6 @@ When active and not shooting, nearby enemies will be highlighted
 <BR>
 
 
-
 # SCIENTIST #  
 `weapon_scientist` - Give this to the player  
 `info_cnpc_scientist` - Usable entity that turns the player into the monster upon using. Mappers can place this  
@@ -182,19 +199,14 @@ Healing ammo replenishes when the syringe isn't out
 <BR>
 
 
+# ENGINEER #  
+Primarily meant to be used in the sandstone map to replace/complement the Engineer NPC  
 
-# HUMAN GRUNT #  
-`weapon_hgrunt` - Give this to the player  
-`info_cnpc_hgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+`weapon_engineer` - Give this to the player  
+`info_cnpc_engineer` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Fire the weapon when aiming, or kick when not aiming  
 Secondary Attack: Aim  
 Tertiary Attack: Toggle between first- and third-person view  
-Reload: M16 will launch a contact grenade, the other weapons will toss a grenade, look straight down~ish to place a grenade on the ground  
-Duck: Crouch, most weapons can be fired while crouching  
-
-Refer to `controlnpc.fgd` to see the keyvalues that set the weapons  
-
-
-<BR>
-
+Reload: Reload the weapon  
+Use: Plant the explosives in the sandstone map
