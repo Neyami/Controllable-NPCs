@@ -1248,14 +1248,25 @@ class info_cnpc_turret : ScriptBaseAnimating
 		g_EntityFuncs.SetModel( self, CNPC_MODEL );
 		g_EntityFuncs.SetSize( self.pev, CNPC_SIZEMIN_OFF, CNPC_SIZEMAX_OFF );
 
+		Vector vecOrigin = pev.origin;
 		if( m_iOrientation == 0 )
 		{
-			Vector vecOrigin = pev.origin;
-			vecOrigin.z -= CNPC_MODEL_OFFSET;
-			g_EntityFuncs.SetOrigin( self, vecOrigin );
+			//Trace up then down to find the ground
+			TraceResult tr;
+			g_Utility.TraceLine( vecOrigin, vecOrigin + Vector(0, 0, 1) * 64, ignore_monsters, self.edict(), tr );
+			g_Utility.TraceLine( tr.vecEndPos, tr.vecEndPos + Vector(0, 0, -1) * 128, ignore_monsters, self.edict(), tr );
+			vecOrigin = tr.vecEndPos;
 		}
-		else
-			g_EntityFuncs.SetOrigin( self, pev.origin );
+		else if( m_iOrientation == 1 )
+		{
+			//Trace down then up to find the ceiling
+			TraceResult tr;
+			g_Utility.TraceLine( vecOrigin, vecOrigin + Vector(0, 0, -1) * 64, ignore_monsters, self.edict(), tr );
+			g_Utility.TraceLine( tr.vecEndPos, tr.vecEndPos + Vector(0, 0, 1) * 128, ignore_monsters, self.edict(), tr );
+			vecOrigin = tr.vecEndPos;
+		}
+
+		g_EntityFuncs.SetOrigin( self, vecOrigin );
 
 		pev.solid = SOLID_NOT;
 		pev.movetype = MOVETYPE_NONE;
