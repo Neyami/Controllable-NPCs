@@ -695,27 +695,22 @@ class weapon_mturret : CBaseDriveWeapon
 		m_pPlayer.pev.velocity = g_vecZero;
 		Vector vecOrigin = m_pPlayer.pev.origin;
 
-		if( m_iAutoDeploy == 1 )
+		if( m_iOrientation == 0 )
 		{
-			if( m_iOrientation == 0 )
-			{
-				//Trace up then down to find the ground
-				TraceResult tr;
-				g_Utility.TraceLine( vecOrigin, vecOrigin + Vector(0, 0, 1) * 64, ignore_monsters, m_pPlayer.edict(), tr );
-				g_Utility.TraceLine( tr.vecEndPos, tr.vecEndPos + Vector(0, 0, -1) * 128, ignore_monsters, m_pPlayer.edict(), tr );
-				vecOrigin = tr.vecEndPos;
-			}
-			else if( m_iOrientation == 1 )
-			{
-				//Trace down then up to find the ceiling
-				TraceResult tr;
-				g_Utility.TraceLine( vecOrigin, vecOrigin + Vector(0, 0, -1) * 64, ignore_monsters, m_pPlayer.edict(), tr );
-				g_Utility.TraceLine( tr.vecEndPos, tr.vecEndPos + Vector(0, 0, 1) * 128, ignore_monsters, m_pPlayer.edict(), tr );
-				vecOrigin = tr.vecEndPos;
-			}
+			//Trace up then down to find the ground
+			TraceResult tr;
+			g_Utility.TraceLine( vecOrigin, vecOrigin + Vector(0, 0, 1) * 64, ignore_monsters, m_pPlayer.edict(), tr );
+			g_Utility.TraceLine( tr.vecEndPos, tr.vecEndPos + Vector(0, 0, -1) * 128, ignore_monsters, m_pPlayer.edict(), tr );
+			vecOrigin = tr.vecEndPos;
 		}
-		else if( m_iAutoDeploy == 0 )
-			vecOrigin.z -= 16.0;
+		else if( m_iOrientation == 1 )
+		{
+			//Trace down then up to find the ceiling
+			TraceResult tr;
+			g_Utility.TraceLine( vecOrigin, vecOrigin + Vector(0, 0, -1) * 64, ignore_monsters, m_pPlayer.edict(), tr );
+			g_Utility.TraceLine( tr.vecEndPos, tr.vecEndPos + Vector(0, 0, 1) * 128, ignore_monsters, m_pPlayer.edict(), tr );
+			vecOrigin = tr.vecEndPos;
+		}
 
 		@m_pDriveEnt = cast<CBaseAnimating@>( g_EntityFuncs.Create("cnpc_mturret", vecOrigin, Vector(0, m_pPlayer.pev.angles.y, 0), true, m_pPlayer.edict()) );
 
