@@ -3,7 +3,7 @@ namespace cnpc_mturret
 
 bool CNPC_FIRSTPERSON					= true;
 const bool EPILEPSY_PREVENTION		= true; //there's a lot of flashing in thirdperson view if you look up far enough
-const bool BLOCK_PLAYER_AIMING		= true; //when inactive
+const bool BLOCK_PLAYER_AIMING		= false; //when inactive
 
 const string CNPC_WEAPONNAME		= "weapon_mturret";
 const string CNPC_MODEL					= "models/miniturret.mdl";
@@ -15,12 +15,12 @@ const Vector CNPC_SIZEMAX_OFF		= Vector( 16, 16, 16 );
 const string TURRET_SMOKE_SPRITE	= "sprites/steam1.spr";
 
 const float CNPC_HEALTH					= 80.0;
-const float CNPC_VOFS_FPV_ON			= 0.0; //camera height offsets
-const float CNPC_VOFS_FPV_OFF		= -32.0;
-const float CNPC_VOFS_TPV				= -28.0;
-const float CNPC_VOFS_FPV_ON_CL	= 42.0; //ceiling
-const float CNPC_VOFS_FPV_OFF_CL	= 64.0;
-const float CNPC_VOFS_TPV_CL			= -28.0;
+const float CNPC_VOFS_FPV_ON			= 8.0; //camera height offsets
+const float CNPC_VOFS_FPV_OFF		= 0.0;
+const float CNPC_VOFS_TPV				= 32.0;
+const float CNPC_VOFS_FPV_ON_CL	= 24.0; //ceiling
+const float CNPC_VOFS_FPV_OFF_CL	= 42.0;
+const float CNPC_VOFS_TPV_CL			= -48.0;
 const float CNPC_RESPAWNTIME			= 13.0; //from the point that the weapon is removed, not the turret itself
 const float CNPC_RESPAWNEXIT			= 5.0; //time until it can be used again after a player exits
 const float CNPC_MODEL_OFFSET		= 38.0; //sometimes the model floats above the ground
@@ -30,8 +30,9 @@ const float CD_DEPLOY						= 1.0;
 
 const int AMMO_MAX							= 140;
 const float AMMO_REGEN_RATE			= 0.1; //+1 per AMMO_REGEN_RATE seconds
-const Vector TURRET_SPREAD				= g_vecZero;
+const Vector TURRET_SPREAD				= VECTOR_CONE_3DEGREES;//g_vecZero;
 const float TURRET_RANGE					= 1200.0;
+const float RANGE_DAMAGE				= 12.0;
 
 //forced to use this because of some bug with the normal usage of ammo
 const int HUD_CHANNEL_AMMO			= 9; //0-15
@@ -80,7 +81,7 @@ enum sound_e
 
 enum anim_e
 {
-	ANIM_IDLE = 0,
+	ANIM_IDLE_OFF = 0,
 	ANIM_FIRE,
 	ANIM_SPIN,
 	ANIM_DEPLOY,
@@ -346,7 +347,7 @@ class weapon_mturret : CBaseDriveWeapon
 			}
 			else if( m_pDriveEnt.pev.sequence == ANIM_RETIRE and m_pDriveEnt.m_fSequenceFinished )
 			{
-				SetAnim( ANIM_IDLE );
+				SetAnim( ANIM_IDLE_OFF );
 				m_iState = STATE_IDLE_INACTIVE;
 				g_EntityFuncs.SetSize( m_pDriveEnt.pev, CNPC_SIZEMIN_OFF, CNPC_SIZEMAX_OFF );
 
@@ -387,7 +388,8 @@ class weapon_mturret : CBaseDriveWeapon
 
 	void Shoot( Vector &in vecSrc, Vector &in vecDir )
 	{
-		m_pDriveEnt.FireBullets( 1, vecSrc, vecDir, TURRET_SPREAD, TURRET_RANGE, BULLET_MONSTER_9MM, 1 );
+		//m_pDriveEnt.FireBullets( 1, vecSrc, vecDir, TURRET_SPREAD, TURRET_RANGE, BULLET_MONSTER_9MM, 1 );
+		self.FireBullets( 1, vecSrc, vecDir, TURRET_SPREAD, TURRET_RANGE, BULLET_PLAYER_CUSTOMDAMAGE, 1, RANGE_DAMAGE, m_pPlayer.pev ); //BULLET_MONSTER_9MM
 		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, arrsTurretSounds[Math.RandomLong(SND_SHOOT1, SND_SHOOT3)], VOL_NORM, ATTN_NORM );
 		m_pDriveEnt.pev.effects |= EF_MUZZLEFLASH;
 
@@ -693,16 +695,37 @@ class weapon_mturret : CBaseDriveWeapon
 		m_pPlayer.pev.velocity = g_vecZero;
 		Vector vecOrigin = m_pPlayer.pev.origin;
 
-		if( m_iAutoDeploy == 0 )
-			vecOrigin.z -= 32.0;
+		if( m_iAutoDeploy == 1 )
+		{
+			if( m_iOrientation == 0 )
+			{
+				//Trace up then down to find the ground
+				TraceResult tr;
+				g_Utility.TraceLine( vecOrigin, vecOrigin + Vector(0, 0, 1) * 64, ignore_monsters, m_pPlayer.edict(), tr );
+				g_Utility.TraceLine( tr.vecEndPos, tr.vecEndPos + Vector(0, 0, -1) * 128, ignore_monsters, m_pPlayer.edict(), tr );
+				vecOrigin = tr.vecEndPos;
+			}
+			else if( m_iOrientation == 1 )
+			{
+				//Trace down then up to find the ceiling
+				TraceResult tr;
+				g_Utility.TraceLine( vecOrigin, vecOrigin + Vector(0, 0, -1) * 64, ignore_monsters, m_pPlayer.edict(), tr );
+				g_Utility.TraceLine( tr.vecEndPos, tr.vecEndPos + Vector(0, 0, 1) * 128, ignore_monsters, m_pPlayer.edict(), tr );
+				vecOrigin = tr.vecEndPos;
+			}
+		}
+		else if( m_iAutoDeploy == 0 )
+			vecOrigin.z -= 16.0;
 
 		@m_pDriveEnt = cast<CBaseAnimating@>( g_EntityFuncs.Create("cnpc_mturret", vecOrigin, Vector(0, m_pPlayer.pev.angles.y, 0), true, m_pPlayer.edict()) );
 
 		g_EntityFuncs.DispatchSpawn( m_pDriveEnt.edict() );
 
-		m_pPlayer.pev.movetype = MOVETYPE_NONE;
-		m_pPlayer.pev.flags |= FL_FLY;
 		m_pPlayer.pev.effects |= EF_NODRAW;
+		m_pPlayer.pev.solid = SOLID_NOT;
+		m_pPlayer.pev.movetype = MOVETYPE_NOCLIP;
+		//m_pPlayer.pev.flags |= FL_FLY;
+		m_pPlayer.pev.flags |= FL_NOTARGET;
 		m_pPlayer.pev.iuser3 = 1; //disable ducking
 		m_pPlayer.pev.fuser4 = 1; //disable jumping
 		m_pPlayer.pev.max_health = CNPC_HEALTH;
@@ -831,7 +854,7 @@ class weapon_mturret : CBaseDriveWeapon
 	}
 }
 
-class cnpc_mturret : ScriptBaseAnimating
+class cnpc_mturret : ScriptBaseMonsterEntity//ScriptBaseAnimating
 {
 	protected CBasePlayer@ m_pOwner
 	{
@@ -841,6 +864,8 @@ class cnpc_mturret : ScriptBaseAnimating
 	EHandle m_hRenderEntity;
 
 	int m_iOrientation; //0 = floor, 1 = celiing
+
+	private float m_flDmgTime;
 
 	bool KeyValue( const string& in szKey, const string& in szValue )
 	{
@@ -862,10 +887,18 @@ class cnpc_mturret : ScriptBaseAnimating
 		if( m_iOrientation == 0 )
 			g_EngineFuncs.DropToFloor( self.edict() );
 
-		pev.solid = SOLID_NOT; //SOLID_SLIDEBOX
-		pev.movetype = MOVETYPE_NONE; //MOVETYPE_FLY
+		pev.solid = SOLID_SLIDEBOX;
+		pev.movetype = MOVETYPE_FLY;
+		pev.deadflag = DEAD_NO;
+		pev.takedamage = DAMAGE_AIM;
+		pev.max_health = CNPC_HEALTH;
+		pev.health = CNPC_HEALTH;
+		self.m_bloodColor = DONT_BLEED;
+		self.m_FormattedName = "CNPC Mini-Turret";
+		pev.flags |= FL_MONSTER;
+		//g_EntityFuncs.DispatchKeyValue( self.edict(), "displayname", "CNPC Mini-Turret" );
 
-		pev.sequence = ANIM_IDLE;
+		pev.sequence = ANIM_IDLE_OFF;
 		pev.frame = 0;
 		self.ResetSequenceInfo();
 
@@ -876,12 +909,84 @@ class cnpc_mturret : ScriptBaseAnimating
 		pev.nextthink = g_Engine.time;
 	}
 
+	int Classify()
+	{
+		if( CNPC::PVP )
+		{
+			if( m_pOwner !is null and m_pOwner.IsConnected() )
+			{
+				if( m_pOwner.Classify() == CLASS_PLAYER )
+					return CLASS_PLAYER_ALLY;
+				else
+					return m_pOwner.Classify();
+			}
+		}
+
+		return CLASS_PLAYER_ALLY;
+	}
+
+	int TakeDamage( entvars_t@ pevInflictor, entvars_t@ pevAttacker, float flDamage, int bitsDamageType )
+	{
+		if( pev.takedamage <= DAMAGE_NO )
+			return 0;
+
+		if( pev.sequence == ANIM_IDLE_OFF )
+			flDamage /= 10.0;
+
+		pev.health -= flDamage;
+		m_pOwner.pev.health = pev.health;
+		if( pev.health <= 0 )
+		{
+			m_pOwner.Killed( pevAttacker, GIB_NEVER );
+			pev.health = 0;
+			pev.takedamage = DAMAGE_NO;
+
+			return 0;
+		}
+
+		pevAttacker.frags += self.GetPointsForDamage( flDamage );
+		/*TODO Berserk
+		if( pev.health <= 10 )
+		{
+			if( m_iOn and (1 || Math.RandomLong(0, 0x7FFF) > 800) )
+			{
+				m_fBeserk = 1;
+				SetThink(&CBaseTurret::SearchThink);
+			}
+		}*/
+
+		return 1;
+	}
+
+	void TraceAttack( entvars_t@ pevAttacker, float flDamage, const Vector& in vecDir, TraceResult& in ptr, int bitsDamageType )
+	{
+		if( ptr.iHitgroup == 10 )
+		{
+			// hit armor
+			if( m_flDmgTime != g_Engine.time or (Math.RandomLong(0, 10) < 1) )
+			{
+				g_Utility.Ricochet( ptr.vecEndPos, Math.RandomFloat(1.0, 2.0) ); 
+				m_flDmgTime = g_Engine.time;
+			}
+
+			flDamage = 0.1;// don't hurt the monster much, but allow bits_COND_LIGHT_DAMAGE to be generated
+		}
+
+		if( pev.takedamage <= DAMAGE_NO )
+			return;
+
+		g_WeaponFuncs.AddMultiDamage( pevAttacker, self, flDamage, bitsDamageType );
+	}
+
 	void DriveThink()
 	{
 		if( m_pOwner is null or !m_pOwner.IsConnected() or m_pOwner.pev.deadflag != DEAD_NO )
 		{
 			if( m_hRenderEntity.IsValid() )
 				g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );
+
+			pev.takedamage = DAMAGE_NO;
+			pev.solid = SOLID_NOT;
 
 			SetThink( ThinkFunction(this.DieThink) );
 			pev.nextthink = g_Engine.time;
@@ -1037,18 +1142,29 @@ class info_cnpc_mturret : ScriptBaseAnimating
 		g_EntityFuncs.SetModel( self, CNPC_MODEL );
 		g_EntityFuncs.SetSize( self.pev, CNPC_SIZEMIN_OFF, CNPC_SIZEMAX_OFF );
 
+		Vector vecOrigin = pev.origin;
 		if( m_iOrientation == 0 )
 		{
-			Vector vecOrigin = pev.origin;
-			vecOrigin.z -= CNPC_MODEL_OFFSET;
-			g_EntityFuncs.SetOrigin( self, vecOrigin );
+			//Trace up then down to find the ground
+			TraceResult tr;
+			g_Utility.TraceLine( vecOrigin, vecOrigin + Vector(0, 0, 1) * 64, ignore_monsters, self.edict(), tr );
+			g_Utility.TraceLine( tr.vecEndPos, tr.vecEndPos + Vector(0, 0, -1) * 128, ignore_monsters, self.edict(), tr );
+			vecOrigin = tr.vecEndPos;
 		}
-		else
-			g_EntityFuncs.SetOrigin( self, pev.origin );
+		else if( m_iOrientation == 1 )
+		{
+			//Trace down then up to find the ceiling
+			TraceResult tr;
+			g_Utility.TraceLine( vecOrigin, vecOrigin + Vector(0, 0, -1) * 64, ignore_monsters, self.edict(), tr );
+			g_Utility.TraceLine( tr.vecEndPos, tr.vecEndPos + Vector(0, 0, 1) * 128, ignore_monsters, self.edict(), tr );
+			vecOrigin = tr.vecEndPos;
+		}
+
+		g_EntityFuncs.SetOrigin( self, vecOrigin );
 
 		pev.solid = SOLID_NOT;
 		pev.movetype = MOVETYPE_NONE;
-		pev.sequence = ANIM_IDLE;
+		pev.sequence = ANIM_IDLE_OFF;
 		pev.rendermode = kRenderTransTexture;
 		pev.renderfx = kRenderFxDistort;
 		pev.renderamt = 128;
@@ -1087,7 +1203,14 @@ class info_cnpc_mturret : ScriptBaseAnimating
 		CustomKeyvalues@ pCustom = pActivator.GetCustomKeyvalues();
 		if( pCustom.GetKeyvalue(CNPC::sCNPCKV).GetInteger() > 0 ) return;
 
-		g_EntityFuncs.SetOrigin( pActivator, pev.origin );
+		Vector vecNewOrigin;
+
+		if( m_iOrientation == 0 )
+			vecNewOrigin = pev.origin + Vector(0, 0, 20);
+		else if( m_iOrientation == 1 )
+			vecNewOrigin = pev.origin + Vector(0, 0, -52);
+
+		g_EntityFuncs.SetOrigin( pActivator, vecNewOrigin );
 		pActivator.pev.angles = pev.angles;
 		pActivator.pev.fixangle = FAM_FORCEVIEWANGLES;
 		@m_pCNPCWeapon = g_EntityFuncs.Create( CNPC_WEAPONNAME, pActivator.pev.origin, g_vecZero, true );
@@ -1149,7 +1272,6 @@ void Register()
 
 /* FIXME
 	Find out why using the normal ammo causes the turret to auto-retire
-	Bullets fired from the turret hurt other players, but when fired from the player they're invisible
 */
 
 /* TODO
