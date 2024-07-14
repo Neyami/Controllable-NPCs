@@ -32,12 +32,6 @@ const float CD_MELEE						= 1.0;
 const float MELEE_RANGE				= 50.0;
 const float MELEE_DAMAGE			= 12.0;
 
-const array<string> pIdleSounds = 
-{
-	"template/hc_idle4.wav",
-	"template/hc_idle5.wav"
-};
-
 const array<string> pPainSounds = 
 {
 	"fgrunt/pain1.wav",
@@ -152,9 +146,6 @@ class weapon_engineer : CBaseDriveWeapon
 
 		for( uint i = 0; i < arrsCNPCSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( arrsCNPCSounds[i] );
-
-		for( uint i = 0; i < pIdleSounds.length(); i++ )
-			g_SoundSystem.PrecacheSound( pIdleSounds[i] );
 
 		for( uint i = 0; i < pPainSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pPainSounds[i] );
