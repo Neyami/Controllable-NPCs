@@ -164,21 +164,11 @@ HookReturnCode ClientPutInServer( CBasePlayer@ pPlayer)
 
 HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 {
+	//prevent other players from triggering painsounds
 	if( pDamageInfo.pVictim.GetClassname() == "player" and pDamageInfo.pAttacker.GetClassname() == "player" )
 	{
 		if( pDamageInfo.pVictim.Classify() == pDamageInfo.pAttacker.Classify() )
 			return HOOK_CONTINUE;
-	}
-
-	if( pDamageInfo.pVictim.GetClassname() == "player" and (pDamageInfo.pAttacker.GetClassname() == "cnpc_turret" or pDamageInfo.pAttacker.GetClassname() == "cnpc_mturret") )
-	{
-		//hacky isFriendly check
-		if( pDamageInfo.pAttacker.pev.owner !is null )
-		{
-			CBaseEntity@ pOwner = g_EntityFuncs.Instance(pDamageInfo.pAttacker.pev.owner);
-			if( pDamageInfo.pVictim.Classify() == pOwner.Classify() )
-				pDamageInfo.flDamage = 0.0;
-		}
 	}
 
 	CustomKeyvalues@ pCustom = pDamageInfo.pVictim.GetCustomKeyvalues();
@@ -472,11 +462,12 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 	float m_flDefaultRespawnTime;
 	float m_flRespawnTime; //how long until respawn
 	float m_flTimeToRespawn; //used to check if ready to respawn
+	float m_flSpawnOffset; //when using CNPC_NPC_HITBOX the player spawns in the floor
 
-	string sWeaponName;
-	string sModel;
-	int iStartAnim;
-	Vector vecSizeMin, vecSizeMax;
+	string m_sWeaponName;
+	string m_sModel;
+	int m_iStartAnim;
+	Vector m_vecSizeMin, m_vecSizeMax;
 
 	//scientist
 	int m_iBody;
@@ -496,8 +487,8 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 
 	void Spawn()
 	{
-		g_EntityFuncs.SetModel( self, sModel );
-		g_EntityFuncs.SetSize( self.pev, vecSizeMin, vecSizeMax );
+		g_EntityFuncs.SetModel( self, m_sModel );
+		g_EntityFuncs.SetSize( self.pev, m_vecSizeMin, m_vecSizeMax );
 		g_EntityFuncs.SetOrigin( self, pev.origin );
 
 		if( CNPC::arrsFlyingMobs.find(self.GetClassname()) < 0 )
@@ -505,7 +496,7 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 
 		pev.solid = SOLID_NOT;
 		pev.movetype = MOVETYPE_NONE;
-		pev.sequence = iStartAnim;
+		pev.sequence = m_iStartAnim;
 		pev.rendermode = kRenderTransTexture;
 		pev.renderfx = kRenderFxDistort;
 		pev.renderamt = 128;
@@ -528,10 +519,12 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 			CustomKeyvalues@ pCustom = pActivator.GetCustomKeyvalues();
 			if( pCustom.GetKeyvalue(CNPC::sCNPCKV).GetInteger() <= 0 )
 			{
-				g_EntityFuncs.SetOrigin( pActivator, pev.origin );
+				Vector vecOrigin = pev.origin;
+				vecOrigin.z += m_flSpawnOffset;
+				g_EntityFuncs.SetOrigin( pActivator, vecOrigin );
 				pActivator.pev.angles = pev.angles;
 				pActivator.pev.fixangle = FAM_FORCEVIEWANGLES;
-				@m_pCNPCWeapon = g_EntityFuncs.Create( sWeaponName, pActivator.pev.origin, g_vecZero, true );
+				@m_pCNPCWeapon = g_EntityFuncs.Create( m_sWeaponName, pActivator.pev.origin, g_vecZero, true );
 				m_pCNPCWeapon.pev.spawnflags = SF_NORESPAWN | SF_CREATEDWEAPON;
 
 				if( self.GetClassname() == "info_cnpc_scientist" )

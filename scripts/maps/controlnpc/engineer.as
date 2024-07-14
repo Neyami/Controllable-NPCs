@@ -904,12 +904,12 @@ final class info_cnpc_engineer : CNPCSpawnEntity
 {
 	info_cnpc_engineer()
 	{
-		sWeaponName = CNPC_WEAPONNAME;
-		sModel = CNPC_MODEL;
-		iStartAnim = ANIM_IDLE1;
+		m_sWeaponName = CNPC_WEAPONNAME;
+		m_sModel = CNPC_MODEL;
+		m_iStartAnim = ANIM_IDLE1;
 		m_flDefaultRespawnTime = CNPC_RESPAWNTIME;
-		vecSizeMin = CNPC_SIZEMIN;
-		vecSizeMax = CNPC_SIZEMAX;
+		m_vecSizeMin = CNPC_SIZEMIN;
+		m_vecSizeMax = CNPC_SIZEMAX;
 	}
 
 	void DoSpecificStuff()

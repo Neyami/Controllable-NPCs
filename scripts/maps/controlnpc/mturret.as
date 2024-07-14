@@ -929,10 +929,14 @@ class cnpc_mturret : ScriptBaseMonsterEntity//ScriptBaseAnimating
 			flDamage /= 10.0;
 
 		pev.health -= flDamage;
-		m_pOwner.pev.health = pev.health;
+		if( m_pOwner !is null and m_pOwner.IsConnected() )
+			m_pOwner.pev.health = pev.health;
+
 		if( pev.health <= 0 )
 		{
-			m_pOwner.Killed( pevAttacker, GIB_NEVER );
+			if( m_pOwner !is null and m_pOwner.IsConnected() )
+				m_pOwner.Killed( pevAttacker, GIB_NEVER );
+
 			pev.health = 0;
 			pev.takedamage = DAMAGE_NO;
 

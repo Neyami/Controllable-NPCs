@@ -793,9 +793,7 @@ class weapon_turret : CBaseDriveWeapon
 			vecOrigin = tr.vecEndPos;
 		}
 
-		@m_pDriveEnt = cast<CBaseAnimating@>( g_EntityFuncs.Create("cnpc_turret", vecOrigin, Vector(0, m_pPlayer.pev.angles.y, 0), true, m_pPlayer.edict()) );
-
-		g_EntityFuncs.DispatchSpawn( m_pDriveEnt.edict() );
+		@m_pDriveEnt = cast<CBaseAnimating@>( g_EntityFuncs.Create("cnpc_turret", vecOrigin, Vector(0, m_pPlayer.pev.angles.y, 0), false, m_pPlayer.edict()) );
 
 		m_pPlayer.pev.effects |= EF_NODRAW;
 		m_pPlayer.pev.solid = SOLID_NOT;
@@ -974,13 +972,13 @@ class cnpc_turret : ScriptBaseMonsterEntity//ScriptBaseAnimating
 
 		pev.solid = SOLID_SLIDEBOX;
 		pev.movetype = MOVETYPE_FLY;
+		pev.flags |= FL_MONSTER;
 		pev.deadflag = DEAD_NO;
 		pev.takedamage = DAMAGE_AIM;
 		pev.max_health = CNPC_HEALTH;
 		pev.health = CNPC_HEALTH;
 		self.m_bloodColor = DONT_BLEED;
 		self.m_FormattedName = "CNPC Turret";
-		pev.flags |= FL_MONSTER;
 		//g_EntityFuncs.DispatchKeyValue( self.edict(), "displayname", "CNPC Turret" );
 
 		pev.sequence = ANIM_IDLE_OFF;
@@ -1019,10 +1017,14 @@ class cnpc_turret : ScriptBaseMonsterEntity//ScriptBaseAnimating
 			flDamage /= 10.0;
 
 		pev.health -= flDamage;
-		m_pOwner.pev.health = pev.health;
+		if( m_pOwner !is null and m_pOwner.IsConnected() )
+			m_pOwner.pev.health = pev.health;
+
 		if( pev.health <= 0 )
 		{
-			m_pOwner.Killed( pevAttacker, GIB_NEVER );
+			if( m_pOwner !is null and m_pOwner.IsConnected() )
+				m_pOwner.Killed( pevAttacker, GIB_NEVER );
+
 			pev.health = 0;
 			pev.takedamage = DAMAGE_NO;
 

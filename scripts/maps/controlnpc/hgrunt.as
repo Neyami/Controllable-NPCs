@@ -1252,12 +1252,12 @@ final class info_cnpc_hgrunt : CNPCSpawnEntity
 
 	info_cnpc_hgrunt()
 	{
-		sWeaponName = CNPC_WEAPONNAME;
-		sModel = CNPC_MODEL;
-		iStartAnim = ANIM_IDLE;
+		m_sWeaponName = CNPC_WEAPONNAME;
+		m_sModel = CNPC_MODEL;
+		m_iStartAnim = ANIM_IDLE;
 		m_flDefaultRespawnTime = CNPC_RESPAWNTIME;
-		vecSizeMin = CNPC_SIZEMIN;
-		vecSizeMax = CNPC_SIZEMAX;
+		m_vecSizeMin = CNPC_SIZEMIN;
+		m_vecSizeMax = CNPC_SIZEMAX;
 	}
 
 	bool KeyValue( const string& in szKey, const string& in szValue )

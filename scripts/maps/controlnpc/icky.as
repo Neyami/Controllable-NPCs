@@ -285,10 +285,6 @@ class weapon_icky : CBaseDriveWeapon
 		{
 			m_pPlayer.pev.friction = 2; //no sliding!
 
-			/*NetworkMessage disableduck( MSG_ONE, NetworkMessages::SVC_STUFFTEXT, m_pPlayer.edict() );
-				disableduck.WriteString( "-duck\n" );
-			disableduck.End();*/
-
 			KeepInWater();
 			DoMovement();
 
@@ -477,14 +473,14 @@ class weapon_icky : CBaseDriveWeapon
 		g_EntityFuncs.DispatchSpawn( m_pDriveEnt.edict() );
 
 		m_pPlayer.pev.effects |= EF_NODRAW;
+		m_pPlayer.pev.solid = SOLID_NOT;
+		m_pPlayer.pev.movetype = MOVETYPE_NOCLIP;
 		m_pPlayer.pev.iuser3 = 1; //disable ducking
 		m_pPlayer.pev.fuser4 = 1; //disable jumping
 		m_pPlayer.pev.max_health = CNPC_HEALTH;
 		m_pPlayer.pev.health = CNPC_HEALTH;
 		m_pPlayer.m_bloodColor = BLOOD_COLOR_GREEN;
 		m_pPlayer.SetMaxSpeedOverride( 0 );
-		m_pPlayer.pev.movetype = MOVETYPE_NOCLIP;
-		m_pPlayer.pev.solid = SOLID_NOT;
 
 		self.m_bExclusiveHold = true;
 
@@ -742,12 +738,12 @@ final class info_cnpc_icky : CNPCSpawnEntity
 {
 	info_cnpc_icky()
 	{
-		sWeaponName = CNPC_WEAPONNAME;
-		sModel = CNPC_MODEL;
-		iStartAnim = ANIM_IDLE;
+		m_sWeaponName = CNPC_WEAPONNAME;
+		m_sModel = CNPC_MODEL;
+		m_iStartAnim = ANIM_IDLE;
 		m_flDefaultRespawnTime = CNPC_RESPAWNTIME;
-		vecSizeMin = CNPC_SIZEMIN;
-		vecSizeMax = CNPC_SIZEMAX;
+		m_vecSizeMin = CNPC_SIZEMIN;
+		m_vecSizeMax = CNPC_SIZEMAX;
 	}
 
 	void DoSpecificStuff()

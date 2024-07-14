@@ -975,12 +975,12 @@ final class info_cnpc_fassn : CNPCSpawnEntity
 {
 	info_cnpc_fassn()
 	{
-		sWeaponName = CNPC_WEAPONNAME;
-		sModel = CNPC_MODEL;
-		iStartAnim = ANIM_IDLE;
+		m_sWeaponName = CNPC_WEAPONNAME;
+		m_sModel = CNPC_MODEL;
+		m_iStartAnim = ANIM_IDLE;
 		m_flDefaultRespawnTime = CNPC_RESPAWNTIME;
-		vecSizeMin = VEC_HUMAN_HULL_MIN;
-		vecSizeMax = VEC_HUMAN_HULL_MAX;
+		m_vecSizeMin = VEC_HUMAN_HULL_MIN;
+		m_vecSizeMax = VEC_HUMAN_HULL_MAX;
 	}
 }
 
