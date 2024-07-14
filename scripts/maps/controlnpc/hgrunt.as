@@ -49,12 +49,6 @@ const float CD_GRENADE_DROP		= 1.0; //6.0
 const float GRENADE_THROW			= 500.0;
 const float GRENADE_LAUNCH			= 800.0;
 
-const array<string> pIdleSounds = 
-{
-	"hgrunt/hc_idle4.wav",
-	"hgrunt/hc_idle5.wav"
-};
-
 const array<string> pPainSounds = 
 {
 	"hgrunt/gr_pain1.wav",
@@ -268,9 +262,6 @@ class weapon_hgrunt : CBaseDriveWeapon
 
 		for( uint i = 0; i < arrsCNPCSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( arrsCNPCSounds[i] );
-
-		for( uint i = 0; i < pIdleSounds.length(); i++ )
-			g_SoundSystem.PrecacheSound( pIdleSounds[i] );
 
 		for( uint i = 0; i < pPainSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pPainSounds[i] );
