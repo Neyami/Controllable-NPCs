@@ -16,14 +16,17 @@ Refer to `controlnpc.fgd` to see the keyvalues that can be set for the `info_cnp
 
 
 If you want to use custom sentences (scientist only for now), set `USE_CUSTOM_SENTENCES` to true,  
-and add the contents of sound/default_sentences.txt to the bottom of either svencoop\sound\default_sentences.txt, or copy that file into svencood_addon\sound\ (preferable)
+and add the contents of sound/default_sentences.txt to the bottom of either svencoop\sound\default_sentences.txt, or copy that file into svencood_addon\sound\ (preferable)  
+
+Set `CNPC_NPC_HITBOX` to `true` to use the hitbox of the monster model instead of the player (only for smaller monsters) EXPERIMENTAL!!  
 
 <BR>
 
 # HEADCRAB #  
 `weapon_headcrab` - Give this to the player  
 
-Primary Attack: Leap at target, or just forward it not aiming at an enemy
+Primary Attack: Leap at target, or just forward it not aiming at an enemy  
+Tertiary Attack: Toggle between first- and third-person view  
 
 
 <BR>
