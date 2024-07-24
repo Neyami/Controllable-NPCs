@@ -1083,7 +1083,7 @@ class weapon_hgrunt : CBaseDriveWeapon
 		cnpc_hgrunt@ pDriveEnt = cast<cnpc_hgrunt@>(CastToScriptClass(m_pDriveEnt));
 		if( pDriveEnt is null ) return;
 
-		string szDriveEntTargetName = "cnpc_hgrunt_pid_" + m_pPlayer.entindex();
+		string szDriveEntTargetName = "cnpc_hgrunt_rend_" + m_pPlayer.entindex();
 		m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 		dictionary keys;

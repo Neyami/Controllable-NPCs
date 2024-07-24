@@ -774,7 +774,7 @@ class weapon_fassn : CBaseDriveWeapon
 		cnpc_fassn@ pDriveEnt = cast<cnpc_fassn@>(CastToScriptClass(m_pDriveEnt));
 		if( pDriveEnt is null ) return;
 
-		string szDriveEntTargetName = "cnpc_fassn_pid_" + m_pPlayer.entindex();
+		string szDriveEntTargetName = "cnpc_fassn_rend_" + m_pPlayer.entindex();
 		m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 		dictionary keys;

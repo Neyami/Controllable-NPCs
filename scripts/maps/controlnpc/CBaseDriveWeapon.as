@@ -5,6 +5,7 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 	int m_iState;
 	int m_iAutoDeploy;
 	float m_flNextIdleCheck;
+	protected uint m_uiAnimationState; //for hacky HandleAnimEvent
 
 	protected CBasePlayer@ m_pPlayer
 	{
@@ -206,6 +207,7 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 			m_pDriveEnt.pev.framerate = flFrameRate;
 
 			m_pDriveEnt.ResetSequenceInfo();
+			m_uiAnimationState = 0;
 		}
 	}
 

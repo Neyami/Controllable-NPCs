@@ -732,7 +732,7 @@ class weapon_gonome : CBaseDriveWeapon
 		cnpc_gonome@ pDriveEnt = cast<cnpc_gonome@>(CastToScriptClass(m_pDriveEnt));
 		if( pDriveEnt is null ) return;
 
-		string szDriveEntTargetName = "cnpc_gonome_pid_" + m_pPlayer.entindex();
+		string szDriveEntTargetName = "cnpc_gonome_rend_" + m_pPlayer.entindex();
 		m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 		dictionary keys;

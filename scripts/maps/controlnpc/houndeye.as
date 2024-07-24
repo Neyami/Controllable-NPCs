@@ -629,7 +629,7 @@ class weapon_houndeye : CBaseDriveWeapon
 		cnpc_houndeye@ pDriveEnt = cast<cnpc_houndeye@>(CastToScriptClass(m_pDriveEnt));
 		if( pDriveEnt is null ) return;
 
-		string szDriveEntTargetName = "cnpc_houndeye_pid_" + m_pPlayer.entindex();
+		string szDriveEntTargetName = "cnpc_houndeye_rend_" + m_pPlayer.entindex();
 		m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 		dictionary keys;

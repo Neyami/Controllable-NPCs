@@ -509,7 +509,7 @@ class weapon_icky : CBaseDriveWeapon
 		cnpc_icky@ pDriveEnt = cast<cnpc_icky@>(CastToScriptClass(m_pDriveEnt));
 		if( pDriveEnt is null ) return;
 
-		string szDriveEntTargetName = "cnpc_icky_pid_" + m_pPlayer.entindex();
+		string szDriveEntTargetName = "cnpc_icky_rend_" + m_pPlayer.entindex();
 		m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 		dictionary keys;

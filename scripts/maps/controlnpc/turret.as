@@ -447,7 +447,7 @@ class weapon_turret : CBaseDriveWeapon
 			{
 				if( !m_hEpilepsyPreventer.IsValid() )
 				{
-					string szDriveEntTargetName = "cnpc_turret_pid_" + m_pPlayer.entindex();
+					string szDriveEntTargetName = "cnpc_turret_rend_" + m_pPlayer.entindex();
 					m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 					dictionary keys;
@@ -863,7 +863,7 @@ class weapon_turret : CBaseDriveWeapon
 		cnpc_turret@ pDriveEnt = cast<cnpc_turret@>(CastToScriptClass(m_pDriveEnt));
 		if( pDriveEnt is null ) return;
 
-		string szDriveEntTargetName = "cnpc_turret_pid_" + m_pPlayer.entindex();
+		string szDriveEntTargetName = "cnpc_turret_rend_" + m_pPlayer.entindex();
 		m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 		dictionary keys;
@@ -1161,7 +1161,7 @@ class cnpc_turret : ScriptBaseMonsterEntity//ScriptBaseAnimating
 				break;
 		}
 
-		if( pEyeGlow !is null ) g_EntityFuncs.Remove(pEyeGlow );
+		if( pEyeGlow !is null ) g_EntityFuncs.Remove( pEyeGlow );
 	}
 
 	void SUB_StartFadeOut()

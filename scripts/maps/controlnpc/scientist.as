@@ -728,7 +728,7 @@ int CTalkMonster :: FIdleSpeak ( void )
 		cnpc_scientist@ pDriveEnt = cast<cnpc_scientist@>(CastToScriptClass(m_pDriveEnt));
 		if( pDriveEnt is null ) return;
 
-		string szDriveEntTargetName = "cnpc_scientist_pid_" + m_pPlayer.entindex();
+		string szDriveEntTargetName = "cnpc_scientist_rend_" + m_pPlayer.entindex();
 		m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 		dictionary keys;

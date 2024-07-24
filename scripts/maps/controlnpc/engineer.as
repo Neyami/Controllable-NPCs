@@ -324,7 +324,7 @@ class weapon_engineer : CBaseDriveWeapon
 
 	void MeleeAttackThink()
 	{
-		if( m_pPlayer is null or !m_pPlayer.IsAlive() or m_pDriveEnt is null )
+		if( m_pDriveEnt is null or m_pPlayer is null or !m_pPlayer.IsAlive() )
 		{
 			SetThink( null );
 			return;

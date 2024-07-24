@@ -437,7 +437,7 @@ class weapon_mturret : CBaseDriveWeapon
 			{
 				if( !m_hEpilepsyPreventer.IsValid() )
 				{
-					string szDriveEntTargetName = "cnpc_mturret_pid_" + m_pPlayer.entindex();
+					string szDriveEntTargetName = "cnpc_mturret_rend_" + m_pPlayer.entindex();
 					m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 					dictionary keys;
@@ -775,7 +775,7 @@ class weapon_mturret : CBaseDriveWeapon
 		cnpc_mturret@ pDriveEnt = cast<cnpc_mturret@>(CastToScriptClass(m_pDriveEnt));
 		if( pDriveEnt is null ) return;
 
-		string szDriveEntTargetName = "cnpc_mturret_pid_" + m_pPlayer.entindex();
+		string szDriveEntTargetName = "cnpc_mturret_rend_" + m_pPlayer.entindex();
 		m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 		dictionary keys;

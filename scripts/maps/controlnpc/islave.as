@@ -97,6 +97,12 @@ class weapon_islave : CBaseDriveWeapon
 	int m_iVoicePitch;
 
 	protected array<EHandle> m_hBeam(ISLAVE_MAX_BEAMS);
+	//Thanks Outerbeast :ayaya:
+	CBeam@ m_pBeam( uint i )
+	{
+		return cast<CBeam@>( m_hBeam[i].GetEntity() );
+	}
+
 	protected EHandle m_hDead;
 	private int m_iBeams;
 	private int m_iZapStage; //to prevent fake model events to play more than once
@@ -664,12 +670,6 @@ class weapon_islave : CBaseDriveWeapon
 		g_SoundSystem.StopSound( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[SND_CHARGE] );
 	}
 
-	//Thanks Outerbeast :ayaya:
-	CBeam@ m_pBeam( uint i )
-	{
-		return cast<CBeam@>( m_hBeam[i].GetEntity() );
-	}
-
 	void spawn_driveent()
 	{
 		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) and m_iAutoDeploy == 0 )
@@ -724,7 +724,7 @@ class weapon_islave : CBaseDriveWeapon
 		cnpc_islave@ pDriveEnt = cast<cnpc_islave@>(CastToScriptClass(m_pDriveEnt));
 		if( pDriveEnt is null ) return;
 
-		string szDriveEntTargetName = "cnpc_islave_pid_" + m_pPlayer.entindex();
+		string szDriveEntTargetName = "cnpc_islave_rend_" + m_pPlayer.entindex();
 		m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 		dictionary keys;

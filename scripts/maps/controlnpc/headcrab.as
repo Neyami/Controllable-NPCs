@@ -298,7 +298,10 @@ class weapon_headcrab : CBaseDriveWeapon
 		m_pPlayer.pev.friction = 2; //no sliding!
 
 		if( CNPC_NPC_HITBOX )
+		{
 			m_pPlayer.pev.solid = SOLID_NOT;
+			m_pPlayer.pev.flags |= FL_NOTARGET;
+		}
 
 		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or m_iState >= STATE_ATTACK_LEAP ) return;
 
@@ -376,7 +379,6 @@ class weapon_headcrab : CBaseDriveWeapon
 		m_pPlayer.pev.effects |= EF_NODRAW;
 		m_pPlayer.pev.iuser3 = 1; //disable ducking
 		m_pPlayer.pev.fuser4 = 1; //disable jumping
-		m_pPlayer.pev.view_ofs = Vector( 0, 0, 0 );
 		m_pPlayer.pev.max_health = CNPC_HEALTH;
 		m_pPlayer.pev.health = CNPC_HEALTH;
 		m_pPlayer.m_bloodColor = BLOOD_COLOR_GREEN;
@@ -407,7 +409,7 @@ class weapon_headcrab : CBaseDriveWeapon
 		cnpc_headcrab@ pDriveEnt = cast<cnpc_headcrab@>(CastToScriptClass(m_pDriveEnt));
 		if( pDriveEnt is null ) return;
 
-		string szDriveEntTargetName = "cnpc_headcrab_pid_" + m_pPlayer.entindex();
+		string szDriveEntTargetName = "cnpc_headcrab_rend_" + m_pPlayer.entindex();
 		m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 		dictionary keys;

@@ -7,6 +7,7 @@
 #include "pitdrone"
 #include "strooper"
 #include "gonome"
+#include "garg"
 
 #include "hgrunt"
 #include "fassn"
@@ -31,6 +32,7 @@ void MapInit()
 	cnpc_pitdrone::Register();
 	cnpc_strooper::Register();
 	cnpc_gonome::Register();
+	cnpc_garg::Register();
 
 	cnpc_hgrunt::Register();
 	cnpc_fassn::Register();
@@ -49,7 +51,7 @@ int g_iGruntQuestion;
 int g_iTorchAllyQuestion;
 float g_flTalkWaitTime;
 
-const bool PVP										= false; //TODO
+const bool PVP								= false;
 const float CNPC_SPEAK_DISTANCE	= 768.0;
 
 //xen
@@ -69,6 +71,8 @@ const int STROOPER_SLOT			= 1;
 const int STROOPER_POSITION	= 16;
 const int GONOME_SLOT				= 1;
 const int GONOME_POSITION		= 17;
+const int GARG_SLOT					= 1;
+const int GARG_POSITION			= 18;
 
 //black mesa etc
 const int HGRUNT_SLOT				= 2;
@@ -121,6 +125,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_pitdrone",
 	"weapon_strooper",
 	"weapon_gonome",
+	"weapon_garg",
 
 	"weapon_hgrunt",
 	"weapon_fassn",
@@ -141,6 +146,7 @@ enum cnpc_e
 	CNPC_PITDRONE,
 	CNPC_STROOPER,
 	CNPC_GONOME,
+	CNPC_GARG,
 
 	CNPC_HGRUNT,
 	CNPC_FASSN,
@@ -164,14 +170,17 @@ HookReturnCode ClientPutInServer( CBasePlayer@ pPlayer)
 
 HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 {
+	CustomKeyvalues@ pCustom = pDamageInfo.pVictim.GetCustomKeyvalues();
+
+	//pAttacker is sometimes null
+	if( pCustom.GetKeyvalue(sCNPCKV).GetInteger() <= 0 or pDamageInfo.pAttacker is null ) return HOOK_CONTINUE;
+
 	//prevent other players from triggering painsounds
 	if( pDamageInfo.pVictim.GetClassname() == "player" and pDamageInfo.pAttacker.GetClassname() == "player" )
 	{
 		if( pDamageInfo.pVictim.Classify() == pDamageInfo.pAttacker.Classify() )
 			return HOOK_CONTINUE;
 	}
-
-	CustomKeyvalues@ pCustom = pDamageInfo.pVictim.GetCustomKeyvalues();
 
 	switch( pCustom.GetKeyvalue(sCNPCKV).GetInteger() )
 	{
@@ -267,6 +276,33 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 
 			break;
 		}
+
+		case CNPC_GARG:
+		{
+			if( cnpc_garg::CNPC_NPC_HITBOX )
+				pDamageInfo.flDamage = 0;
+			else
+			{
+				if( (pDamageInfo.bitsDamageType & cnpc_garg::GARG_DAMAGE) == 0 )
+					pDamageInfo.flDamage *= 0.01;
+
+				if( pDamageInfo.bitsDamageType & (cnpc_garg::GARG_DAMAGE|DMG_BLAST) != 0 )
+				{
+					if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+						return HOOK_CONTINUE;
+
+					float flNextPainTime = g_Engine.time + Math.RandomFloat(2.5, 4.0);
+					pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+					g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_garg::pPainSounds[Math.RandomLong(0,(cnpc_garg::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+				}
+			}
+
+			break;
+		}
+
+
+
 
 		case CNPC_HGRUNT:
 		{

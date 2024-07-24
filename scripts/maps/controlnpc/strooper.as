@@ -159,7 +159,7 @@ class weapon_strooper : CBaseDriveWeapon
 
 	bool GetItemInfo( ItemInfo& out info )
 	{
-		info.iMaxAmmo1	= -1;
+		info.iMaxAmmo1	= AMMO_MAX;
 		info.iMaxClip		= WEAPON_NOCLIP;
 		info.iSlot				= CNPC::STROOPER_SLOT - 1;
 		info.iPosition		= CNPC::STROOPER_POSITION - 1;
@@ -608,7 +608,7 @@ class weapon_strooper : CBaseDriveWeapon
 
 	void DoAmmoRegen()
 	{
-		if( IsBetween2(m_iState, STATE_IDLE, STATE_RUN) and m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) < AMMO_MAX )
+		if( m_iState <= STATE_RUN and m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) < AMMO_MAX )
 		{
 			if( m_flNextAmmoRegen < g_Engine.time )
 			{
@@ -716,7 +716,7 @@ class weapon_strooper : CBaseDriveWeapon
 		cnpc_strooper@ pDriveEnt = cast<cnpc_strooper@>(CastToScriptClass(m_pDriveEnt));
 		if( pDriveEnt is null ) return;
 
-		string szDriveEntTargetName = "cnpc_strooper_pid_" + m_pPlayer.entindex();
+		string szDriveEntTargetName = "cnpc_strooper_rend_" + m_pPlayer.entindex();
 		m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 		dictionary keys;
