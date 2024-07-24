@@ -18,7 +18,7 @@ Refer to `controlnpc.fgd` to see the keyvalues that can be set for the `info_cnp
 If you want to use custom sentences (scientist only for now), set `USE_CUSTOM_SENTENCES` to true,  
 and add the contents of sound/default_sentences.txt to the bottom of either svencoop\sound\default_sentences.txt, or copy that file into svencood_addon\sound\ (preferable)  
 
-Set `CNPC_NPC_HITBOX` to `true` to use the hitbox of the monster model instead of the player (only for smaller monsters) EXPERIMENTAL!!  
+Set `CNPC_NPC_HITBOX` to `true` to use the hitbox of the monster model instead of the player (only for monsters that have special armor, or are smaller/larger than the player) EXPERIMENTAL!!  
 
 <BR>
 
@@ -117,6 +117,23 @@ Tertiary Attack: Toggle between first- and third-person view
 Reload: Throw Guts  
 Use: Hold to feed on dead humanoids to regenerate health  
 
+
+<BR>
+
+
+# GARGANTUA #  
+`weapon_garg` - Give this to the player  
+`info_cnpc_garg` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Dual flamethrower  
+Secondary Attack: Melee  
+Secondary Attack while holding duck: Eat enemies with low health to gain secondary ammo, use again at 100 ammo to spawn a Baby Garg  
+Tertiary Attack: Toggle between first- and third-person view  
+Jump: Kick  
+Reload: Stomp attack  
+
+Flamethrower ammo replenishes automatically.  
+Is immune to normal bullets.  
 
 <BR>
 
