@@ -47,9 +47,21 @@
 ]
 
 
+@PointClass base(Monster) size(-32 -32 0, 32 32 128) studio("models/garg.mdl") = info_cnpc_garg : "Controllable Gargantua"
+[
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
+
+
+@PointClass base(Monster) size(-32 -32 0, 32 32 128) studio("models/babygarg.mdl") = info_cnpc_babygarg : "Controllable Baby Gargantua"
+[
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
+
+
 
 //BLACK MESA etc
-@PointClass base(Monster) size(-24 -24 0, 24 24 32) studio("models/hgrunt.mdl") = info_cnpc_hgrunt : "Controllable Human Grunt"
+@PointClass base(Monster) size(-16 -16 0, 16 16 72) studio("models/hgrunt.mdl") = info_cnpc_hgrunt : "Controllable Human Grunt"
 [
 	weapons(Choices) : "Weapons" : 3 =
 	[
@@ -110,6 +122,24 @@
 	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
 ]
 
+
+@PointClass base(Monster) size(-16 -16 0, 16 16 72) studio("models/rgrunt.mdl") = info_cnpc_rgrunt : "Controllable Robot Grunt"
+[
+	weapons(Choices) : "Weapons" : 3 =
+	[
+		1  : "MP5"
+		3  : "MP5 + HG"
+		5  : "M16 + GL"
+		8  : "Shotgun"
+		10 : "Shotgun + HG"
+		64 : "Rocket Launcher"
+		66 : "Rocket Launcher + HG"
+		128 : "Sniper Rifle"
+		130 : "Sniper Rifle + HG"
+	]
+
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 do disable respawning"
+]
 
 
 
