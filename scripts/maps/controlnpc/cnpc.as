@@ -8,6 +8,7 @@
 #include "strooper"
 #include "gonome"
 #include "garg"
+#include "babygarg"
 
 #include "hgrunt"
 #include "fassn"
@@ -33,6 +34,7 @@ void MapInit()
 	cnpc_strooper::Register();
 	cnpc_gonome::Register();
 	cnpc_garg::Register();
+	cnpc_babygarg::Register();
 
 	cnpc_hgrunt::Register();
 	cnpc_fassn::Register();
@@ -73,6 +75,8 @@ const int GONOME_SLOT				= 1;
 const int GONOME_POSITION		= 17;
 const int GARG_SLOT					= 1;
 const int GARG_POSITION			= 18;
+const int BABYGARG_SLOT			= 1;
+const int BABYGARG_POSITION	= 19;
 
 //black mesa etc
 const int HGRUNT_SLOT				= 2;
@@ -126,6 +130,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_strooper",
 	"weapon_gonome",
 	"weapon_garg",
+	"weapon_babygarg",
 
 	"weapon_hgrunt",
 	"weapon_fassn",
@@ -147,6 +152,7 @@ enum cnpc_e
 	CNPC_STROOPER,
 	CNPC_GONOME,
 	CNPC_GARG,
+	CNPC_BABYGARG,
 
 	CNPC_HGRUNT,
 	CNPC_FASSN,
@@ -297,6 +303,19 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 					g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_garg::pPainSounds[Math.RandomLong(0,(cnpc_garg::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 				}
 			}
+
+			break;
+		}
+
+		case CNPC_BABYGARG:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + Math.RandomFloat(2.5, 4.0);
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_babygarg::pPainSounds[Math.RandomLong(0,(cnpc_babygarg::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 
 			break;
 		}
