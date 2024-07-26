@@ -508,6 +508,7 @@ class weapon_babygarg : CBaseDriveWeapon
 
 				m_pFlame(i).PointEntInit( tr.vecEndPos, m_pDriveEnt.entindex() );
 
+				//Thanks H² :ayaya:
 				if( i < 2 )
 					m_pFlame(i).SetColor( 220, 90, 60 );
 				else
