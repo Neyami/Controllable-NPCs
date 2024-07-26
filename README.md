@@ -138,6 +138,21 @@ Is immune to normal bullets.
 <BR>
 
 
+# GARGANTUA #  
+`weapon_babygarg` - Give this to the player  
+`info_cnpc_babygarg` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Dual flamethrower  
+Secondary Attack: Melee  
+Tertiary Attack: Toggle between first- and third-person view  
+Jump: Kick  
+Reload: Stomp attack  
+
+Flamethrower ammo replenishes automatically.  
+
+<BR>
+
+
 
 # HUMAN GRUNT #  
 `weapon_hgrunt` - Give this to the player  
