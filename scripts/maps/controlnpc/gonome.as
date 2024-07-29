@@ -373,6 +373,10 @@ class weapon_gonome : CBaseDriveWeapon
 
 	void TertiaryAttack()
 	{
+		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
+
+		if( m_pDriveEnt is null ) return;
+
 		if( !CNPC_FIRSTPERSON )
 		{
 			m_pPlayer.SetViewMode( ViewMode_FirstPerson );
@@ -389,8 +393,6 @@ class weapon_gonome : CBaseDriveWeapon
 			m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_TPV );
 			CNPC_FIRSTPERSON = false;
 		}
-
-		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
 	}
 
 	void Reload() //necessary to prevent the reload-key from interfering?

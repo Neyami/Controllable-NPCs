@@ -13,7 +13,7 @@ const string CNPC_MODEL					= "models/hassassin.mdl";
 const float CNPC_HEALTH					= 50.0;
 const float CNPC_VIEWOFS_FPV			= 28.0; //camera height offset
 const float CNPC_VIEWOFS_TPV			= 28.0;
-const float CNPC_VIEWOFS_SHOOT	= 14.0;
+const float CNPC_VIEWOFS_SHOOT		= 14.0;
 const float CNPC_RESPAWNTIME			= 13.0; //from the point that the weapon is removed, not the fassn itself
 const float CNPC_MODEL_OFFSET		= 32.0; //sometimes the model floats above the ground
 const float CNPC_ORIGINUPDATE		= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
@@ -23,10 +23,10 @@ const float SPEED_RUN						= -1;
 const float VELOCITY_WALK				= 150.0; //if the player's velocity is this or lower, use the walking animation
 const float JUMP_VELOCITY					= 160.0;
 const float CD_PRIMARY						= 0.25; //gun
-const float CD_SECONDARY					= 1.0; //kicks
-const float CD_GRENADE						= 6.0;
+const float CD_SECONDARY				= 1.0; //kicks
+const float CD_GRENADE					= 6.0;
 
-const float MELEE_DAMAGE					= 20.0;
+const float MELEE_DAMAGE				= 20.0;
 const float MELEE_RANGE					= 100.0;
 
 const int STEALTH_MAX						= 100;
@@ -286,7 +286,7 @@ class weapon_fassn : CBaseDriveWeapon
 
 		if( pHurt !is null )
 		{
-			if( (pHurt.pev.flags & FL_MONSTER) == 1 or ((pHurt.pev.flags & FL_CLIENT) == 1 and CNPC::PVP) )
+			if( pHurt.pev.FlagBitSet(FL_MONSTER) or (pHurt.pev.FlagBitSet(FL_CLIENT) and CNPC::PVP) )
 			{
 				pHurt.pev.punchangle.x = 5;
 				pHurt.pev.velocity = pHurt.pev.velocity + g_Engine.v_forward * -100;
@@ -322,6 +322,10 @@ class weapon_fassn : CBaseDriveWeapon
 
 	void TertiaryAttack()
 	{
+		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
+
+		if( m_pDriveEnt is null ) return;
+
 		if( m_pDriveEnt !is null )
 		{
 			if( !CNPC_FIRSTPERSON )
@@ -340,8 +344,6 @@ class weapon_fassn : CBaseDriveWeapon
 				m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_TPV );
 				CNPC_FIRSTPERSON = false;
 			}
-
-			self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
 		}
 	}
 

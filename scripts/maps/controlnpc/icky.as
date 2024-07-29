@@ -259,6 +259,10 @@ class weapon_icky : CBaseDriveWeapon
 
 	void TertiaryAttack()
 	{
+		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
+
+		if( m_pDriveEnt is null ) return;
+
 		if( !CNPC_FIRSTPERSON )
 		{
 			m_pPlayer.SetViewMode( ViewMode_FirstPerson );
@@ -275,8 +279,6 @@ class weapon_icky : CBaseDriveWeapon
 			m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_TPV );
 			CNPC_FIRSTPERSON = false;
 		}
-
-		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
 	}
 
 	void ItemPreFrame()
@@ -317,12 +319,12 @@ class weapon_icky : CBaseDriveWeapon
 
 		if( pHurt !is null )
 		{
-			if( (pHurt.pev.flags & FL_MONSTER) == 1 and (pHurt.pev.flags & FL_CLIENT) == 0 )
+			if( (pHurt.pev.flags & FL_MONSTER) != 0 and (pHurt.pev.flags & FL_CLIENT) == 0 )
 			{
 				pHurt.pev.punchangle.y = (m_iRandomAttack == 1) ? -25.0 : 25.0;
 				pHurt.pev.punchangle.x = 8.0;
 			}
-			else if( (pHurt.pev.flags & FL_CLIENT) == 1 and CNPC::PVP )
+			else if( (pHurt.pev.flags & FL_CLIENT) != 0 and CNPC::PVP )
 			{
 				pHurt.pev.punchangle.y = (m_iRandomAttack == 1) ? -25.0 : 25.0;
 				pHurt.pev.punchangle.x = 8.0;

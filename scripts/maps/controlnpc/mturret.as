@@ -299,6 +299,10 @@ class weapon_mturret : CBaseDriveWeapon
 
 	void TertiaryAttack()
 	{
+		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
+
+		if( m_pDriveEnt is null ) return;
+
 		if( !CNPC_FIRSTPERSON )
 		{
 			m_pPlayer.SetViewMode( ViewMode_FirstPerson );
@@ -323,8 +327,6 @@ class weapon_mturret : CBaseDriveWeapon
 			m_pPlayer.pev.view_ofs = Vector( 0, 0, m_iOrientation == 0 ? CNPC_VOFS_TPV : CNPC_VOFS_TPV_CL );
 			CNPC_FIRSTPERSON = false;
 		}
-
-		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
 	}
 
 	void ItemPreFrame()

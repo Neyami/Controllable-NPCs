@@ -280,6 +280,10 @@ class weapon_babygarg : CBaseDriveWeapon
 
 	void TertiaryAttack()
 	{
+		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
+
+		if( m_pDriveEnt is null ) return;
+
 		if( !CNPC_FIRSTPERSON )
 		{
 			m_pPlayer.SetViewMode( ViewMode_FirstPerson );
@@ -295,8 +299,6 @@ class weapon_babygarg : CBaseDriveWeapon
 			m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_TPV );
 			CNPC_FIRSTPERSON = false;
 		}
-
-		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
 	}
 
 	void ItemPreFrame()
@@ -741,7 +743,7 @@ class weapon_babygarg : CBaseDriveWeapon
 		CBaseEntity@ pHurt = CheckTraceHullAttack( flRange, iDamage, iDmgType );
 		if( pHurt !is null )
 		{
-			if( (pHurt.pev.flags & FL_MONSTER) != 0 or ((pHurt.pev.flags & FL_CLIENT) == 1 and CNPC::PVP) ) //and movetype isn't MOVETYPE_FLY ??
+			if( pHurt.pev.FlagBitSet(FL_MONSTER) or (pHurt.pev.FlagBitSet(FL_CLIENT) and CNPC::PVP) ) //and movetype isn't MOVETYPE_FLY ??
 			{
 				pHurt.pev.punchangle.x = -30; // pitch
 				pHurt.pev.punchangle.y = -30;	// yaw
@@ -1159,7 +1161,7 @@ class garg_stomp_baby : ScriptBaseEntity
 						bDealDamage = false;
 				}
 
-				if( bDealDamage and (pEntity.pev.flags & FL_CLIENT) == 0 or ((pEntity.pev.flags & FL_CLIENT) != 0 and CNPC::PVP) )
+				if( bDealDamage and !pEntity.pev.FlagBitSet(FL_CLIENT) or (pEntity.pev.FlagBitSet(FL_CLIENT) and CNPC::PVP) )
 					pEntity.TakeDamage( pev, pevOwner, STOMP_DAMAGE, DMG_SONIC );
 			}
 		}

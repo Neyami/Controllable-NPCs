@@ -352,6 +352,10 @@ class weapon_garg : CBaseDriveWeapon
 
 	void TertiaryAttack()
 	{
+		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
+
+		if( m_pDriveEnt is null ) return;
+
 		if( !CNPC_FIRSTPERSON )
 		{
 			m_pPlayer.SetViewMode( ViewMode_FirstPerson );
@@ -370,8 +374,6 @@ class weapon_garg : CBaseDriveWeapon
 			m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_TPV );
 			CNPC_FIRSTPERSON = false;
 		}
-
-		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
 	}
 
 	void ItemPreFrame()
@@ -852,7 +854,7 @@ class weapon_garg : CBaseDriveWeapon
 		CBaseEntity@ pHurt = GargantuaCheckTraceHullAttack( flRange, iDamage, iDmgType );
 		if( pHurt !is null )
 		{
-			if( (pHurt.pev.flags & FL_MONSTER) != 0 or ((pHurt.pev.flags & FL_CLIENT) == 1 and CNPC::PVP) )
+			if( pHurt.pev.FlagBitSet(FL_MONSTER) or (pHurt.pev.FlagBitSet(FL_CLIENT) and CNPC::PVP) )
 			{
 				pHurt.pev.punchangle.x = -30; // pitch
 				pHurt.pev.punchangle.y = -30;	// yaw
@@ -1013,7 +1015,7 @@ class weapon_garg : CBaseDriveWeapon
 
 		CBaseEntity@ pHurt = GargantuaCheckTraceHullAttack( 144.0 * m_pDriveEnt.pev.scale, 1, DMG_SLASH );
 
-		if( pHurt !is null and ((pHurt.pev.flags & FL_MONSTER) != 0 or ((pHurt.pev.flags & FL_CLIENT) != 0 and CNPC::PVP)) and pHurt.IsAlive() and pHurt.pev.health <= (pHurt.pev.max_health * 0.5) )
+		if( pHurt !is null and (pHurt.pev.FlagBitSet(FL_MONSTER) or (pHurt.pev.FlagBitSet(FL_CLIENT) and CNPC::PVP)) and pHurt.IsAlive() and pHurt.pev.health <= (pHurt.pev.max_health * 0.5) )
 		{
 			@m_pBiteTarget = pHurt;
 			m_pBiteTarget.pev.movetype = MOVETYPE_NOCLIP;
@@ -1021,7 +1023,7 @@ class weapon_garg : CBaseDriveWeapon
 			m_pBiteTarget.pev.solid = SOLID_NOT;
 			m_pBiteTarget.pev.flags |= FL_FLY;
 
-			if( (pHurt.pev.flags & FL_CLIENT) != 0 )
+			if( pHurt.pev.FlagBitSet(FL_CLIENT) )
 			{
 				CBasePlayer@ pTarget = cast<CBasePlayer@>( pHurt );
 				pTarget.m_afPhysicsFlags |= PFLAG_ONBARNACLE; 
@@ -1047,7 +1049,7 @@ class weapon_garg : CBaseDriveWeapon
 			return;
 		}
 
-		if( (m_pBiteTarget.pev.flags & FL_CLIENT) != 0 )
+		if( m_pBiteTarget.pev.FlagBitSet(FL_CLIENT) )
 		{
 			CBasePlayer@ pTarget = cast<CBasePlayer@>( m_pBiteTarget );
 			if( pTarget is null or !pTarget.IsConnected() )
@@ -1092,7 +1094,7 @@ class weapon_garg : CBaseDriveWeapon
 			g_Utility.BloodDrips( vecOrigin, g_vecZero, m_pBiteTarget.BloodColor(), 100 );
 		}
 
-		if( (m_pBiteTarget.pev.flags & FL_CLIENT) != 0 )
+		if( m_pBiteTarget.pev.FlagBitSet(FL_CLIENT) )
 		{
 			CBasePlayer@ pTarget = cast<CBasePlayer@>( m_pBiteTarget );
 			if( pTarget is null or !pTarget.IsConnected() or pTarget.pev.deadflag != DEAD_NO )
@@ -1550,10 +1552,10 @@ class cnpc_garg : ScriptBaseMonsterEntity//ScriptBaseAnimating
 		}
 
 		CBaseEntity@ pSmoker = g_EntityFuncs.Create( "env_smoker", pev.origin, g_vecZero, false );
-		pSmoker.pev.health = 1;	// 1 smoke balls
-		pSmoker.pev.scale = 46;	// 4.6X normal size
-		pSmoker.pev.dmg = 0;		// 0 radial distribution
-		pSmoker.pev.nextthink = g_Engine.time + 2.5;	// Start in 2.5 seconds
+		pSmoker.pev.health = 1; //1 smoke balls
+		pSmoker.pev.scale = 46; //4.6X normal size
+		pSmoker.pev.dmg = 0; //0 radial distribution
+		pSmoker.pev.nextthink = g_Engine.time + 2.5; //Start in 2.5 seconds
 	}
 
 	void SpawnExplosion( Vector center, float randomRange, float time, int magnitude )

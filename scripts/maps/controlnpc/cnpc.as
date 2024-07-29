@@ -14,6 +14,7 @@
 #include "fassn"
 #include "mturret"
 #include "turret"
+#include "rgrunt"
 
 #include "scientist"
 #include "engineer"
@@ -40,6 +41,7 @@ void MapInit()
 	cnpc_fassn::Register();
 	cnpc_mturret::Register();
 	cnpc_turret::Register();
+	cnpc_rgrunt::Register();
 
 	cnpc_scientist::Register();
 	cnpc_engineer::Register();
@@ -50,6 +52,7 @@ namespace CNPC
 
 int g_iShockTrooperQuestion;
 int g_iGruntQuestion;
+int g_iRobotGruntQuestion;
 int g_iTorchAllyQuestion;
 float g_flTalkWaitTime;
 
@@ -81,12 +84,14 @@ const int BABYGARG_POSITION	= 19;
 //black mesa etc
 const int HGRUNT_SLOT				= 2;
 const int HGRUNT_POSITION		= 10;
-const int FASSN_SLOT					= 2;
+const int FASSN_SLOT				= 2;
 const int FASSN_POSITION			= 11;
-const int MTURRET_SLOT				= 2;
+const int MTURRET_SLOT			= 2;
 const int MTURRET_POSITION		= 12;
 const int TURRET_SLOT				= 2;
 const int TURRET_POSITION		= 13;
+const int RGRUNT_SLOT				= 1;
+const int RGRUNT_POSITION		= 14;
 
 //friendles
 const int SCIENTIST_SLOT			= 3;
@@ -136,6 +141,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_fassn",
 	"weapon_mturret",
 	"weapon_turret",
+	"weapon_rgrunt",
 
 	"weapon_scientist",
 	"weapon_engineer"
@@ -158,6 +164,7 @@ enum cnpc_e
 	CNPC_FASSN,
 	CNPC_MTURRET,
 	CNPC_TURRET,
+	CNPC_RGRUNT,
 
 	CNPC_SCIENTIST,
 	CNPC_ENGINEER
@@ -182,7 +189,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 	if( pCustom.GetKeyvalue(sCNPCKV).GetInteger() <= 0 or pDamageInfo.pAttacker is null ) return HOOK_CONTINUE;
 
 	//prevent other players from triggering painsounds
-	if( pDamageInfo.pVictim.GetClassname() == "player" and pDamageInfo.pAttacker.GetClassname() == "player" )
+	if( pDamageInfo.pVictim.GetClassname() == "player" and pDamageInfo.pAttacker.GetClassname() == "player" and (pDamageInfo.bitsDamageType & DMG_CLUB) == 0 )
 	{
 		if( pDamageInfo.pVictim.Classify() == pDamageInfo.pAttacker.Classify() )
 			return HOOK_CONTINUE;
@@ -333,6 +340,85 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 
 			if( Math.RandomLong(0, 6) <= 4 )
 				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_hgrunt::pPainSounds[Math.RandomLong(0,(cnpc_hgrunt::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+
+			break;
+		}
+
+		case CNPC_RGRUNT:
+		{
+			if( pDamageInfo.flDamage < 0 or pDamageInfo.pVictim.pev.takedamage == DAMAGE_NO )
+				return HOOK_CONTINUE;
+
+			if( (pDamageInfo.bitsDamageType & DMG_CLUB) == 0 or !CanRepairRobot(pDamageInfo.pAttacker) or !pDamageInfo.pAttacker.IsPlayer() )
+			{
+				CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
+				cnpc_rgrunt::weapon_rgrunt@ pWeapon = cast<cnpc_rgrunt::weapon_rgrunt@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
+
+				if( pWeapon !is null )
+				{
+					if( pWeapon.m_bShockTouch )
+					{
+						if( pDamageInfo.bitsDamageType & (DMG_SLASH|DMG_CLUB) != 0 )
+						{
+							pDamageInfo.pAttacker.TakeDamage( pDamageInfo.pVictim.pev, pDamageInfo.pVictim.pev, 25.0, DMG_SHOCK );
+							pDamageInfo.flDamage = 0.01;
+						}
+					}
+					else if( pDamageInfo.bitsDamageType & (DMG_SLASH|DMG_CLUB) != 0 and pDamageInfo.pVictim.pev.health <= 20.0 and Math.RandomLong(0, 2) > 1 )
+					{
+						pWeapon.GlowEffect( true );
+						pWeapon.m_bShockTouch = true;
+					}
+				}
+
+				if( pDamageInfo.bitsDamageType & (DMG_BULLET|DMG_CLUB|DMG_SNIPER) != 0 )
+				{
+					TraceResult tr = g_Utility.GetGlobalTrace();
+					g_Utility.Ricochet( tr.vecEndPos, 1.0 );
+					pDamageInfo.flDamage *= 0.15;
+				}
+
+				if( (pDamageInfo.bitsDamageType & DMG_SLASH) != 0 )
+				{
+					if( pDamageInfo.flDamage >= 5.0 )
+						pDamageInfo.flDamage -= 5.0;
+
+					pDamageInfo.flDamage *= 0.08;
+				}
+
+				if( (pDamageInfo.bitsDamageType & DMG_BLAST) != 0 and pDamageInfo.pVictim.pev.health > 10.0 )
+				{
+					if( pDamageInfo.flDamage > 15.0 )
+						pDamageInfo.flDamage -= 15.0;
+
+					pDamageInfo.flDamage *= 0.2;
+
+					if( (pDamageInfo.bitsDamageType & DMG_BURN) == 0 )
+						return HOOK_CONTINUE;
+				}
+				else if( (pDamageInfo.bitsDamageType & DMG_BURN) == 0 or pDamageInfo.pVictim.pev.health <= 10.0 )
+					return HOOK_CONTINUE;
+
+				pDamageInfo.flDamage *= 0.5;
+
+				return HOOK_CONTINUE;
+			}
+
+			if( pDamageInfo.pVictim.pev.health < pDamageInfo.pVictim.pev.max_health )
+			{
+				g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_BODY, cnpc_rgrunt::arrsCNPCSounds[cnpc_rgrunt::SND_REPAIR], VOL_NORM, 0.6, 0, PITCH_NORM );
+				
+				float flDamage = g_EngineFuncs.CVarGetFloat( "sk_plr_wrench" );
+				pDamageInfo.pAttacker.pev.frags += Math.min( 4, (flDamage / pDamageInfo.pVictim.pev.max_health) * (4 * (pDamageInfo.pVictim.pev.max_health / cnpc_rgrunt::CNPC_HEALTH)) );
+
+				pDamageInfo.pVictim.pev.health += flDamage;
+				if( pDamageInfo.pVictim.pev.health > pDamageInfo.pVictim.pev.max_health )
+					pDamageInfo.pVictim.pev.health = pDamageInfo.pVictim.pev.max_health;
+
+				//To prevent accidental death? :ayaya:
+				if( pDamageInfo.pVictim.pev.health < 1 )
+					pDamageInfo.pVictim.pev.health = 1.0;
+			}
 
 			break;
 		}
@@ -499,6 +585,17 @@ HookReturnCode ClientSay( SayParameters@ pParams )
 	return HOOK_CONTINUE;
 }
 
+bool CanRepairRobot( CBaseEntity@ pEntity )
+{
+	if( pEntity is null )
+		return false;
+
+	if( !pEntity.pev.FlagBitSet(FL_CLIENT) or (pEntity.pev.FlagBitSet(FL_CLIENT) and CNPC::PVP) )
+		return false;
+
+	return true;
+}
+
 } //namespace CNPC END
 
 //thanks Outerbeast :ayaya:
@@ -584,11 +681,15 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 
 				if( self.GetClassname() == "info_cnpc_scientist" )
 					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "body", "" + pev.body );
-
-				if( self.GetClassname() == "info_cnpc_hgrunt" )
+				else if( self.GetClassname() == "info_cnpc_hgrunt" )
 				{
 					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "weapons", "" + pev.weapons );
 					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "skin", "" + pev.skin );
+					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "body", "" + pev.body );
+				}
+				else if( self.GetClassname() == "info_cnpc_rgrunt" )
+				{
+					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "weapons", "" + pev.weapons );
 					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "body", "" + pev.body );
 				}
 

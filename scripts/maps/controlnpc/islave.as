@@ -251,7 +251,7 @@ class weapon_islave : CBaseDriveWeapon
 		CBaseEntity@ pHurt = CheckTraceHullAttack( MELEE_RANGE, MELEE_DAMAGE, DMG_SLASH );
 		if( pHurt !is null )
 		{
-			if( (pHurt.pev.flags & FL_MONSTER) == 1 or ((pHurt.pev.flags & FL_CLIENT) == 1 and CNPC::PVP) )
+			if( (pHurt.pev.flags & FL_MONSTER) != 0 or ((pHurt.pev.flags & FL_CLIENT) != 0 and CNPC::PVP) )
 			{
 				pHurt.pev.punchangle.z = -18;
 				pHurt.pev.punchangle.x = 5;
@@ -274,6 +274,10 @@ class weapon_islave : CBaseDriveWeapon
 
 	void TertiaryAttack()
 	{
+		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
+
+		if( m_pDriveEnt is null ) return;
+
 		if( !CNPC_FIRSTPERSON )
 		{
 			m_pPlayer.SetViewMode( ViewMode_FirstPerson );
@@ -290,8 +294,6 @@ class weapon_islave : CBaseDriveWeapon
 			m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_TPV );
 			CNPC_FIRSTPERSON = false;
 		}
-
-		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
 	}
 
 	void ItemPreFrame()

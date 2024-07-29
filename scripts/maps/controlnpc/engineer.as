@@ -334,7 +334,7 @@ class weapon_engineer : CBaseDriveWeapon
 
 		if( pHurt !is null )
 		{
-			if( (pHurt.pev.flags & FL_MONSTER) == 1 or ((pHurt.pev.flags & FL_CLIENT) == 1 and CNPC::PVP) )
+			if( pHurt.pev.FlagBitSet(FL_MONSTER) or (pHurt.pev.FlagBitSet(FL_CLIENT) and CNPC::PVP) )
 			{
 				pHurt.pev.punchangle.x = 15;
 				pHurt.pev.velocity = pHurt.pev.velocity + g_Engine.v_forward * 100 + g_Engine.v_up * 50;
@@ -388,6 +388,10 @@ class weapon_engineer : CBaseDriveWeapon
 
 	void TertiaryAttack()
 	{
+		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
+
+		if( m_pDriveEnt is null ) return;
+
 		if( !CNPC_FIRSTPERSON )
 		{
 			m_pPlayer.SetViewMode( ViewMode_FirstPerson );
@@ -404,8 +408,6 @@ class weapon_engineer : CBaseDriveWeapon
 			m_pPlayer.pev.view_ofs = Vector( 0, 0, CNPC_VIEWOFS_TPV );
 			CNPC_FIRSTPERSON = false;
 		}
-
-		self.m_flNextTertiaryAttack = g_Engine.time + 0.5;
 	}
 
 	void ItemPreFrame()
