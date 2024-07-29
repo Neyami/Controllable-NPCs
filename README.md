@@ -22,6 +22,7 @@ Set `CNPC_NPC_HITBOX` to `true` to use the hitbox of the monster model instead o
 
 <BR>
 
+
 # HEADCRAB #  
 `weapon_headcrab` - Give this to the player  
 
@@ -30,6 +31,7 @@ Tertiary Attack: Toggle between first- and third-person view
 
 
 <BR>
+
 
 # HOUNDEYE #  
 `weapon_houndeye` - Give this to the player  
@@ -41,6 +43,7 @@ Back Key (S): Hop backwards
 
 
 <BR>
+
 
 # ALIEN SLAVE #  
 `weapon_islave` - Give this to the player  
@@ -65,6 +68,7 @@ Also; try falling from different heights :ayaya:
 
 
 <BR>
+
 
 # ICHTHYOSAUR #  
 `weapon_icky` - Give this to the player  
@@ -103,7 +107,6 @@ Talk in chat: Speak in the language of Shock Troopers
 Ammo replenishes when idle  
 
 
-
 <BR>
 
 
@@ -135,6 +138,7 @@ Reload: Stomp attack
 Flamethrower ammo replenishes automatically.  
 Is immune to normal bullets.  
 
+
 <BR>
 
 
@@ -150,8 +154,8 @@ Reload: Stomp attack
 
 Flamethrower ammo replenishes automatically.  
 
-<BR>
 
+<BR>
 
 
 # HUMAN GRUNT #  
@@ -168,7 +172,6 @@ Refer to `controlnpc.fgd` to see the keyvalues that set the weapons
 
 
 <BR>
-
 
 
 # HUMAN ASSASSIN #  
@@ -214,6 +217,25 @@ Use: Exit turret
 
 Turret replenishes ammo when retired  
 When active and not shooting, nearby enemies will be highlighted  
+
+
+<BR>
+
+
+# ROBOT GRUNT #  
+`weapon_rgrunt` - Give this to the player  
+`info_cnpc_rgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Fire the weapon when aiming, or kick when not aiming  
+Secondary Attack: Aim  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: M16 will launch a contact grenade, the other weapons will toss a grenade, look straight down~ish to place a grenade on the ground  
+Duck: Crouch, most weapons can be fired while crouching  
+
+Is immune to normal bullets  
+At low health it will start giving off sparks and sometimes shock enemies when touched  
+Can be repaired by other players with the pipe wrench  
+Refer to `controlnpc.fgd` to see the keyvalues that set the weapons  
 
 
 <BR>
