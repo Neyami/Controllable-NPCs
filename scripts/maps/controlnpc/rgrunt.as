@@ -277,6 +277,8 @@ class weapon_rgrunt : CBaseDriveWeapon
 	{
 		g_Game.PrecacheModel( CNPC_MODEL );
 		g_Game.PrecacheModel( SMOKE_SPRITE );
+		g_Game.PrecacheModel( GIB_MODEL1 );
+		g_Game.PrecacheModel( GIB_MODEL2 );
 		g_Game.PrecacheModel( MODEL_MP5 );
 		g_Game.PrecacheModel( MODEL_M16 );
 		g_Game.PrecacheModel( MODEL_SHOTGUN );
