@@ -90,7 +90,7 @@ const int MTURRET_SLOT			= 2;
 const int MTURRET_POSITION		= 12;
 const int TURRET_SLOT				= 2;
 const int TURRET_POSITION		= 13;
-const int RGRUNT_SLOT				= 1;
+const int RGRUNT_SLOT				= 2;
 const int RGRUNT_POSITION		= 14;
 
 //friendles
