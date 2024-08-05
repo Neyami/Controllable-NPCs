@@ -1,3 +1,5 @@
+//hwrobo.mdl by Garompa
+
 namespace cnpc_hwrgrunt
 {
 
