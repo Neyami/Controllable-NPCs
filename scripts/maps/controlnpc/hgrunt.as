@@ -22,9 +22,9 @@ const float SPEED_RUN					= (140.424637 * CNPC::flModelToGameSpeedModifier); //1
 const float SPEED_RUN_LIMP			= (85.191559 * CNPC::flModelToGameSpeedModifier); //85.191559
 const float VELOCITY_WALK			= 150.0; //if the player's velocity is this or lower, use the walking animation
 
-const float CD_MP5							= 0.1;
-const float CD_SHOTGUN					= 0.3;
-const float CD_M16							= 0.6;
+const float CD_MP5						= 0.1;
+const float CD_SHOTGUN				= 0.3;
+const float CD_M16						= 0.6;
 const float CD_SNIPER					= 1.0;
 const int AMMO_MAX						= 36; //MP5 & M16
 const int AMMO_MAX_SHOTGUN		= 8;
@@ -41,13 +41,13 @@ const float RELOAD_TIME				= 1.0;
 
 const float CD_MELEE						= 1.0;
 const float MELEE_RANGE				= 70.0;
-const float MELEE_DAMAGE				= 12.0;
+const float MELEE_DAMAGE			= 12.0;
 
 const float CD_GRENADE_TOSS		= 1.0; //6.0
 const float CD_GRENADE_LAUNCH	= 1.0; //6.0
 const float CD_GRENADE_DROP		= 1.0; //6.0
 const float GRENADE_THROW			= 500.0;
-const float GRENADE_LAUNCH			= 800.0;
+const float GRENADE_LAUNCH		= 800.0;
 
 const array<string> pPainSounds = 
 {
@@ -205,7 +205,6 @@ class weapon_hgrunt : CBaseDriveWeapon
 	int m_iVoicePitch;
 
 	private int m_iShell, m_iShotgunShell;
-	private int m_iMaxAmmo;
 	private int m_iWeaponStage;
 
 	private bool m_bGrenadeUsed;
@@ -278,10 +277,10 @@ class weapon_hgrunt : CBaseDriveWeapon
 	bool GetItemInfo( ItemInfo& out info )
 	{
 		info.iMaxAmmo1	= m_iMaxAmmo;
-		info.iMaxClip		= WEAPON_NOCLIP;
+		info.iMaxClip			= WEAPON_NOCLIP;
 		info.iSlot				= CNPC::HGRUNT_SLOT - 1;
-		info.iPosition		= CNPC::HGRUNT_POSITION - 1;
-		info.iFlags 			= 0;
+		info.iPosition			= CNPC::HGRUNT_POSITION - 1;
+		info.iFlags 				= ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_NOAUTOSWITCHEMPTY;
 		info.iWeight			= 0; //-1 ??
 
 		return true;
@@ -688,8 +687,6 @@ class weapon_hgrunt : CBaseDriveWeapon
 
 	void DoIdleAnimation( bool bOverrideState = false )
 	{
-		if( m_pDriveEnt is null ) return;
-
 		if( !bOverrideState )
 		{
 			if( m_iState == STATE_RANGE and (m_pPlayer.pev.button & IN_ATTACK != 0 or !m_pDriveEnt.m_fSequenceFinished) ) return;

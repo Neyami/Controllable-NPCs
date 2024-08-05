@@ -2,7 +2,7 @@ namespace cnpc_rgrunt
 {
 
 bool CNPC_FIRSTPERSON				= false;
-	
+
 const string CNPC_WEAPONNAME	= "weapon_rgrunt";
 const string CNPC_MODEL				= "models/rgrunt.mdl";
 const string MODEL_MP5				= "models/v_9mmar.mdl";
@@ -15,6 +15,7 @@ const Vector CNPC_SIZEMIN			= VEC_HUMAN_HULL_MIN;
 const Vector CNPC_SIZEMAX			= VEC_HUMAN_HULL_MAX;
 
 const float CNPC_HEALTH				= 100.0;
+const float CNPC_LOWHEALTH			= 20.0; //when to trigger low-health mode
 const float CNPC_VIEWOFS_FPV		= 28.0; //camera height offset
 const float CNPC_VIEWOFS_TPV		= 28.0;
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the rgrunt itself
@@ -59,15 +60,6 @@ const string SMOKE_SPRITE			= "sprites/steam1.spr";
 const float EXPLODE_DAMAGE			= 100.0;
 const string GIB_MODEL1				= "models/computergibs.mdl";
 const string GIB_MODEL2				= "models/chromegibs.mdl";
-
-const array<string> pPainSounds = 
-{
-	"hgrunt/gr_pain1.wav",
-	"hgrunt/gr_pain2.wav",
-	"hgrunt/gr_pain3.wav",
-	"hgrunt/gr_pain4.wav",
-	"hgrunt/gr_pain5.wav"
-};
 
 const array<string> arrsCNPCSounds = 
 {
@@ -219,7 +211,6 @@ class weapon_rgrunt : CBaseDriveWeapon
 	int m_iVoicePitch;
 
 	private int m_iShell, m_iShotgunShell;
-	private int m_iMaxAmmo;
 	private int m_iWeaponStage;
 
 	private bool m_bGrenadeUsed;
@@ -292,9 +283,6 @@ class weapon_rgrunt : CBaseDriveWeapon
 		for( uint i = 0; i < arrsCNPCSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( arrsCNPCSounds[i] );
 
-		for( uint i = 0; i < pPainSounds.length(); i++ )
-			g_SoundSystem.PrecacheSound( pPainSounds[i] );
-
 		//Precache these for downloading
 		g_Game.PrecacheGeneric( "sprites/controlnpc/weapon_rgrunt.txt" );
 		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_rgrunt.spr" );
@@ -307,7 +295,7 @@ class weapon_rgrunt : CBaseDriveWeapon
 		info.iMaxClip			= WEAPON_NOCLIP;
 		info.iSlot				= CNPC::RGRUNT_SLOT - 1;
 		info.iPosition			= CNPC::RGRUNT_POSITION - 1;
-		info.iFlags 				= 0;
+		info.iFlags 				= ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_NOAUTOSWITCHEMPTY;
 		info.iWeight			= 0; //-1 ??
 
 		return true;
@@ -324,7 +312,7 @@ class weapon_rgrunt : CBaseDriveWeapon
 			m1.WriteLong( g_ItemRegistry.GetIdForName(CNPC_WEAPONNAME) );
 		m1.End();
 
-		m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType, m_iMaxAmmo);
+		m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType, m_iMaxAmmo );
 
 		if( m_iAutoDeploy == 1 ) m_pPlayer.SwitchWeapon(self);
 
@@ -691,9 +679,9 @@ class weapon_rgrunt : CBaseDriveWeapon
 				m_iState = STATE_WALK;
 				m_pPlayer.SetMaxSpeedOverride( int(SPEED_WALK) );
 				SetAnim( ANIM_WALK );
-
-				m_pDriveEnt.pev.framerate = 1.7; //the walking animation is too slow
 			}
+
+			m_pDriveEnt.pev.framerate = 1.7; //the walking animation is too slow
 		}
 		else
 		{
@@ -1096,7 +1084,7 @@ class weapon_rgrunt : CBaseDriveWeapon
 
 	void LowHealth()
 	{
-		if( m_pPlayer.pev.health <= 20.0 and m_pDriveEnt.pev.deadflag != DEAD_DEAD )
+		if( m_pPlayer.pev.health <= CNPC_LOWHEALTH and m_pDriveEnt.pev.deadflag != DEAD_DEAD )
 		{
 			Vector vecSrc = Vector( Math.RandomFloat(pev.absmin.x, pev.absmax.x), Math.RandomFloat(pev.absmin.y, pev.absmax.y), Math.RandomFloat(pev.origin.z, pev.absmax.z) );
 

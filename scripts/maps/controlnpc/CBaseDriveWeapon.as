@@ -6,6 +6,9 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 	int m_iAutoDeploy;
 	float m_flNextIdleCheck;
 	protected uint m_uiAnimationState; //for hacky HandleAnimEvent
+	protected int m_iSpawnFlags; //Just in case
+	protected int m_iMaxAmmo;
+	protected float m_flFireRate;
 
 	protected CBasePlayer@ m_pPlayer
 	{
@@ -25,6 +28,21 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		if( szKey == "autodeploy" )
 		{
 			m_iAutoDeploy = atoi( szValue );
+			return true;
+		}
+		else if( szKey == "m_iSpawnFlags" )
+		{
+			m_iSpawnFlags = atoi( szValue );
+			return true;
+		}
+		else if( szKey == "m_iMaxAmmo" )
+		{
+			m_iMaxAmmo = atoi( szValue );
+			return true;
+		}
+		else if( szKey == "m_flFireRate" )
+		{
+			m_flFireRate = atof( szValue );
 			return true;
 		}
 		else

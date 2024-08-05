@@ -15,6 +15,7 @@
 #include "mturret"
 #include "turret"
 #include "rgrunt"
+#include "hwrgrunt"
 
 #include "scientist"
 #include "engineer"
@@ -42,6 +43,7 @@ void MapInit()
 	cnpc_mturret::Register();
 	cnpc_turret::Register();
 	cnpc_rgrunt::Register();
+	cnpc_hwrgrunt::Register();
 
 	cnpc_scientist::Register();
 	cnpc_engineer::Register();
@@ -58,6 +60,7 @@ float g_flTalkWaitTime;
 
 const bool PVP								= false;
 const float CNPC_SPEAK_DISTANCE	= 768.0;
+const int DEAD_GIB						= 42;
 
 //xen
 const int HEADCRAB_SLOT			= 1;
@@ -65,11 +68,11 @@ const int HEADCRAB_POSITION	= 10;
 const int HOUNDEYE_SLOT			= 1;
 const int HOUNDEYE_POSITION	= 11;
 const int ISLAVE_SLOT				= 1;
-const int ISLAVE_POSITION			= 12;
+const int ISLAVE_POSITION		= 12;
 const int AGRUNT_SLOT				= 1;
 const int AGRUNT_POSITION		= 13;
 const int ICKY_SLOT					= 1;
-const int ICKY_POSITION				= 14;
+const int ICKY_POSITION			= 14;
 const int PITDRONE_SLOT			= 1;
 const int PITDRONE_POSITION	= 15;
 const int STROOPER_SLOT			= 1;
@@ -92,6 +95,8 @@ const int TURRET_SLOT				= 2;
 const int TURRET_POSITION		= 13;
 const int RGRUNT_SLOT				= 2;
 const int RGRUNT_POSITION		= 14;
+const int HWRGRUNT_SLOT		= 2;
+const int HWRGRUNT_POSITION	= 15;
 
 //friendles
 const int SCIENTIST_SLOT			= 3;
@@ -142,9 +147,15 @@ const array<string> arrsCNPCWeapons =
 	"weapon_mturret",
 	"weapon_turret",
 	"weapon_rgrunt",
+	"weapon_hwrgrunt",
 
 	"weapon_scientist",
 	"weapon_engineer"
+};
+
+const array<string> arrsCNPCGibbable =
+{
+	"cnpc_hwrgrunt"
 };
 
 enum cnpc_e
@@ -165,6 +176,7 @@ enum cnpc_e
 	CNPC_MTURRET,
 	CNPC_TURRET,
 	CNPC_RGRUNT,
+	CNPC_HWRGRUNT,
 
 	CNPC_SCIENTIST,
 	CNPC_ENGINEER
@@ -360,7 +372,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 					{
 						if( pDamageInfo.bitsDamageType & (DMG_SLASH|DMG_CLUB) != 0 )
 						{
-							pDamageInfo.pAttacker.TakeDamage( pDamageInfo.pVictim.pev, pDamageInfo.pVictim.pev, 25.0, DMG_SHOCK );
+							pDamageInfo.pAttacker.TakeDamage( pDamageInfo.pVictim.pev, pDamageInfo.pVictim.pev, cnpc_rgrunt::DMG_SHOCKTOUCH/4, DMG_SHOCK );
 							pDamageInfo.flDamage = 0.01;
 						}
 					}
@@ -423,6 +435,85 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
+		case CNPC_HWRGRUNT:
+		{
+			if( pDamageInfo.flDamage < 0 or pDamageInfo.pVictim.pev.takedamage == DAMAGE_NO )
+				return HOOK_CONTINUE;
+
+			if( (pDamageInfo.bitsDamageType & DMG_CLUB) == 0 or !CanRepairRobot(pDamageInfo.pAttacker) or !pDamageInfo.pAttacker.IsPlayer() )
+			{
+				CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
+				cnpc_hwrgrunt::weapon_hwrgrunt@ pWeapon = cast<cnpc_hwrgrunt::weapon_hwrgrunt@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
+
+				if( pWeapon !is null )
+				{
+					if( pWeapon.m_bShockTouch )
+					{
+						if( pDamageInfo.bitsDamageType & (DMG_SLASH|DMG_CLUB) != 0 )
+						{
+							pDamageInfo.pAttacker.TakeDamage( pDamageInfo.pVictim.pev, pDamageInfo.pVictim.pev, cnpc_hwrgrunt::DMG_SHOCKTOUCH/4, DMG_SHOCK );
+							pDamageInfo.flDamage = 0.01;
+						}
+					}
+					else if( pDamageInfo.bitsDamageType & (DMG_SLASH|DMG_CLUB) != 0 and pDamageInfo.pVictim.pev.health <= 20.0 and Math.RandomLong(0, 2) > 1 )
+					{
+						pWeapon.GlowEffect( true );
+						pWeapon.m_bShockTouch = true;
+					}
+				}
+
+				if( pDamageInfo.bitsDamageType & (DMG_BULLET|DMG_CLUB|DMG_SNIPER) != 0 )
+				{
+					TraceResult tr = g_Utility.GetGlobalTrace();
+					g_Utility.Ricochet( tr.vecEndPos, 1.0 );
+					pDamageInfo.flDamage *= 0.15;
+				}
+
+				if( (pDamageInfo.bitsDamageType & DMG_SLASH) != 0 )
+				{
+					if( pDamageInfo.flDamage >= 5.0 )
+						pDamageInfo.flDamage -= 5.0;
+
+					pDamageInfo.flDamage *= 0.08;
+				}
+
+				if( (pDamageInfo.bitsDamageType & DMG_BLAST) != 0 and pDamageInfo.pVictim.pev.health > 10.0 )
+				{
+					if( pDamageInfo.flDamage > 15.0 )
+						pDamageInfo.flDamage -= 15.0;
+
+					pDamageInfo.flDamage *= 0.2;
+
+					if( (pDamageInfo.bitsDamageType & DMG_BURN) == 0 )
+						return HOOK_CONTINUE;
+				}
+				else if( (pDamageInfo.bitsDamageType & DMG_BURN) == 0 or pDamageInfo.pVictim.pev.health <= 10.0 )
+					return HOOK_CONTINUE;
+
+				pDamageInfo.flDamage *= 0.5;
+
+				return HOOK_CONTINUE;
+			}
+
+			if( pDamageInfo.pVictim.pev.health < pDamageInfo.pVictim.pev.max_health )
+			{
+				g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_BODY, cnpc_hwrgrunt::arrsCNPCSounds[cnpc_hwrgrunt::SND_REPAIR], VOL_NORM, 0.6, 0, PITCH_NORM );
+				
+				float flDamage = g_EngineFuncs.CVarGetFloat( "sk_plr_wrench" );
+				pDamageInfo.pAttacker.pev.frags += Math.min( 4, (flDamage / pDamageInfo.pVictim.pev.max_health) * (4 * (pDamageInfo.pVictim.pev.max_health / cnpc_hwrgrunt::CNPC_HEALTH)) );
+
+				pDamageInfo.pVictim.pev.health += flDamage;
+				if( pDamageInfo.pVictim.pev.health > pDamageInfo.pVictim.pev.max_health )
+					pDamageInfo.pVictim.pev.health = pDamageInfo.pVictim.pev.max_health;
+
+				//To prevent accidental death? :ayaya:
+				if( pDamageInfo.pVictim.pev.health < 1 )
+					pDamageInfo.pVictim.pev.health = 1.0;
+			}
+
+			break;
+		}
+
 		/*TODO, add berserk mode??
 		case CNPC_TURRET:
 		{
@@ -432,7 +523,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.6, 1.2);
 			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
 
-			//if (pev->health <= 10)
+			//if (pev.health <= 10)
 			//{
 				//if (m_iOn && (1 || RANDOM_LONG(0, 0x7FFF) > 800))
 				//{
@@ -476,12 +567,6 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 	return HOOK_CONTINUE;
 }
 
-/*
-int CTalkMonster :: GetVoicePitch( void )
-{
-	return m_voicePitch + RANDOM_LONG(0,3);
-} 
-*/
 HookReturnCode PlayerKilled( CBasePlayer@ pPlayer, CBaseEntity@ pAttacker, int iGib )
 {
 	if( pPlayer.m_hActiveItem.GetEntity() !is null )
@@ -489,7 +574,24 @@ HookReturnCode PlayerKilled( CBasePlayer@ pPlayer, CBaseEntity@ pAttacker, int i
 		CBasePlayerWeapon@ pWeapon = cast<CBasePlayerWeapon@>( pPlayer.m_hActiveItem.GetEntity() );
 
 		if( arrsCNPCWeapons.find(pWeapon.GetClassname()) >= 0 )
+		{
+			if( (pPlayer.pev.health < -40 and iGib != GIB_NEVER) or iGib == GIB_ALWAYS )
+			{
+				CBaseEntity@ pDriveEnt = null;
+				while( (@pDriveEnt = g_EntityFuncs.FindEntityInSphere( pDriveEnt, pPlayer.pev.origin, 42, "*", "classname" ) ) !is null )
+				{
+					if( arrsCNPCGibbable.find(pDriveEnt.GetClassname()) < 0 ) continue;
+
+					if( pDriveEnt.pev.owner is pPlayer.edict() )
+						break;
+				}
+
+				if( pDriveEnt !is null )
+					pDriveEnt.pev.deadflag = DEAD_GIB;
+			}
+
 			g_EntityFuncs.Remove( pWeapon );
+		}
 	}
 
 	CustomKeyvalues@ pCustom = pPlayer.GetCustomKeyvalues();
@@ -615,6 +717,9 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 	float m_flRespawnTime; //how long until respawn
 	float m_flTimeToRespawn; //used to check if ready to respawn
 	float m_flSpawnOffset; //when using CNPC_NPC_HITBOX the player spawns in the floor
+	int m_iSpawnFlags; //Just in case
+	int m_iMaxAmmo;
+	float m_flFireRate;
 
 	string m_sWeaponName;
 	string m_sModel;
@@ -692,6 +797,10 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "weapons", "" + pev.weapons );
 					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "body", "" + pev.body );
 				}
+
+				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_iSpawnFlags", "" + m_iSpawnFlags );
+				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_iMaxAmmo", "" + m_iMaxAmmo );
+				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_flFireRate", "" + m_flFireRate );
 
 				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "autodeploy", "1" );
 				g_EntityFuncs.DispatchSpawn( m_pCNPCWeapon.edict() );

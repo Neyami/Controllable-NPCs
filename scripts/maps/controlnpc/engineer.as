@@ -112,7 +112,7 @@ enum states_e
 
 class weapon_engineer : CBaseDriveWeapon
 {
-	private int m_iShell, m_iShotgunShell;
+	private int m_iShell;
 	private int m_iWeaponStage;
 	private bool m_bCrouching;
 	int m_iVoicePitch;
@@ -162,10 +162,10 @@ class weapon_engineer : CBaseDriveWeapon
 	bool GetItemInfo( ItemInfo& out info )
 	{
 		info.iMaxAmmo1	= AMMO_MAX;
-		info.iMaxClip		= WEAPON_NOCLIP;
+		info.iMaxClip			= WEAPON_NOCLIP;
 		info.iSlot				= CNPC::ENGINEER_SLOT - 1;
-		info.iPosition		= CNPC::ENGINEER_POSITION - 1;
-		info.iFlags 			= 0;
+		info.iPosition			= CNPC::ENGINEER_POSITION - 1;
+		info.iFlags 				= ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_NOAUTOSWITCHEMPTY;
 		info.iWeight			= 0; //-1 ??
 
 		return true;
