@@ -235,7 +235,25 @@ Duck: Crouch, most weapons can be fired while crouching
 Is immune to normal bullets  
 At low health it will start giving off sparks and sometimes shock enemies when touched  
 Can be repaired by other players with the pipe wrench  
+Explodes shortly after death  
 Refer to `controlnpc.fgd` to see the keyvalues that set the weapons  
+
+
+<BR>
+
+
+# HEAVY WEAPONS ROBOT GRUNT #  
+`weapon_hwrgrunt` - Give this to the player  
+`info_cnpc_hwrgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Fire the minigun  
+Tertiary Attack: Toggle between first- and third-person view  
+
+Is immune to normal bullets  
+At low health it will start giving off sparks and sometimes shock enemies when touched  
+Can be repaired by other players with the pipe wrench  
+Explodes shortly after death, instantly explodes when gibbed (can be turned off)  
+Refer to `controlnpc.fgd` to see the keyvalues that can be set  
 
 
 <BR>
