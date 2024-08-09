@@ -1,67 +1,40 @@
+@BaseClass = CNPC
+[
+	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
+
+	gag(Choices) : "Disable Idle Sounds" : 0 =
+	[
+		0 : "No (default)"
+		1 : "Yes"
+	]
+]
+
+
 //XEN
-@PointClass base(Monster) size(-16 -16 0, 16 16 36) studio("models/headcrab.mdl") = info_cnpc_headcrab : "Controllable Headcrab"
-[
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
-]
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 36) studio("models/headcrab.mdl") = info_cnpc_headcrab : "Controllable Headcrab" []
 
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 36) studio("models/houndeye.mdl") = info_cnpc_houndeye : "Controllable Houndeye" []
 
-@PointClass base(Monster) size(-16 -16 0, 16 16 36) studio("models/houndeye.mdl") = info_cnpc_houndeye : "Controllable Houndeye"
-[
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
-]
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 36) studio("models/islave.mdl") = info_cnpc_islave : "Controllable Alien Slave" []
 
+@PointClass base(Mandatory, CNPC) size(-32 -32 0, 32 32 64) studio("models/agrunt.mdl") = info_cnpc_agrunt : "Controllable Alien Grunt" []
 
-@PointClass base(Monster) size(-16 -16 0, 16 16 36) studio("models/islave.mdl") = info_cnpc_islave : "Controllable Alien Slave"
-[
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
-]
+@PointClass base(Mandatory, CNPC) size(-32 -32 0, 32 32 64) studio("models/icky.mdl") = info_cnpc_icky : "Controllable Ichthyosaur" []
 
+@PointClass base(Mandatory, CNPC) size(-24 -24 0, 24 24 32) studio("models/pit_drone.mdl") = info_cnpc_pitdrone : "Controllable Pit Drone" []
 
-@PointClass base(Monster) size(-32 -32 0, 32 32 64) studio("models/agrunt.mdl") = info_cnpc_agrunt : "Controllable Alien Grunt"
-[
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
-]
+@PointClass base(Mandatory, CNPC) size(-24 -24 0, 24 24 32) studio("models/strooper.mdl") = info_cnpc_strooper : "Controllable Shock Trooper" []
 
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/gonome.mdl") = info_cnpc_gonome : "Controllable Gonome" []
 
-@PointClass base(Monster) size(-32 -32 0, 32 32 64) studio("models/icky.mdl") = info_cnpc_icky : "Controllable Ichthyosaur"
-[
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
-]
+@PointClass base(Mandatory, CNPC) size(-32 -32 0, 32 32 128) studio("models/garg.mdl") = info_cnpc_garg : "Controllable Gargantua" []
 
-
-@PointClass base(Monster) size(-24 -24 0, 24 24 32) studio("models/pit_drone.mdl") = info_cnpc_pitdrone : "Controllable Pit Drone"
-[
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
-]
-
-
-@PointClass base(Monster) size(-24 -24 0, 24 24 32) studio("models/strooper.mdl") = info_cnpc_strooper : "Controllable Shock Trooper"
-[
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
-]
-
-
-@PointClass base(Monster) size(-16 -16 0, 16 16 72) studio("models/gonome.mdl") = info_cnpc_gonome : "Controllable Gonome"
-[
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
-]
-
-
-@PointClass base(Monster) size(-32 -32 0, 32 32 128) studio("models/garg.mdl") = info_cnpc_garg : "Controllable Gargantua"
-[
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
-]
-
-
-@PointClass base(Monster) size(-32 -32 0, 32 32 128) studio("models/babygarg.mdl") = info_cnpc_babygarg : "Controllable Baby Gargantua"
-[
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
-]
+@PointClass base(Mandatory, CNPC) size(-32 -32 0, 32 32 128) studio("models/babygarg.mdl") = info_cnpc_babygarg : "Controllable Baby Gargantua" []
 
 
 
 //BLACK MESA etc
-@PointClass base(Monster) size(-16 -16 0, 16 16 72) studio("models/hgrunt.mdl") = info_cnpc_hgrunt : "Controllable Human Grunt"
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/hgrunt.mdl") = info_cnpc_hgrunt : "Controllable Human Grunt"
 [
 	weapons(Choices) : "Weapons" : 3 =
 	[
@@ -88,42 +61,29 @@
 		6 : "Major"
 		7 : "Beret (Black)"
 	]
-
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
 ]
 
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/hassassin.mdl") = info_cnpc_fassn : "Controllable Female Assassin" []
 
-@PointClass base(Monster) size(-16 -16 0, 16 16 72) studio("models/hassassin.mdl") = info_cnpc_fassn : "Controllable Female Assassin"
-[
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
-]
-
-
-@PointClass base(Monster) size(-16 -16 -32, 16 16 32) studio("models/miniturret.mdl") = info_cnpc_mturret : "Controllable Mini Turret"
+@PointClass base(Mandatory, CNPC) size(-16 -16 -32, 16 16 32) studio("models/miniturret.mdl") = info_cnpc_mturret : "Controllable Mini Turret"
 [
 	orientation(Choices) : "Orientation" : 0 =
 	[
 		0 : "Floor Mount"
 		1 : "Ceiling Mount"
 	]
-
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
 ]
 
-
-@PointClass base(Monster) size(-32 -32 -32, 32 32 32) studio("models/turret.mdl") = info_cnpc_turret : "Controllable Turret"
+@PointClass base(Mandatory, CNPC) size(-32 -32 -32, 32 32 32) studio("models/turret.mdl") = info_cnpc_turret : "Controllable Turret"
 [
 	orientation(Choices) : "Orientation" : 0 =
 	[
 		0 : "Floor Mount"
 		1 : "Ceiling Mount"
 	]
-
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
 ]
 
-
-@PointClass base(Monster) size(-16 -16 0, 16 16 72) studio("models/rgrunt.mdl") = info_cnpc_rgrunt : "Controllable Robot Grunt"
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/rgrunt.mdl") = info_cnpc_rgrunt : "Controllable Robot Grunt"
 [
 	weapons(Choices) : "Weapons" : 3 =
 	[
@@ -137,15 +97,10 @@
 		128 : "Sniper Rifle"
 		130 : "Sniper Rifle + HG"
 	]
-
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
 ]
 
-
-@PointClass base(Monster) size(-16 -16 0, 16 16 72) studio("models/hwrgrunt.mdl") = info_cnpc_hwrgrunt : "Controllable HW Robot Grunt"
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/hwrgrunt.mdl") = info_cnpc_hwrgrunt : "Controllable HW Robot Grunt"
 [
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
-
 	disabledrop(Choices) : "Disable Minigun Drop Upon Death" : 0 =
 	[
 		0 : "No (default)"
@@ -163,10 +118,30 @@
 	firerate(string) : "Rate of fire" : "0.08"
 ]
 
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/hwgrunt.mdl") = info_cnpc_hwgrunt : "Controllable Heavy Weapons Grunt"
+[
+	weapons(Choices) : "Secondary Weapon" : 1 =
+	[
+		0 : "Random Pistol"
+		1 : "Glock"
+		2 : "Desert Eagle"
+		3 : "357 Python"
+	]
+
+	disable_minigun_drop(Choices) : "Disable Minigun Drop Upon Death" : 0 =
+	[
+		0 : "No (default)"
+		1 : "Yes"
+	]
+
+	maxammo(string) : "Max ammo" : "600" "Set to -1 for infinite ammo"
+
+	firerate(string) : "Rate of fire" : "0.08"
+]
 
 
 //FRIENDLIES
-@PointClass base(Monster) size(-16 -16 0, 16 16 72) studio("models/scientist.mdl") = info_cnpc_scientist : "Controllable Scientist"
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/scientist.mdl") = info_cnpc_scientist : "Controllable Scientist"
 [
 	body(Choices) : "Body" : -1 =
 	[
@@ -176,12 +151,7 @@
 		2 : "Luther"
 		3 : "Slick"
 	]
-
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
 ]
 
 
-@PointClass base(Monster) size(-16 -16 0, 16 16 72) studio("models/sandstone/engineer.mdl") = info_cnpc_engineer : "Controllable Sandstone Engineer"
-[
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
-]
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/sandstone/engineer.mdl") = info_cnpc_engineer : "Controllable Sandstone Engineer" []
