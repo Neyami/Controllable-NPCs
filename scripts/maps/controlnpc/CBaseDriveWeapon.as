@@ -6,7 +6,7 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 	int m_iAutoDeploy;
 	float m_flNextIdleCheck;
 	protected uint m_uiAnimationState; //for hacky HandleAnimEvent
-	protected int m_iSpawnFlags; //Just in case
+	int m_iSpawnFlags; //Just in case
 	protected int m_iMaxAmmo;
 	protected float m_flFireRate;
 
@@ -51,6 +51,7 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 
 	void DoIdleSound()
 	{
+		if( (m_iSpawnFlags & CNPC::FL_GAG) != 0 ) return;
 		if( m_flNextIdleCheck > g_Engine.time ) return;
 		if( m_iState != STATE_IDLE ) return;
 
@@ -216,7 +217,7 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		return pFriendOwner.m_hActiveItem.GetEntity();
 	}
 
-	void SetAnim( int iAnim, float flFrame = 0.0, float flFrameRate = 1.0 )
+	void SetAnim( int iAnim, float flFrameRate = 1.0, float flFrame = 0.0 )
 	{
 		if( m_pDriveEnt !is null )
 		{
@@ -261,5 +262,30 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 	bool IsBetween2( int iValue, int iMin, int iMax )
 	{
 		return (iValue >= iMin and iValue <= iMax);
+	}
+}
+
+
+abstract class CBaseDriveEntity : ScriptBaseAnimating
+{
+	int m_iSpawnFlags;
+
+	protected CBasePlayer@ m_pOwner
+	{
+		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
+	}
+
+	EHandle m_hRenderEntity;
+	float m_flNextOriginUpdate; //hopefully fixes hacky movement on other players
+
+	bool KeyValue( const string& in szKey, const string& in szValue )
+	{
+		if( szKey == "m_iSpawnFlags" )
+		{
+			m_iSpawnFlags = atoi( szValue );
+			return true;
+		}
+		else
+			return BaseClass.KeyValue( szKey, szValue );
 	}
 }

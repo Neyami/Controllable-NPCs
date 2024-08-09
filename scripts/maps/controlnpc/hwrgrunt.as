@@ -91,16 +91,9 @@ enum states_e
 	STATE_SPINDOWN
 };
 
-enum flags_e
-{
-	FL_DISABLEDROP = 1,
-	FL_NOEXPLODE = 2,
-	FL_CUSTOMAMMO = 4,
-	FL_INFINITEAMMO = 8
-};
-
 class weapon_hwrgrunt : CBaseDriveWeapon
 {
+	int m_iVoicePitch;
 	private int m_iShell;
 	private float m_flNextAmmoRegen;
 
@@ -120,6 +113,8 @@ class weapon_hwrgrunt : CBaseDriveWeapon
 		m_flNextShockTouch = g_Engine.time;
 		m_flNextSpark = g_Engine.time + 1.0;
 		m_bDoubleSpark = false;
+
+		m_iVoicePitch = 115;
 
 		self.FallInit(); //needed??
 	}
@@ -352,7 +347,32 @@ class weapon_hwrgrunt : CBaseDriveWeapon
 
 	void IdleSound()
 	{
-		//SOUND HERE
+		if( CNPC::g_flTalkWaitTime > g_Engine.time ) return;
+
+		if( CNPC::g_iRobotGruntQuestion != 0 or Math.RandomLong(0, 1) == 1 )
+		{
+			if( CNPC::g_iRobotGruntQuestion == 0 )
+			{
+				switch( Math.RandomLong(0, 2) )
+				{
+					case 0: { g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "RB_CHECK", VOL_NORM, ATTN_NORM, 0, m_iVoicePitch ); CNPC::g_iRobotGruntQuestion = 1; break; }
+					case 1: { g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "RB_QUEST", VOL_NORM, ATTN_NORM, 0, m_iVoicePitch ); CNPC::g_iRobotGruntQuestion = 2; break; }
+					case 2: {g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "RB_IDLE", VOL_NORM, ATTN_NORM, 0, m_iVoicePitch ); break; }
+				}
+			}
+			else
+			{
+				switch( CNPC::g_iRobotGruntQuestion )
+				{
+					case 1: { g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "RB_CLEAR", VOL_NORM, ATTN_NORM, 0, m_iVoicePitch ); break; }
+					case 2: { g_SoundSystem.PlaySentenceGroup( m_pDriveEnt.edict(), "RB_ANSWER", VOL_NORM, ATTN_NORM, 0, m_iVoicePitch ); break;}
+				}
+
+				CNPC::g_iRobotGruntQuestion = 0;
+			}
+
+			CNPC::g_flTalkWaitTime = g_Engine.time + Math.RandomFloat( 1.5, 2.0 );
+		}
 	}
 
 	void Shoot()
@@ -380,7 +400,7 @@ class weapon_hwrgrunt : CBaseDriveWeapon
 
 		m_pDriveEnt.pev.effects |= EF_MUZZLEFLASH;
 
-		if( (m_iSpawnFlags & FL_INFINITEAMMO) == 0 )
+		if( (m_iSpawnFlags & CNPC::FL_INFINITEAMMO) == 0 )
 			m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType, m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) - 1 );
 	}
 
@@ -411,7 +431,7 @@ class weapon_hwrgrunt : CBaseDriveWeapon
 
 	void DoAmmoRegen()
 	{
-		if( (m_iSpawnFlags & FL_INFINITEAMMO) != 0 ) return;
+		if( (m_iSpawnFlags & CNPC::FL_INFINITEAMMO) != 0 ) return;
 
 		if( m_iState < STATE_SPINUP and m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) < m_iMaxAmmo )
 		{
@@ -535,9 +555,9 @@ class weapon_hwrgrunt : CBaseDriveWeapon
 	{
 		int iRetval = AMMO_MINIGUN;
 
-		if( (m_iSpawnFlags & FL_INFINITEAMMO) != 0 )
+		if( (m_iSpawnFlags & CNPC::FL_INFINITEAMMO) != 0 )
 			iRetval = 9999;
-		else if( (m_iSpawnFlags & FL_CUSTOMAMMO) != 0 )
+		else if( (m_iSpawnFlags & CNPC::FL_CUSTOMAMMO) != 0 )
 			iRetval = m_iMaxAmmo;
 
 		return iRetval;
@@ -687,7 +707,6 @@ class cnpc_hwrgrunt : ScriptBaseAnimating
 			if( m_hRenderEntity.IsValid() )
 				g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );
 
-			pev.velocity = g_vecZero;
 			DoDeath( true );
 
 			return;
@@ -698,7 +717,6 @@ class cnpc_hwrgrunt : ScriptBaseAnimating
 			if( m_hRenderEntity.IsValid() )
 				g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );
 
-			pev.velocity = g_vecZero;
 			DoDeath();
 
 			return;
@@ -742,10 +760,12 @@ class cnpc_hwrgrunt : ScriptBaseAnimating
 
 	void DoDeath( bool bGibbed = false )
 	{
-		if( (m_iSpawnFlags & FL_DISABLEDROP) == 0 )
+		pev.velocity = g_vecZero;
+
+		if( (m_iSpawnFlags & CNPC::FL_DISABLEDROP) == 0 )
 			DropWeapon();
 
-		if( bGibbed and (m_iSpawnFlags & FL_NOEXPLODE) == 0 )
+		if( bGibbed and (m_iSpawnFlags & CNPC::FL_NOEXPLODE) == 0 )
 		{
 			ExplosiveDeath();
 			return;
@@ -806,7 +826,7 @@ class cnpc_hwrgrunt : ScriptBaseAnimating
 		{
 			pev.solid = SOLID_NOT;
 
-			if( (m_iSpawnFlags & FL_NOEXPLODE) == 0 )
+			if( (m_iSpawnFlags & CNPC::FL_NOEXPLODE) == 0 )
 				ExplosiveDeath();
 			else
 			{
@@ -816,7 +836,7 @@ class cnpc_hwrgrunt : ScriptBaseAnimating
 		}
 		else
 		{
-			if( (m_iSpawnFlags & FL_NOEXPLODE) == 0 )
+			if( (m_iSpawnFlags & CNPC::FL_NOEXPLODE) == 0 )
 			{
 				Vector vecOrigin = pev.origin;
 
@@ -958,17 +978,24 @@ final class info_cnpc_hwrgrunt : CNPCSpawnEntity
 			m_flRespawnTime = atof( szValue );
 			return true;
 		}
+		else if( szKey == "gag" )
+		{
+			if( atoi(szValue) > 0 )
+				m_iSpawnFlags |= CNPC::FL_GAG;
+
+			return true;
+		}
 		else if( szKey == "disabledrop" )
 		{
 			if( atoi(szValue) > 0 )
-				m_iSpawnFlags |= FL_DISABLEDROP;
+				m_iSpawnFlags |= CNPC::FL_DISABLEDROP;
 
 			return true;
 		}
 		else if( szKey == "noexplode" )
 		{
 			if( atoi(szValue) > 0 )
-				m_iSpawnFlags |= FL_NOEXPLODE;
+				m_iSpawnFlags |= CNPC::FL_NOEXPLODE;
 
 			return true;
 		}
@@ -977,12 +1004,12 @@ final class info_cnpc_hwrgrunt : CNPCSpawnEntity
 			if( atoi(szValue) > 0 )
 			{
 				m_iMaxAmmo = atoi(szValue);
-				m_iSpawnFlags |= FL_CUSTOMAMMO;
+				m_iSpawnFlags |= CNPC::FL_CUSTOMAMMO;
 			}
 			else if( atoi(szValue) == -1 )
 			{
 				m_iMaxAmmo = 9999;
-				m_iSpawnFlags |= FL_INFINITEAMMO;
+				m_iSpawnFlags |= CNPC::FL_INFINITEAMMO;
 			}
 
 			return true;
@@ -1032,4 +1059,5 @@ void Register()
 
 /* TODO
 	Check FL_ONGROUND and a downward trace to stop firing if soaring through the air ??
+	Add "disablerepair" setting
 */

@@ -16,6 +16,7 @@
 #include "turret"
 #include "rgrunt"
 #include "hwrgrunt"
+#include "hwgrunt"
 
 #include "scientist"
 #include "engineer"
@@ -44,6 +45,7 @@ void MapInit()
 	cnpc_turret::Register();
 	cnpc_rgrunt::Register();
 	cnpc_hwrgrunt::Register();
+	cnpc_hwgrunt::Register();
 
 	cnpc_scientist::Register();
 	cnpc_engineer::Register();
@@ -61,6 +63,15 @@ float g_flTalkWaitTime;
 const bool PVP								= false;
 const float CNPC_SPEAK_DISTANCE	= 768.0;
 const int DEAD_GIB						= 42;
+
+enum flags_e
+{
+	FL_GAG = 1,
+	FL_DISABLEDROP = 2,
+	FL_NOEXPLODE = 4,
+	FL_CUSTOMAMMO = 8,
+	FL_INFINITEAMMO = 16
+};
 
 //xen
 const int HEADCRAB_SLOT			= 1;
@@ -97,6 +108,8 @@ const int RGRUNT_SLOT				= 2;
 const int RGRUNT_POSITION		= 14;
 const int HWRGRUNT_SLOT		= 2;
 const int HWRGRUNT_POSITION	= 15;
+const int HWGRUNT_SLOT			= 2;
+const int HWGRUNT_POSITION	= 16;
 
 //friendles
 const int SCIENTIST_SLOT			= 3;
@@ -148,6 +161,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_turret",
 	"weapon_rgrunt",
 	"weapon_hwrgrunt",
+	"weapon_hwgrunt",
 
 	"weapon_scientist",
 	"weapon_engineer"
@@ -155,7 +169,8 @@ const array<string> arrsCNPCWeapons =
 
 const array<string> arrsCNPCGibbable =
 {
-	"cnpc_hwrgrunt"
+	"cnpc_hwrgrunt",
+	"cnpc_hwgrunt"
 };
 
 enum cnpc_e
@@ -177,6 +192,7 @@ enum cnpc_e
 	CNPC_TURRET,
 	CNPC_RGRUNT,
 	CNPC_HWRGRUNT,
+	CNPC_HWGRUNT,
 
 	CNPC_SCIENTIST,
 	CNPC_ENGINEER
@@ -514,6 +530,29 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
+		case CNPC_HWGRUNT:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + 1.0;
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			if( Math.RandomLong(0, 6) <= 4 )
+				g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_hwgrunt::pPainSounds[Math.RandomLong(0,(cnpc_hwgrunt::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, 95 + Math.RandomLong(0, 9) );
+
+			if( (pDamageInfo.bitsDamageType & DMG_BLAST) != 0 and pDamageInfo.flDamage > 50.0 and Math.RandomLong(0, 10) > 9 )
+			{
+				CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
+				cnpc_hwgrunt::weapon_hwgrunt@ pWeapon = cast<cnpc_hwgrunt::weapon_hwgrunt@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
+
+				if( pWeapon !is null and (pWeapon.m_iSpawnFlags & FL_DISABLEDROP) == 0 )
+					pWeapon.m_bShouldDropMinigun = true;
+			}
+
+			break;
+		}
+
 		/*TODO, add berserk mode??
 		case CNPC_TURRET:
 		{
@@ -738,6 +777,13 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 			m_flRespawnTime = atof( szValue );
 			return true;
 		}
+		else if( szKey == "gag" )
+		{
+			if( atoi(szValue) > 0 )
+				m_iSpawnFlags |= CNPC::FL_GAG;
+
+			return true;
+		}
 		else
 			return BaseClass.KeyValue( szKey, szValue );
 	}
@@ -797,6 +843,8 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "weapons", "" + pev.weapons );
 					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "body", "" + pev.body );
 				}
+				else if( self.GetClassname() == "info_cnpc_hwgrunt" )
+					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "weapons", "" + pev.weapons );
 
 				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_iSpawnFlags", "" + m_iSpawnFlags );
 				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_iMaxAmmo", "" + m_iMaxAmmo );
