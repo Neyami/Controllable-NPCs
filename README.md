@@ -159,7 +159,7 @@ Flamethrower ammo replenishes automatically.
 
 
 # HUMAN GRUNT #  
-`weapon_hgrunt` - Give this to the player  
+`weapon_hgrunt` - Give this to the player (not recommended, spawn the entity below instead)  
 `info_cnpc_hgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Fire the weapon when aiming, or kick when not aiming  
@@ -223,7 +223,7 @@ When active and not shooting, nearby enemies will be highlighted
 
 
 # ROBOT GRUNT #  
-`weapon_rgrunt` - Give this to the player  
+`weapon_rgrunt` - Give this to the player (not recommended, spawn the entity below instead)  
 `info_cnpc_rgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Fire the weapon when aiming, or kick when not aiming  
