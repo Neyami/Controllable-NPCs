@@ -24,7 +24,8 @@ Set `CNPC_NPC_HITBOX` to `true` to use the hitbox of the monster model instead o
 
 
 # HEADCRAB #  
-`weapon_headcrab` - Give this to the player  
+`weapon_headcrab` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_headcrab` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Leap at target, or just forward it not aiming at an enemy  
 Tertiary Attack: Toggle between first- and third-person view  
@@ -34,7 +35,7 @@ Tertiary Attack: Toggle between first- and third-person view
 
 
 # HOUNDEYE #  
-`weapon_houndeye` - Give this to the player  
+`weapon_houndeye` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_houndeye` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Sonic Attack  
@@ -46,7 +47,7 @@ Back Key (S): Hop backwards
 
 
 # ALIEN SLAVE #  
-`weapon_islave` - Give this to the player  
+`weapon_islave` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_islave` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Lightning Attack  
@@ -54,11 +55,13 @@ Secondary Attack: Melee
 Tertiary Attack: Toggle between first- and third-person view  
 Reload: Revive nearby dead alien slaves as allies  
 
+Beamcolors are based on topcolor and bottomcolor.  
+
 
 <BR>
 
 # ALIEN GRUNT #  
-`weapon_agrunt` - Give this to the player  
+`weapon_agrunt` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_agrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Shoot Hornets  
@@ -71,7 +74,7 @@ Also; try falling from different heights :ayaya:
 
 
 # ICHTHYOSAUR #  
-`weapon_icky` - Give this to the player  
+`weapon_icky` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_icky` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Bite  
@@ -82,7 +85,8 @@ Secondary Attack: Charge and bite the first enemy hit
 
 
 # PIT DRONE #  
-`weapon_pitdrone` - Give this to the player  
+`weapon_pitdrone` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_pitdrone` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Shoot Spikes  
 Secondary Attack: Melee  
@@ -95,7 +99,7 @@ Longjump (duck-key, quickly followed by jump): Leap
 
 
 # SHOCK TROOPER #  
-`weapon_strooper` - Give this to the player  
+`weapon_strooper` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_strooper` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Shoot Lightning Bolts  
@@ -111,7 +115,7 @@ Ammo replenishes when idle
 
 
 # GONOME #  
-`weapon_gonome` - Give this to the player  
+`weapon_gonome` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_gonome` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Melee, Left and Right Slash  
@@ -125,7 +129,7 @@ Use: Hold to feed on dead humanoids to regenerate health
 
 
 # GARGANTUA #  
-`weapon_garg` - Give this to the player  
+`weapon_garg` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_garg` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Dual flamethrower  
@@ -143,7 +147,7 @@ Is immune to normal bullets.
 
 
 # BABY GARGANTUA #  
-`weapon_babygarg` - Give this to the player  
+`weapon_babygarg` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_babygarg` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Dual flamethrower  
@@ -159,7 +163,7 @@ Flamethrower ammo replenishes automatically.
 
 
 # HUMAN GRUNT #  
-`weapon_hgrunt` - Give this to the player (not recommended, spawn the entity below instead)  
+`weapon_hgrunt` - Can be given to players, Primary Attack spawns the controllable monster. (not recommended, spawn the entity below instead)  
 `info_cnpc_hgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Fire the weapon when aiming, or kick when not aiming  
@@ -175,7 +179,7 @@ Refer to `controlnpc.fgd` to see the keyvalues that set the weapons
 
 
 # HUMAN ASSASSIN #  
-`weapon_fassn` - Give this to the player  
+`weapon_fassn` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_fassn` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Shoot  
@@ -192,7 +196,7 @@ Stealth power replenishes when not in stealth
 
 
 # MINI TURRET #  
-`weapon_mturret` - Give this to the player  
+`weapon_mturret` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_mturret` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Shoot  
@@ -207,7 +211,7 @@ Turret replenishes ammo when retired
 
 
 # TURRET #  
-`weapon_turret` - Give this to the player  
+`weapon_turret` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_turret` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Shoot  
@@ -223,7 +227,7 @@ When active and not shooting, nearby enemies will be highlighted
 
 
 # ROBOT GRUNT #  
-`weapon_rgrunt` - Give this to the player (not recommended, spawn the entity below instead)  
+`weapon_rgrunt` - Can be given to players, Primary Attack spawns the controllable monster.  (not recommended, spawn the entity below instead)  
 `info_cnpc_rgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Fire the weapon when aiming, or kick when not aiming  
@@ -243,7 +247,7 @@ Refer to `controlnpc.fgd` to see the keyvalues that set the weapons
 
 
 # HEAVY WEAPONS ROBOT GRUNT #  
-`weapon_hwrgrunt` - Give this to the player  
+`weapon_hwrgrunt` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_hwrgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Fire the minigun  
@@ -260,7 +264,7 @@ Refer to `controlnpc.fgd` to see the keyvalues that can be set
 
 
 # SCIENTIST #  
-`weapon_scientist` - Give this to the player  
+`weapon_scientist` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_scientist` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Heal friendlies if the syringe is out  
@@ -277,7 +281,7 @@ Healing ammo replenishes when the syringe isn't out
 # ENGINEER #  
 Primarily meant to be used in the sandstone map to replace/complement the Engineer NPC  
 
-`weapon_engineer` - Give this to the player  
+`weapon_engineer` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_engineer` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Fire the weapon when aiming, or kick when not aiming  
