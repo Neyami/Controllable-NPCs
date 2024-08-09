@@ -142,7 +142,7 @@ Is immune to normal bullets.
 <BR>
 
 
-# GARGANTUA #  
+# BABY GARGANTUA #  
 `weapon_babygarg` - Give this to the player  
 `info_cnpc_babygarg` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
