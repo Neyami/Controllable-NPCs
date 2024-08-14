@@ -577,11 +577,15 @@ class weapon_otis : CBaseDriveWeapon
 		if( (m_pPlayer.m_afButtonPressed & IN_USE) != 0 )
 		{
 			Math.MakeVectors( m_pPlayer.pev.v_angle );
-			string sTexture = g_Utility.TraceTexture( null, m_pPlayer.GetGunPosition(), m_pPlayer.GetGunPosition() + g_Engine.v_forward * 36 );
+			TraceResult tr;
+			g_Utility.TraceLine( m_pPlayer.GetGunPosition(), m_pPlayer.GetGunPosition() + g_Engine.v_forward * 36,  ignore_monsters, m_pDriveEnt.edict(), tr );
+			edict_t@ pWorld = g_EntityFuncs.Instance(0).edict();
+			if( tr.pHit !is null ) @pWorld = tr.pHit;
+			string sTexture = g_Utility.TraceTexture( pWorld, m_pPlayer.GetGunPosition(), m_pPlayer.GetGunPosition() + g_Engine.v_forward * 36 );
 
 			if( sTexture == "snack_mach_01" or sTexture == "snack_mach_03" )
 			{
-				TraceResult tr = g_Utility.GetGlobalTrace();
+				tr = g_Utility.GetGlobalTrace();
 				Vector vecAngles = Math.VecToAngles( -tr.vecPlaneNormal );
 				m_pDriveEnt.pev.angles.y = vecAngles.y;
 				m_iState = STATE_VENDING;
