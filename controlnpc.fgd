@@ -153,5 +153,6 @@
 	]
 ]
 
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/otis.mdl") = info_cnpc_otis : "Controllable Otis" []
 
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/sandstone/engineer.mdl") = info_cnpc_engineer : "Controllable Sandstone Engineer" []
