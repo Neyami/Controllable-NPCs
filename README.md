@@ -278,6 +278,20 @@ Healing ammo replenishes when the syringe isn't out
 <BR>
 
 
+# OTIS #  
+`weapon_otis` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_otis` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Shoot if gun is drawn, eat if you have a doughnut  
+Secondary Attack: Draw/Holster gun  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: Reload gun  
+Use: When low on health you can get doughnuts from Snack Machines (unless they're brush entities 😦)  
+
+
+<BR>
+
+
 # ENGINEER #  
 Primarily meant to be used in the sandstone map to replace/complement the Engineer NPC  
 
