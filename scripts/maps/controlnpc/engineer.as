@@ -574,7 +574,7 @@ class weapon_engineer : CBaseDriveWeapon
 		if( m_pDriveEnt is null ) return;
 		if( m_iState >= STATE_MELEE or m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) >= AMMO_MAX or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
 
-		if( (m_pPlayer.pev.button & IN_RELOAD) == 0 and (m_pPlayer.pev.oldbuttons & IN_RELOAD) != 0 )
+		if( (m_pPlayer.m_afButtonPressed & IN_RELOAD) != 0 )
 		{
 			m_iState = STATE_RELOAD;
 			m_iWeaponStage = 0;
@@ -632,13 +632,10 @@ class weapon_engineer : CBaseDriveWeapon
 				flDist = (m_pPlayer.pev.origin - pTarget.pev.origin).Length();
 				if( flDist > 50 ) continue;
 
-				g_Game.AlertMessage( at_notice, "Targetname %1 found!\n", pTarget.pev.targetname );
-
 				string sNewTargetName = string(pTarget.pev.targetname) + m_pPlayer.entindex();
 				pTarget.pev.targetname = sNewTargetName;
-
-				g_Game.AlertMessage( at_notice, "Targetname set to %1\n", pTarget.pev.targetname );
 				@m_pBombTarget = pTarget;
+
 				break;
 			}
 
@@ -755,7 +752,7 @@ class weapon_engineer : CBaseDriveWeapon
 				if( m_pBombTarget.pev.targetname == arrsBombTargetNames[i] + m_pPlayer.entindex() )
 				{
 					m_pBombTarget.pev.targetname = arrsBombTargetNames[i];
-					g_Game.AlertMessage( at_notice, "Targetname re-set to %1\n", arrsBombTargetNames[i] );
+
 					break;
 				}
 			}
@@ -813,14 +810,16 @@ class cnpc_engineer : ScriptBaseAnimating
 
 	void DriveThink()
 	{
+		if( pev.deadflag == CNPC::DEAD_GIB )
+		{
+			DoDeath( true );
+
+			return;
+		}
+
 		if( m_pOwner is null or !m_pOwner.IsConnected() or m_pOwner.pev.deadflag != DEAD_NO )
 		{
-			if( m_hRenderEntity.IsValid() )
-				g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );
-
-			pev.velocity = g_vecZero;
-			SetThink( ThinkFunction(this.DieThink) );
-			pev.nextthink = g_Engine.time;
+			DoDeath();
 
 			return;
 		}
@@ -847,6 +846,25 @@ class cnpc_engineer : ScriptBaseAnimating
 		self.StudioFrameAdvance();
 
 		pev.nextthink = g_Engine.time + 0.01;
+	}
+
+	void DoDeath( bool bGibbed = false )
+	{
+		if( m_hRenderEntity.IsValid() )
+			g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );
+
+		pev.velocity = g_vecZero;
+
+		if( bGibbed )
+		{
+			SetThink( ThinkFunction(this.SUB_Remove) );
+			pev.nextthink = g_Engine.time;
+
+			return;
+		}
+
+		SetThink( ThinkFunction(this.DieThink) );
+		pev.nextthink = g_Engine.time;
 	}
 
 	void DieThink()

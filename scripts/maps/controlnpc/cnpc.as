@@ -19,6 +19,7 @@
 #include "hwgrunt"
 
 #include "scientist"
+#include "otis"
 #include "engineer"
 
 void MapInit()
@@ -48,6 +49,7 @@ void MapInit()
 	cnpc_hwgrunt::Register();
 
 	cnpc_scientist::Register();
+	cnpc_otis::Register();
 	cnpc_engineer::Register();
 }
 
@@ -114,8 +116,10 @@ const int HWGRUNT_POSITION	= 16;
 //friendles
 const int SCIENTIST_SLOT			= 3;
 const int SCIENTIST_POSITION	= 10;
+const int OTIS_SLOT					= 3;
+const int OTIS_POSITION			= 11;
 const int ENGINEER_SLOT			= 3;
-const int ENGINEER_POSITION	= 11;
+const int ENGINEER_POSITION	= 12;
 
 const string sCNPCKV = "$i_cnpc_iscontrollingnpc";
 const string sCNPCKVPainTime = "$f_cnpc_nextpaintime";
@@ -164,13 +168,20 @@ const array<string> arrsCNPCWeapons =
 	"weapon_hwgrunt",
 
 	"weapon_scientist",
+	"weapon_otis",
 	"weapon_engineer"
 };
 
 const array<string> arrsCNPCGibbable =
 {
+	"cnpc_hgrunt",
+	"cnpc_fassn",
 	"cnpc_hwrgrunt",
-	"cnpc_hwgrunt"
+	"cnpc_hwgrunt",
+
+	"cnpc_scientist",
+	"cnpc_otis",
+	"cnpc_engineer"
 };
 
 enum cnpc_e
@@ -195,6 +206,7 @@ enum cnpc_e
 	CNPC_HWGRUNT,
 
 	CNPC_SCIENTIST,
+	CNPC_OTIS,
 	CNPC_ENGINEER
 };
 
@@ -208,7 +220,7 @@ HookReturnCode ClientPutInServer( CBasePlayer@ pPlayer)
 
 	return HOOK_CONTINUE;
 }
-
+//int TakeDamage(entvars_t@ pevInflictor, entvars_t@ pevAttacker, float flDamage, int bitsDamageType)
 HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 {
 	CustomKeyvalues@ pCustom = pDamageInfo.pVictim.GetCustomKeyvalues();
@@ -583,6 +595,27 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
 
 			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_scientist::pPainSounds[Math.RandomLong(0,(cnpc_scientist::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM ); //TODO GetVoicePitch()
+
+			break;
+		}
+
+		case CNPC_OTIS:
+		{
+			if( (pDamageInfo.bitsDamageType & (DMG_BULLET | DMG_SLASH | DMG_BLAST)) != 0 )
+				pDamageInfo.flDamage = pDamageInfo.flDamage / 2;
+
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.5, 0.75);
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			int iPitch = 100;
+			CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
+			cnpc_otis::weapon_otis@ pWeapon = cast<cnpc_otis::weapon_otis@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
+
+			if( pWeapon !is null ) iPitch = pWeapon.m_iVoicePitch;
+			g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_otis::pPainSounds[Math.RandomLong(0,(cnpc_otis::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, iPitch );
 
 			break;
 		}

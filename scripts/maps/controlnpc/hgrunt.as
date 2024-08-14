@@ -1155,14 +1155,16 @@ class cnpc_hgrunt : ScriptBaseAnimating
 
 	void DriveThink()
 	{
+		if( pev.deadflag == CNPC::DEAD_GIB )
+		{
+			DoDeath( true );
+
+			return;
+		}
+
 		if( m_pOwner is null or !m_pOwner.IsConnected() or m_pOwner.pev.deadflag != DEAD_NO )
 		{
-			if( m_hRenderEntity.IsValid() )
-				g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );
-
-			pev.velocity = g_vecZero;
-			SetThink( ThinkFunction(this.DieThink) );
-			pev.nextthink = g_Engine.time;
+			DoDeath();
 
 			return;
 		}
@@ -1189,6 +1191,25 @@ class cnpc_hgrunt : ScriptBaseAnimating
 		self.StudioFrameAdvance();
 
 		pev.nextthink = g_Engine.time + 0.01;
+	}
+
+	void DoDeath( bool bGibbed = false )
+	{
+		if( m_hRenderEntity.IsValid() )
+			g_EntityFuncs.Remove( m_hRenderEntity.GetEntity() );
+
+		pev.velocity = g_vecZero;
+
+		if( bGibbed )
+		{
+			SetThink( ThinkFunction(this.SUB_Remove) );
+			pev.nextthink = g_Engine.time;
+
+			return;
+		}
+
+		SetThink( ThinkFunction(this.DieThink) );
+		pev.nextthink = g_Engine.time;
 	}
 
 	void DieThink()

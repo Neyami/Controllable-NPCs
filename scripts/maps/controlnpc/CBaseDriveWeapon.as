@@ -127,7 +127,7 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		return null;
 	}
 
-	CBaseEntity@ FindNearestFriend()
+	CBaseEntity@ FindNearestFriend( bool bIncludePlayers = true )
 	{
 		CBaseEntity@ pFriend = null;
 		CBaseEntity@ pNearest = null;
@@ -141,6 +141,7 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		{
 			"cnpc_scientist",
 			"cnpc_barney",
+			"cnpc_otis",
 			"player"/*,
 			"monster_scientist",
 			"monster_sitting_scientist",
@@ -170,9 +171,24 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 					CBaseEntity@ cbeFriendController = GetFriendController(pFriend);
 					if( cbeFriendController is null ) continue;
 
-					cnpc_scientist::weapon_scientist@ pFriendController = cast<cnpc_scientist::weapon_scientist@>(CastToScriptClass(cbeFriendController));
-					if( pFriendController.m_iState != STATE_IDLE ) continue;
+					if( cbeFriendController.GetClassname() == "weapon_scientist" )
+					{
+						cnpc_scientist::weapon_scientist@ pFriendController = cast<cnpc_scientist::weapon_scientist@>(CastToScriptClass(cbeFriendController));
+						if( pFriendController is null or pFriendController.m_iState != STATE_IDLE ) continue;
+					}
+					/*else if( cbeFriendController.GetClassname() == "weapon_barney" )
+					{
+						cnpc_barney::weapon_barney@ pFriendController = cast<cnpc_barney::weapon_barney@>(CastToScriptClass(cbeFriendController));
+						if( pFriendController is null or pFriendController.m_iState != STATE_IDLE ) continue;
+					}*/
+					else if( cbeFriendController.GetClassname() == "weapon_otis" )
+					{
+						cnpc_otis::weapon_otis@ pFriendController = cast<cnpc_otis::weapon_otis@>(CastToScriptClass(cbeFriendController));
+						if( pFriendController is null or pFriendController.m_iState != STATE_IDLE ) continue;
+					}
 				}
+
+				if( !bIncludePlayers and pFriend.pev.FlagBitSet(FL_CLIENT) ) continue;
 
 				//pFriendController.m_bAnswerQuestion = true;
 
@@ -223,9 +239,9 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		{
 			m_pDriveEnt.pev.sequence = iAnim;
 			m_pDriveEnt.pev.frame = flFrame;
-			m_pDriveEnt.pev.framerate = flFrameRate;
 
 			m_pDriveEnt.ResetSequenceInfo();
+			m_pDriveEnt.pev.framerate = flFrameRate;
 			m_uiAnimationState = 0;
 		}
 	}

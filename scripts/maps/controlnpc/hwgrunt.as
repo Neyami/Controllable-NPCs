@@ -806,8 +806,8 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 
 		if( m_pDriveEnt !is null )
 		{
-			m_pDriveEnt.pev.set_controller( 0,  127 );
 			g_EntityFuncs.DispatchKeyValue( m_pDriveEnt.edict(), "m_iSpawnFlags", "" + m_iSpawnFlags );
+			m_pDriveEnt.pev.set_controller( 0,  127 );
 		}
 
 		m_pPlayer.pev.effects |= EF_NODRAW;
