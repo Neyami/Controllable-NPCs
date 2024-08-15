@@ -19,6 +19,7 @@
 #include "hwgrunt"
 
 #include "scientist"
+#include "barney"
 #include "otis"
 #include "engineer"
 
@@ -49,6 +50,7 @@ void MapInit()
 	cnpc_hwgrunt::Register();
 
 	cnpc_scientist::Register();
+	cnpc_barney::Register();
 	cnpc_otis::Register();
 	cnpc_engineer::Register();
 }
@@ -116,10 +118,12 @@ const int HWGRUNT_POSITION	= 16;
 //friendles
 const int SCIENTIST_SLOT			= 3;
 const int SCIENTIST_POSITION	= 10;
+const int BARNEY_SLOT				= 3;
+const int BARNEY_POSITION		= 11;
 const int OTIS_SLOT					= 3;
-const int OTIS_POSITION			= 11;
+const int OTIS_POSITION			= 12;
 const int ENGINEER_SLOT			= 3;
-const int ENGINEER_POSITION	= 12;
+const int ENGINEER_POSITION	= 13;
 
 const string sCNPCKV = "$i_cnpc_iscontrollingnpc";
 const string sCNPCKVPainTime = "$f_cnpc_nextpaintime";
@@ -168,6 +172,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_hwgrunt",
 
 	"weapon_scientist",
+	"weapon_barney",
 	"weapon_otis",
 	"weapon_engineer"
 };
@@ -180,6 +185,7 @@ const array<string> arrsCNPCGibbable =
 	"cnpc_hwgrunt",
 
 	"cnpc_scientist",
+	"cnpc_barney",
 	"cnpc_otis",
 	"cnpc_engineer"
 };
@@ -206,6 +212,7 @@ enum cnpc_e
 	CNPC_HWGRUNT,
 
 	CNPC_SCIENTIST,
+	CNPC_BARNEY,
 	CNPC_OTIS,
 	CNPC_ENGINEER
 };
@@ -599,6 +606,19 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
+		case CNPC_BARNEY:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.5, 0.75);
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_barney::pPainSounds[Math.RandomLong(0,(cnpc_barney::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM ); //TODO GetVoicePitch()
+
+			break;
+		}
+
 		case CNPC_OTIS:
 		{
 			if( (pDamageInfo.bitsDamageType & (DMG_BULLET | DMG_SLASH | DMG_BLAST)) != 0 )
@@ -672,25 +692,6 @@ HookReturnCode PlayerKilled( CBasePlayer@ pPlayer, CBaseEntity@ pAttacker, int i
 	return HOOK_CONTINUE;
 }
 
-/*const array<string> arrsSentStroop =
-{
-	"!ST_ALERT0", //2 words
-	"!ST_TAUNT0",
-	"!ST_ANSWER0",
-	"!ST_CHECK0",
-	"!ST_GREN0", //4 //3 words
-	"!ST_ALERT1",
-	"!ST_THROW0",
-	"!ST_IDLE0",
-	"!ST_CLEAR0",
-	"!ST_ALERT2", //9 //4 words
-	"!ST_QUEST0",
-	"!ST_MONST0", //11 //5 words
-	"!ST_COVER0",
-	"!ST_CHARGE0",
-	"!ST_QUEST0"
-};*/
-
 const array<string> arrsStroopWords =
 {
 	"blis",
@@ -747,13 +748,6 @@ HookReturnCode ClientSay( SayParameters@ pParams )
 				spk.End();
 			}
 		}
-
-		/*if( iArgC == 1 or iArgC == 2 )
-			pPlayer.PlaySentence( arrsSentStroop[Math.RandomLong(0, 3)], 0, VOL_NORM, ATTN_IDLE );
-		else if( iArgC == 3 or iArgC == 4 )
-			pPlayer.PlaySentence( arrsSentStroop[Math.RandomLong(4, 8)], 0, VOL_NORM, ATTN_IDLE );
-		else if( iArgC >= 5 )
-			pPlayer.PlaySentence( arrsSentStroop[Math.RandomLong(9, 14)], 0, VOL_NORM, ATTN_IDLE );*/
 	}
 
 	return HOOK_CONTINUE;

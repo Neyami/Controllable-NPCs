@@ -572,7 +572,6 @@ int CTalkMonster :: FIdleSpeak ( void )
 
 	void ResetHead()
 	{
-		if( m_pDriveEnt is null ) return;
 		if( m_flResetHead <= 0.0 or m_flResetHead > g_Engine.time ) return;
 
 		m_pDriveEnt.pev.set_controller( 0,  127 );
