@@ -1,5 +1,6 @@
 #include "CBaseDriveWeapon"
 #include "headcrab"
+#include "zombie"
 #include "houndeye"
 #include "islave"
 #include "agrunt"
@@ -31,6 +32,7 @@ void MapInit()
 	g_Hooks.RegisterHook( Hooks::Player::ClientSay, @CNPC::ClientSay );
 
 	cnpc_headcrab::Register();
+	cnpc_zombie::Register();
 	cnpc_houndeye::Register();
 	cnpc_islave::Register();
 	cnpc_agrunt::Register();
@@ -80,24 +82,26 @@ enum flags_e
 //xen
 const int HEADCRAB_SLOT			= 1;
 const int HEADCRAB_POSITION	= 10;
+const int ZOMBIE_SLOT				= 1;
+const int ZOMBIE_POSITION		= 11;
 const int HOUNDEYE_SLOT			= 1;
-const int HOUNDEYE_POSITION	= 11;
+const int HOUNDEYE_POSITION	= 12;
 const int ISLAVE_SLOT				= 1;
-const int ISLAVE_POSITION		= 12;
+const int ISLAVE_POSITION		= 13;
 const int AGRUNT_SLOT				= 1;
-const int AGRUNT_POSITION		= 13;
+const int AGRUNT_POSITION		= 14;
 const int ICKY_SLOT					= 1;
-const int ICKY_POSITION			= 14;
+const int ICKY_POSITION			= 15;
 const int PITDRONE_SLOT			= 1;
-const int PITDRONE_POSITION	= 15;
+const int PITDRONE_POSITION	= 16;
 const int STROOPER_SLOT			= 1;
-const int STROOPER_POSITION	= 16;
+const int STROOPER_POSITION	= 17;
 const int GONOME_SLOT				= 1;
-const int GONOME_POSITION		= 17;
+const int GONOME_POSITION		= 18;
 const int GARG_SLOT					= 1;
-const int GARG_POSITION			= 18;
+const int GARG_POSITION			= 19;
 const int BABYGARG_SLOT			= 1;
-const int BABYGARG_POSITION	= 19;
+const int BABYGARG_POSITION	= 20;
 
 //black mesa etc
 const int HGRUNT_SLOT				= 2;
@@ -153,6 +157,7 @@ const array<string>arrsFlyingMobs =
 const array<string> arrsCNPCWeapons =
 {
 	"weapon_headcrab",
+	"weapon_zombie",
 	"weapon_houndeye",
 	"weapon_islave",
 	"weapon_agrunt",
@@ -179,6 +184,8 @@ const array<string> arrsCNPCWeapons =
 
 const array<string> arrsCNPCGibbable =
 {
+	"cnpc_zombie",
+
 	"cnpc_hgrunt",
 	"cnpc_fassn",
 	"cnpc_hwrgrunt",
@@ -193,6 +200,7 @@ const array<string> arrsCNPCGibbable =
 enum cnpc_e
 {
 	CNPC_HEADCRAB = 1,
+	CNPC_ZOMBIE,
 	CNPC_HOUNDEYE,
 	CNPC_ISLAVE,
 	CNPC_AGRUNT,
@@ -257,13 +265,34 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
+		case CNPC_ZOMBIE:
+		{
+			// Take 30% damage from bullets
+			if( (pDamageInfo.bitsDamageType & DMG_BULLET) != 0 )
+			{
+				Vector vecDir = pDamageInfo.pVictim.pev.origin - (pDamageInfo.pInflictor.pev.absmin + pDamageInfo.pInflictor.pev.absmax) * 0.5;
+				vecDir = vecDir.Normalize();
+				float flForce = pDamageInfo.flDamage * ((32 * 32 * 72.0) / (pDamageInfo.pVictim.pev.size.x * pDamageInfo.pVictim.pev.size.y * pDamageInfo.pVictim.pev.size.z)) * 5;
+				if( flForce > 1000.0) 
+					flForce = 1000.0;
+
+				pDamageInfo.pVictim.pev.velocity = pDamageInfo.pVictim.pev.velocity + vecDir * flForce;
+				pDamageInfo.flDamage *= 0.3;
+			}
+
+			if( Math.RandomLong(0, 5) < 2 )
+				g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_zombie::pPainSounds[Math.RandomLong(0,(cnpc_zombie::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, 95 + Math.RandomLong(0, 9) );
+
+			//flinchsmall = 2, flinch = 3, bigflinch = 4
+			break;
+		}
+
 		case CNPC_HOUNDEYE:
 		{
 			if( pDamageInfo.flDamage > 0 and pDamageInfo.pVictim.pev.deadflag == DEAD_NO )
 				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_houndeye::pPainSounds[Math.RandomLong(0,(cnpc_houndeye::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 			
 			//flinch_small = 11, flinch_small2 = 12
-
 			break;
 		}
 
@@ -929,9 +958,9 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 
 	Allow for pvp
 
-	Idle sounds and fidget animations
-
 	Berserk-mode for turret
+
+	Flinch animations ??
 
 	Use the driveent as a targetable entity with the proper hitbox
 */

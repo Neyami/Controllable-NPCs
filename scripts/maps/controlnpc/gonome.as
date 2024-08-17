@@ -322,7 +322,7 @@ class weapon_gonome : CBaseDriveWeapon
 		CBaseEntity@ pHurt = CheckTraceHullAttack( MELEE_RANGE_SLASH, MELEE_DAMAGE_SLASH, DMG_SLASH );
 		if( pHurt !is null )
 		{
-			if( (pHurt.pev.flags & FL_MONSTER) != 0 or ((pHurt.pev.flags & FL_CLIENT) != 0 and CNPC::PVP) )
+			if( pHurt.pev.FlagBitSet(FL_MONSTER) or (pHurt.pev.FlagBitSet(FL_CLIENT) and CNPC::PVP) )
 			{
 				pHurt.pev.punchangle.z = (m_uiSwing == 0) ? -9 : 9;
 				pHurt.pev.punchangle.x = 5;

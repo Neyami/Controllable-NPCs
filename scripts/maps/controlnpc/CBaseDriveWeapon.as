@@ -176,11 +176,11 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 						cnpc_scientist::weapon_scientist@ pFriendController = cast<cnpc_scientist::weapon_scientist@>(CastToScriptClass(cbeFriendController));
 						if( pFriendController is null or pFriendController.m_iState != STATE_IDLE ) continue;
 					}
-					/*else if( cbeFriendController.GetClassname() == "weapon_barney" )
+					else if( cbeFriendController.GetClassname() == "weapon_barney" )
 					{
 						cnpc_barney::weapon_barney@ pFriendController = cast<cnpc_barney::weapon_barney@>(CastToScriptClass(cbeFriendController));
 						if( pFriendController is null or pFriendController.m_iState != STATE_IDLE ) continue;
-					}*/
+					}
 					else if( cbeFriendController.GetClassname() == "weapon_otis" )
 					{
 						cnpc_otis::weapon_otis@ pFriendController = cast<cnpc_otis::weapon_otis@>(CastToScriptClass(cbeFriendController));
@@ -251,6 +251,16 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		if( m_pDriveEnt is null ) return 0;
 
 		return int( (m_pDriveEnt.pev.frame/255) * iMaxFrames );
+	}
+
+	bool GetFrame( int iMaxFrames, int iTargetFrame )
+	{
+		if( m_pDriveEnt is null ) return false;
+
+		int iFrame = int( (m_pDriveEnt.pev.frame/255) * iMaxFrames );
+		if( IsBetween2(iFrame, iTargetFrame-1, iTargetFrame+1) ) return true;
+
+		return false;
 	}
 
 	float SetFrame( float flFrame, float flMaxFrames )
