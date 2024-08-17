@@ -34,6 +34,19 @@ Tertiary Attack: Toggle between first- and third-person view
 <BR>
 
 
+# ZOMBIE #  
+`weapon_zombie` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_zombie` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Slash right then left  
+Secondary Attack: Overhead strike  
+Tertiary Attack: Toggle between first- and third-person view  
+
+Takes 30% less damage from bullets  
+
+<BR>
+
+
 # HOUNDEYE #  
 `weapon_houndeye` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_houndeye` - Usable entity that turns the player into the monster upon using. Mappers can place this  
