@@ -13,6 +13,8 @@
 //XEN
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 36) studio("models/headcrab.mdl") = info_cnpc_headcrab : "Controllable Headcrab" []
 
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/zombie.mdl") = info_cnpc_zombie : "Controllable Zombie" []
+
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 36) studio("models/houndeye.mdl") = info_cnpc_houndeye : "Controllable Houndeye" []
 
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 36) studio("models/islave.mdl") = info_cnpc_islave : "Controllable Alien Slave" []
