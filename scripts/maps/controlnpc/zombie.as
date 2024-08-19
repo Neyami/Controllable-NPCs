@@ -441,7 +441,6 @@ class weapon_zombie : CBaseDriveWeapon
 		m_pPlayer.pev.fuser4 = 0; //enable jumping
 		m_pPlayer.pev.view_ofs = Vector( 0, 0, 28 );
 		m_pPlayer.pev.max_health = 100;
-		m_pPlayer.m_bloodColor = BLOOD_COLOR_RED;
 
 		m_pPlayer.SetViewMode( ViewMode_FirstPerson );
 		m_pPlayer.SetMaxSpeedOverride( -1 );
@@ -526,6 +525,7 @@ class cnpc_zombie : CBaseDriveEntity
 
 		if( bGibbed )
 		{
+			//Spawn gibs
 			SetThink( ThinkFunction(this.SUB_Remove) );
 			pev.nextthink = g_Engine.time;
 
@@ -627,4 +627,5 @@ void Register()
 */
 
 /* TODO
+	Spawn zombie gibs when gibbed
 */

@@ -807,7 +807,6 @@ class weapon_mturret : CBaseDriveWeapon
 		m_pPlayer.pev.max_health = 100;
 		m_pPlayer.pev.movetype = MOVETYPE_WALK;
 		m_pPlayer.pev.flags &= ~FL_FLY;
-		m_pPlayer.m_bloodColor = BLOOD_COLOR_RED;
 
 		m_pPlayer.SetViewMode( ViewMode_FirstPerson );
 		m_pPlayer.SetMaxSpeedOverride( -1 );

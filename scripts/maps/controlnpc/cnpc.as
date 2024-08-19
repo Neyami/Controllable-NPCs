@@ -10,6 +10,7 @@
 #include "gonome"
 #include "garg"
 #include "babygarg"
+#include "bigmomma"
 
 #include "hgrunt"
 #include "fassn"
@@ -42,6 +43,7 @@ void MapInit()
 	cnpc_gonome::Register();
 	cnpc_garg::Register();
 	cnpc_babygarg::Register();
+	cnpc_bigmomma::Register();
 
 	cnpc_hgrunt::Register();
 	cnpc_fassn::Register();
@@ -103,30 +105,33 @@ const int GARG_POSITION			= 19;
 const int BABYGARG_SLOT			= 1;
 const int BABYGARG_POSITION	= 20;
 
+const int BIGMOMMA_SLOT			= 2;
+const int BIGMOMMA_POSITION	= 10;
+
 //black mesa etc
-const int HGRUNT_SLOT				= 2;
+const int HGRUNT_SLOT				= 3;
 const int HGRUNT_POSITION		= 10;
-const int FASSN_SLOT				= 2;
+const int FASSN_SLOT				= 3;
 const int FASSN_POSITION			= 11;
-const int MTURRET_SLOT			= 2;
+const int MTURRET_SLOT			= 3;
 const int MTURRET_POSITION		= 12;
-const int TURRET_SLOT				= 2;
+const int TURRET_SLOT				= 3;
 const int TURRET_POSITION		= 13;
-const int RGRUNT_SLOT				= 2;
+const int RGRUNT_SLOT				= 3;
 const int RGRUNT_POSITION		= 14;
-const int HWRGRUNT_SLOT		= 2;
+const int HWRGRUNT_SLOT		= 3;
 const int HWRGRUNT_POSITION	= 15;
-const int HWGRUNT_SLOT			= 2;
+const int HWGRUNT_SLOT			= 3;
 const int HWGRUNT_POSITION	= 16;
 
 //friendles
-const int SCIENTIST_SLOT			= 3;
+const int SCIENTIST_SLOT			= 4;
 const int SCIENTIST_POSITION	= 10;
-const int BARNEY_SLOT				= 3;
+const int BARNEY_SLOT				= 4;
 const int BARNEY_POSITION		= 11;
-const int OTIS_SLOT					= 3;
+const int OTIS_SLOT					= 4;
 const int OTIS_POSITION			= 12;
-const int ENGINEER_SLOT			= 3;
+const int ENGINEER_SLOT			= 4;
 const int ENGINEER_POSITION	= 13;
 
 const string sCNPCKV = "$i_cnpc_iscontrollingnpc";
@@ -167,6 +172,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_gonome",
 	"weapon_garg",
 	"weapon_babygarg",
+	"weapon_bigmomma",
 
 	"weapon_hgrunt",
 	"weapon_fassn",
@@ -185,6 +191,7 @@ const array<string> arrsCNPCWeapons =
 const array<string> arrsCNPCGibbable =
 {
 	"cnpc_zombie",
+	"cnpc_bigmomma",
 
 	"cnpc_hgrunt",
 	"cnpc_fassn",
@@ -210,6 +217,7 @@ enum cnpc_e
 	CNPC_GONOME,
 	CNPC_GARG,
 	CNPC_BABYGARG,
+	CNPC_BIGMOMMA,
 
 	CNPC_HGRUNT,
 	CNPC_FASSN,
@@ -244,10 +252,13 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 	if( pCustom.GetKeyvalue(sCNPCKV).GetInteger() <= 0 or pDamageInfo.pAttacker is null ) return HOOK_CONTINUE;
 
 	//prevent other players from triggering painsounds
-	if( pDamageInfo.pVictim.GetClassname() == "player" and pDamageInfo.pAttacker.GetClassname() == "player" and (pDamageInfo.bitsDamageType & DMG_CLUB) == 0 )
+	if( pDamageInfo.pVictim !is pDamageInfo.pAttacker )
 	{
-		if( pDamageInfo.pVictim.Classify() == pDamageInfo.pAttacker.Classify() )
-			return HOOK_CONTINUE;
+		if( pDamageInfo.pVictim.GetClassname() == "player" and pDamageInfo.pAttacker.GetClassname() == "player" and (pDamageInfo.bitsDamageType & DMG_CLUB) == 0 )
+		{
+			if( pDamageInfo.pVictim.Classify() == pDamageInfo.pAttacker.Classify() )
+				return HOOK_CONTINUE;
+		}
 	}
 
 	switch( pCustom.GetKeyvalue(sCNPCKV).GetInteger() )
@@ -369,7 +380,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 		case CNPC_GARG:
 		{
 			if( cnpc_garg::CNPC_NPC_HITBOX )
-				pDamageInfo.flDamage = 0;
+				return HOOK_CONTINUE;
 			else
 			{
 				if( (pDamageInfo.bitsDamageType & cnpc_garg::GARG_DAMAGE) == 0 )
@@ -403,6 +414,24 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
+		case CNPC_BIGMOMMA:
+		{
+			// Don't take any acid damage -- BigMomma's mortar is acid
+			if( (pDamageInfo.bitsDamageType & DMG_ACID) != 0 )
+				pDamageInfo.flDamage = 0.0;
+
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + Math.RandomFloat(1.0, 3.0);
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_bigmomma::pPainSounds[Math.RandomLong(0,(cnpc_bigmomma::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+
+			//flinch = 10
+
+			break;
+		}
 
 
 
@@ -708,7 +737,19 @@ HookReturnCode PlayerKilled( CBasePlayer@ pPlayer, CBaseEntity@ pAttacker, int i
 				}
 
 				if( pDriveEnt !is null )
+				{
 					pDriveEnt.pev.deadflag = DEAD_GIB;
+					if( pDriveEnt.GetClassname() == "cnpc_bigmomma" )
+					{
+						cnpc_bigmomma::cnpc_bigmomma@ pBigMomma = cast<cnpc_bigmomma::cnpc_bigmomma@>( CastToScriptClass(pDriveEnt) );
+						if( pBigMomma !is null and pAttacker !is null )
+						{
+							Vector vecDir = ( pAttacker.Center() - Vector(0, 0, 10) - pDriveEnt.Center() ).Normalize();
+							pBigMomma.m_vecAttackDir = vecDir.Normalize();
+							pDriveEnt.pev.health = pPlayer.pev.health;
+						}
+					}
+				}
 			}
 
 			g_EntityFuncs.Remove( pWeapon );

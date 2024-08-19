@@ -867,7 +867,6 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 		m_pPlayer.pev.fuser4 = 0; //enable jumping
 		m_pPlayer.pev.view_ofs = Vector( 0, 0, 28 );
 		m_pPlayer.pev.max_health = 100;
-		m_pPlayer.m_bloodColor = BLOOD_COLOR_RED;
 
 		m_pPlayer.SetViewMode( ViewMode_FirstPerson );
 		m_pPlayer.SetMaxSpeedOverride( -1 );

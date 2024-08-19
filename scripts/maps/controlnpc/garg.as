@@ -879,9 +879,7 @@ class weapon_garg : CBaseDriveWeapon
 		if( (m_pPlayer.m_afButtonPressed & IN_RELOAD) != 0 )
 		{
 			m_iState = STATE_STOMP;
-
 			m_pPlayer.SetMaxSpeedOverride( 0 );
-
 			SetAnim( ANIM_STOMP );
 		}
 	}
@@ -1269,7 +1267,6 @@ class weapon_garg : CBaseDriveWeapon
 		m_pPlayer.pev.fuser4 = 0; //enable jumping
 		m_pPlayer.pev.view_ofs = Vector( 0, 0, 28 );
 		m_pPlayer.pev.max_health = 100;
-		m_pPlayer.m_bloodColor = BLOOD_COLOR_RED;
 
 		m_pPlayer.SetViewMode( ViewMode_FirstPerson );
 		m_pPlayer.SetMaxSpeedOverride( -1 );
