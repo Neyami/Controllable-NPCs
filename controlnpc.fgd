@@ -33,6 +33,8 @@
 
 @PointClass base(Mandatory, CNPC) size(-32 -32 0, 32 32 128) studio("models/babygarg.mdl") = info_cnpc_babygarg : "Controllable Baby Gargantua" []
 
+@PointClass base(Mandatory, CNPC) size(-95 -95 0, 95 95 190) studio("models/big_mom.mdl") = info_cnpc_bigmomma : "Controllable Big Momma" []
+
 
 
 //BLACK MESA etc
