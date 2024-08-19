@@ -141,6 +141,22 @@ Use: Hold to feed on dead humanoids to regenerate health
 <BR>
 
 
+# BABY GARGANTUA #  
+`weapon_babygarg` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_babygarg` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Dual flamethrower  
+Secondary Attack: Melee  
+Tertiary Attack: Toggle between first- and third-person view  
+Jump: Kick  
+Reload: Stomp attack  
+
+Flamethrower ammo replenishes automatically.  
+
+
+<BR>
+
+
 # GARGANTUA #  
 `weapon_garg` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_garg` - Usable entity that turns the player into the monster upon using. Mappers can place this  
@@ -159,17 +175,15 @@ Is immune to normal bullets.
 <BR>
 
 
-# BABY GARGANTUA #  
-`weapon_babygarg` - Can be given to players, Primary Attack spawns the controllable monster.  
-`info_cnpc_babygarg` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+# BIG MOMMA #  
+`weapon_bigmomma` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_bigmomma` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
-Primary Attack: Dual flamethrower  
-Secondary Attack: Melee  
+Primary Attack: Melee attacks  
+Secondary Attack: Launch mortar  
 Tertiary Attack: Toggle between first- and third-person view  
-Jump: Kick  
-Reload: Stomp attack  
-
-Flamethrower ammo replenishes automatically.  
+Reload: Drop baby crabs, two may be dropped before a longer cooldown is set  
+Duck: Defend (no use yet)  
 
 
 <BR>
