@@ -213,7 +213,7 @@ class weapon_mturret : CBaseDriveWeapon
 	{
 		if( m_iAutoDeploy == 1 )
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.5;
 		}
 
@@ -251,7 +251,7 @@ class weapon_mturret : CBaseDriveWeapon
 		}
 		else
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			m_flStartYaw = m_pPlayer.pev.angles.y;
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.5;
 
@@ -686,7 +686,7 @@ class weapon_mturret : CBaseDriveWeapon
 		}
 	}
 
-	void spawn_driveent()
+	void spawnDriveEnt()
 	{
 		if( m_iOrientation == 0 and !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) )
 		{

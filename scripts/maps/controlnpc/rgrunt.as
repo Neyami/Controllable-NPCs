@@ -323,7 +323,7 @@ class weapon_rgrunt : CBaseDriveWeapon
 	{
 		if( m_iAutoDeploy == 1 )
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + 0.5;
 		}
 
@@ -457,7 +457,7 @@ class weapon_rgrunt : CBaseDriveWeapon
 		}
 		else
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + 0.5;
 
 			return;
@@ -1187,7 +1187,7 @@ class weapon_rgrunt : CBaseDriveWeapon
 		}
 	}
 
-	void spawn_driveent()
+	void spawnDriveEnt()
 	{
 		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) and m_iAutoDeploy == 0 )
 		{

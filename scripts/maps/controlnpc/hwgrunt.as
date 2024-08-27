@@ -245,7 +245,7 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 	{
 		if( m_iAutoDeploy == 1 )
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + 0.5;
 		}
 
@@ -325,7 +325,7 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 		}
 		else
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + 0.5;
 
 			return;
@@ -789,7 +789,7 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 		m_pPlayer.m_rgAmmo( self.m_iSecondaryAmmoType, GetMaxAmmo(true) );
 	}
 
-	void spawn_driveent()
+	void spawnDriveEnt()
 	{
 		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) and m_iAutoDeploy == 0 )
 		{

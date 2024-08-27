@@ -160,7 +160,7 @@ class weapon_icky : CBaseDriveWeapon
 	{
 		if( m_iAutoDeploy == 1 )
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.5;
 		}
 
@@ -205,7 +205,7 @@ class weapon_icky : CBaseDriveWeapon
 		}
 		else
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.5;
 
 			return;
@@ -456,7 +456,7 @@ class weapon_icky : CBaseDriveWeapon
 		g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[Math.RandomLong(SND_IDLE1, SND_IDLE4)], VOL_NORM, 0.6, 0, Math.RandomLong(95, 105) );
 	}
 
-	void spawn_driveent()
+	void spawnDriveEnt()
 	{
 		if( m_pPlayer.pev.waterlevel < WATERLEVEL_HEAD )
 		{

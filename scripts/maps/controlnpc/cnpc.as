@@ -19,6 +19,7 @@
 #include "rgrunt"
 #include "hwrgrunt"
 #include "hwgrunt"
+#include "apache"
 
 #include "scientist"
 #include "barney"
@@ -52,6 +53,7 @@ void MapInit()
 	cnpc_rgrunt::Register();
 	cnpc_hwrgrunt::Register();
 	cnpc_hwgrunt::Register();
+	cnpc_apache::Register();
 
 	cnpc_scientist::Register();
 	cnpc_barney::Register();
@@ -123,6 +125,8 @@ const int HWRGRUNT_SLOT		= 3;
 const int HWRGRUNT_POSITION	= 15;
 const int HWGRUNT_SLOT			= 3;
 const int HWGRUNT_POSITION	= 16;
+const int APACHE_SLOT				= 3;
+const int APACHE_POSITION		= 17;
 
 //friendles
 const int SCIENTIST_SLOT			= 4;
@@ -181,6 +185,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_rgrunt",
 	"weapon_hwrgrunt",
 	"weapon_hwgrunt",
+	"weapon_apache",
 
 	"weapon_scientist",
 	"weapon_barney",
@@ -197,6 +202,7 @@ const array<string> arrsCNPCGibbable =
 	"cnpc_fassn",
 	"cnpc_hwrgrunt",
 	"cnpc_hwgrunt",
+	"cnpc_apache",
 
 	"cnpc_scientist",
 	"cnpc_barney",
@@ -226,6 +232,7 @@ enum cnpc_e
 	CNPC_RGRUNT,
 	CNPC_HWRGRUNT,
 	CNPC_HWGRUNT,
+	CNPC_APACHE,
 
 	CNPC_SCIENTIST,
 	CNPC_BARNEY,

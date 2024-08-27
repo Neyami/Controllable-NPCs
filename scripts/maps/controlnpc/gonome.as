@@ -213,7 +213,7 @@ class weapon_gonome : CBaseDriveWeapon
 	{
 		if( m_iAutoDeploy == 1 )
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.5;
 		}
 
@@ -266,7 +266,7 @@ class weapon_gonome : CBaseDriveWeapon
 		}
 		else
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.5;
 
 			return;
@@ -684,7 +684,7 @@ class weapon_gonome : CBaseDriveWeapon
 		}
 	}
 
-	void spawn_driveent()
+	void spawnDriveEnt()
 	{
 		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) and m_iAutoDeploy == 0 )
 		{

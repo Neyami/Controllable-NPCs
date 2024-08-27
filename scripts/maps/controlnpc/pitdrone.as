@@ -176,7 +176,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 	{
 		if( m_iAutoDeploy == 1 )
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.5;
 		}
 
@@ -220,7 +220,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 		}
 		else
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.5;
 
 			return;
@@ -588,7 +588,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 		m_flStopMeleeAttack = 0.0;
 	}
 
-	void spawn_driveent()
+	void spawnDriveEnt()
 	{
 		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) and m_iAutoDeploy == 0 )
 		{

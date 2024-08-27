@@ -254,7 +254,7 @@ class weapon_garg : CBaseDriveWeapon
 	{
 		if( m_iAutoDeploy == 1 )
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + 0.5;
 		}
 
@@ -299,7 +299,7 @@ class weapon_garg : CBaseDriveWeapon
 		}
 		else
 		{
-			spawn_driveent();
+			spawnDriveEnt();
 			self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + 0.5;
 
 			return;
@@ -560,8 +560,6 @@ class weapon_garg : CBaseDriveWeapon
 
 			FlameUpdate();
 
-			Vector org = m_pDriveEnt.pev.origin;
-			org.z += 64;
 			Math.MakeVectors( m_pPlayer.pev.v_angle );
 			Vector dir = g_Engine.v_forward;
 			vecAngles = Math.VecToAngles( dir );
@@ -1156,7 +1154,7 @@ class weapon_garg : CBaseDriveWeapon
 		m_pPlayer.m_rgAmmo( self.m_iSecondaryAmmoType, 0 );
 	}
 
-	void spawn_driveent()
+	void spawnDriveEnt()
 	{
 		if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) and m_iAutoDeploy == 0 )
 		{
