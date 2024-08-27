@@ -143,6 +143,8 @@
 	firerate(string) : "Rate of fire" : "0.08"
 ]
 
+@PointClass base(Mandatory, CNPC) size(-360 -360 -172, 360 360 8) studio("models/apache.mdl") = info_cnpc_apache : "Controllable Apache Helicopter" []
+
 
 //FRIENDLIES
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/scientist.mdl") = info_cnpc_scientist : "Controllable Scientist"
