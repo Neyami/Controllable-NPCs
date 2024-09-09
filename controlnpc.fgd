@@ -1,43 +1,73 @@
 @BaseClass = CNPC
 [
-	respawntime(string) : "Time to respawn" : "13" "Set respawntime to -1 to disable respawning"
+	respawntime(string) : "Time to Respawn" : "13" "Set respawntime to -1 to disable respawning"
+
+	customhealth(string) : "Custom Max Health" : "0"
 
 	gag(Choices) : "Disable Idle Sounds" : 0 =
 	[
 		0 : "No (default)"
 		1 : "Yes"
 	]
+
+	triggeronly(Choices) : "Only Trigger by Targetname" : 0 =
+	[
+		0 : "No (default)"
+		1 : "Yes"
+	]
 ]
 
+@BaseClass = NoPlayerDeath
+[
+	noplayerdeath(Choices) : "Don't Kill Player When CNPC Dies" : 0 =
+	[
+		0 : "Off (default)"
+		1 : "On"
+	]
+]
 
 //XEN
-@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 36) studio("models/headcrab.mdl") = info_cnpc_headcrab : "Controllable Headcrab" []
-
-@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/zombie.mdl") = info_cnpc_zombie : "Controllable Zombie" []
+@PointClass base(Mandatory, CNPC, NoPlayerDeath) size(-16 -16 0, 16 16 36) studio("models/headcrab.mdl") = info_cnpc_headcrab : "Controllable Headcrab"
 
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 36) studio("models/houndeye.mdl") = info_cnpc_houndeye : "Controllable Houndeye" []
 
+@PointClass base(Mandatory, CNPC) size(-24 -24 0, 24 24 32) studio("models/pit_drone.mdl") = info_cnpc_pitdrone : "Controllable Pit Drone" []
+
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 36) studio("models/islave.mdl") = info_cnpc_islave : "Controllable Alien Slave" []
+
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/zombie.mdl") = info_cnpc_zombie : "Controllable Zombie" []
 
 @PointClass base(Mandatory, CNPC) size(-32 -32 0, 32 32 64) studio("models/agrunt.mdl") = info_cnpc_agrunt : "Controllable Alien Grunt" []
 
-@PointClass base(Mandatory, CNPC) size(-32 -32 0, 32 32 64) studio("models/icky.mdl") = info_cnpc_icky : "Controllable Ichthyosaur" []
-
-@PointClass base(Mandatory, CNPC) size(-24 -24 0, 24 24 32) studio("models/pit_drone.mdl") = info_cnpc_pitdrone : "Controllable Pit Drone" []
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/gonome.mdl") = info_cnpc_gonome : "Controllable Gonome" []
 
 @PointClass base(Mandatory, CNPC) size(-24 -24 0, 24 24 32) studio("models/strooper.mdl") = info_cnpc_strooper : "Controllable Shock Trooper" []
 
-@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/gonome.mdl") = info_cnpc_gonome : "Controllable Gonome" []
+@PointClass base(Mandatory, CNPC) size(-32 -32 0, 32 32 64) studio("models/icky.mdl") = info_cnpc_icky : "Controllable Ichthyosaur" []
 
-@PointClass base(Mandatory, CNPC) size(-32 -32 0, 32 32 128) studio("models/garg.mdl") = info_cnpc_garg : "Controllable Gargantua" []
+@PointClass base(Mandatory, CNPC) size(-24 -24 0, 24 24 112) studio("models/kingpin.mdl") = info_cnpc_kingpin : "Controllable Kingpin" []
 
 @PointClass base(Mandatory, CNPC) size(-32 -32 0, 32 32 128) studio("models/babygarg.mdl") = info_cnpc_babygarg : "Controllable Baby Gargantua" []
+
+@PointClass base(Mandatory, CNPC, NoPlayerDeath) size(-32 -32 0, 32 32 128) studio("models/garg.mdl") = info_cnpc_garg : "Controllable Gargantua"
 
 @PointClass base(Mandatory, CNPC) size(-95 -95 0, 95 95 190) studio("models/big_mom.mdl") = info_cnpc_bigmomma : "Controllable Big Momma" []
 
 
 
+
 //BLACK MESA etc
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/hassassin.mdl") = info_cnpc_fassn : "Controllable Female Assassin" []
+
+@PointClass base(Mandatory, CNPC, NoPlayerDeath) size(-16 -16 -32, 16 16 32) studio("models/miniturret.mdl") = info_cnpc_mturret : "Controllable Mini Turret"
+[
+	orientation(Choices) : "Orientation" : 0 =
+	[
+		0 : "Floor Mount"
+		1 : "Ceiling Mount"
+	]
+]
+
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/hgrunt.mdl") = info_cnpc_hgrunt : "Controllable Human Grunt"
 [
 	weapons(Choices) : "Weapons" : 3 =
@@ -67,26 +97,6 @@
 	]
 ]
 
-@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/hassassin.mdl") = info_cnpc_fassn : "Controllable Female Assassin" []
-
-@PointClass base(Mandatory, CNPC) size(-16 -16 -32, 16 16 32) studio("models/miniturret.mdl") = info_cnpc_mturret : "Controllable Mini Turret"
-[
-	orientation(Choices) : "Orientation" : 0 =
-	[
-		0 : "Floor Mount"
-		1 : "Ceiling Mount"
-	]
-]
-
-@PointClass base(Mandatory, CNPC) size(-32 -32 -32, 32 32 32) studio("models/turret.mdl") = info_cnpc_turret : "Controllable Turret"
-[
-	orientation(Choices) : "Orientation" : 0 =
-	[
-		0 : "Floor Mount"
-		1 : "Ceiling Mount"
-	]
-]
-
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/rgrunt.mdl") = info_cnpc_rgrunt : "Controllable Robot Grunt"
 [
 	weapons(Choices) : "Weapons" : 3 =
@@ -103,23 +113,13 @@
 	]
 ]
 
-@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/hwrgrunt.mdl") = info_cnpc_hwrgrunt : "Controllable HW Robot Grunt"
+@PointClass base(Mandatory, CNPC, NoPlayerDeath) size(-32 -32 -32, 32 32 32) studio("models/turret.mdl") = info_cnpc_turret : "Controllable Turret"
 [
-	disabledrop(Choices) : "Disable Minigun Drop Upon Death" : 0 =
+	orientation(Choices) : "Orientation" : 0 =
 	[
-		0 : "No (default)"
-		1 : "Yes"
+		0 : "Floor Mount"
+		1 : "Ceiling Mount"
 	]
-
-	noexplode(Choices) : "Disable Explosion Upon Death" : 0 =
-	[
-		0 : "No (default)"
-		1 : "Yes"
-	]
-
-	maxammo(string) : "Max ammo" : "600" "Set to -1 for infinite ammo"
-
-	firerate(string) : "Rate of fire" : "0.08"
 ]
 
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/hwgrunt.mdl") = info_cnpc_hwgrunt : "Controllable Heavy Weapons Grunt"
@@ -143,7 +143,28 @@
 	firerate(string) : "Rate of fire" : "0.08"
 ]
 
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/hwrgrunt.mdl") = info_cnpc_hwrgrunt : "Controllable HW Robot Grunt"
+[
+	disabledrop(Choices) : "Disable Minigun Drop Upon Death" : 0 =
+	[
+		0 : "No (default)"
+		1 : "Yes"
+	]
+
+	noexplode(Choices) : "Disable Explosion Upon Death" : 0 =
+	[
+		0 : "No (default)"
+		1 : "Yes"
+	]
+
+	maxammo(string) : "Max ammo" : "600" "Set to -1 for infinite ammo"
+
+	firerate(string) : "Rate of fire" : "0.08"
+]
+
 @PointClass base(Mandatory, CNPC) size(-360 -360 -172, 360 360 8) studio("models/apache.mdl") = info_cnpc_apache : "Controllable Apache Helicopter" []
+
+
 
 
 //FRIENDLIES
