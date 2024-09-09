@@ -149,8 +149,6 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 		set { m_hPickupTarget = EHandle(@value); }
 	}
 
-	private float m_flNextThink; //for stuff that shouldn't run every frame
-
 	private int m_iShell;
 	private float m_flNextAmmoRegen;
 	private bool m_bHasMinigun;
@@ -813,8 +811,8 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 		m_pPlayer.pev.effects |= EF_NODRAW;
 		m_pPlayer.pev.iuser3 = 1; //disable ducking
 		m_pPlayer.pev.fuser4 = 1; //disable jumping
-		m_pPlayer.pev.max_health = CNPC_HEALTH;
-		m_pPlayer.pev.health = CNPC_HEALTH;
+		m_pPlayer.pev.max_health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
+		m_pPlayer.pev.health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
 		m_pPlayer.m_bloodColor = BLOOD_COLOR_RED;
 
 		self.m_bExclusiveHold = true;

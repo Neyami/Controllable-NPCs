@@ -376,13 +376,14 @@ class weapon_headcrab : CBaseDriveWeapon
 		{
 			m_pPlayer.pev.solid = SOLID_NOT;
 			m_pPlayer.pev.flags |= FL_NOTARGET;
+			g_EntityFuncs.DispatchKeyValue( m_pDriveEnt.edict(), "m_flCustomHealth", "" + m_flCustomHealth );
 		}
 
 		m_pPlayer.pev.effects |= EF_NODRAW;
 		m_pPlayer.pev.iuser3 = 1; //disable ducking
 		m_pPlayer.pev.fuser4 = 1; //disable jumping
-		m_pPlayer.pev.max_health = CNPC_HEALTH;
-		m_pPlayer.pev.health = CNPC_HEALTH;
+		m_pPlayer.pev.max_health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
+		m_pPlayer.pev.health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
 		m_pPlayer.m_bloodColor = BLOOD_COLOR_GREEN;
 
 		self.m_bExclusiveHold = true;
@@ -450,6 +451,8 @@ class weapon_headcrab : CBaseDriveWeapon
 
 class cnpc_headcrab : ScriptBaseMonsterEntity//ScriptBaseAnimating
 {
+	float m_flCustomHealth;
+
 	protected CBasePlayer@ m_pOwner
 	{
 		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
@@ -472,8 +475,8 @@ class cnpc_headcrab : ScriptBaseMonsterEntity//ScriptBaseAnimating
 			pev.flags |= FL_MONSTER;
 			pev.deadflag = DEAD_NO;
 			pev.takedamage = DAMAGE_AIM;
-			pev.max_health = CNPC_HEALTH;
-			pev.health = CNPC_HEALTH;
+			pev.max_health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
+			pev.health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
 			self.m_bloodColor = BLOOD_COLOR_GREEN;
 			self.m_FormattedName = "CNPC Headcrab";
 			//g_EntityFuncs.DispatchKeyValue( self.edict(), "displayname", "CNPC Headcrab" );

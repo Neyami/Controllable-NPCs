@@ -70,8 +70,6 @@ enum sound_e
 
 class weapon_apache : CBaseDriveWeapon
 {
-	private float m_flNextThink; //for stuff that shouldn't run every frame
-
 	private bool m_bMoveForward;
 	private bool m_bMoveBack;
 	private bool m_bMoveLeft;
@@ -731,8 +729,8 @@ class weapon_apache : CBaseDriveWeapon
 		//m_pPlayer.pev.takedamage = DAMAGE_NO;
 		m_pPlayer.pev.iuser3 = 1; //disable ducking
 		m_pPlayer.pev.fuser4 = 1; //disable jumping
-		m_pPlayer.pev.max_health = CNPC_HEALTH;
-		m_pPlayer.pev.health = CNPC_HEALTH;
+		m_pPlayer.pev.max_health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
+		m_pPlayer.pev.health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
 		m_pPlayer.m_bloodColor = DONT_BLEED;
 		m_pPlayer.SetMaxSpeedOverride( 0 );
 

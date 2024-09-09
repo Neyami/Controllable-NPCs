@@ -10,6 +10,7 @@
 #include "gonome"
 #include "garg"
 #include "babygarg"
+#include "kingpin"
 #include "bigmomma"
 
 #include "hgrunt"
@@ -44,6 +45,7 @@ void MapInit()
 	cnpc_gonome::Register();
 	cnpc_garg::Register();
 	cnpc_babygarg::Register();
+	cnpc_kingpin::Register();
 	cnpc_bigmomma::Register();
 
 	cnpc_hgrunt::Register();
@@ -76,11 +78,13 @@ const int DEAD_GIB						= 42;
 
 enum flags_e
 {
-	FL_GAG = 1,
-	FL_DISABLEDROP = 2,
-	FL_NOEXPLODE = 4,
-	FL_CUSTOMAMMO = 8,
-	FL_INFINITEAMMO = 16
+	FL_TRIGGER_ONLY = 1,
+	FL_GAG = 2,
+	FL_DISABLEDROP = 4,
+	FL_NOEXPLODE = 8,
+	FL_CUSTOMAMMO = 16,
+	FL_INFINITEAMMO = 32,
+	FL_NOPLAYERDEATH = 64
 };
 
 //xen
@@ -107,8 +111,10 @@ const int GARG_POSITION			= 19;
 const int BABYGARG_SLOT			= 1;
 const int BABYGARG_POSITION	= 20;
 
+const int KINGPIN_SLOT				= 2;
+const int KINGPIN_POSITION		= 10;
 const int BIGMOMMA_SLOT			= 2;
-const int BIGMOMMA_POSITION	= 10;
+const int BIGMOMMA_POSITION	= 11;
 
 //black mesa etc
 const int HGRUNT_SLOT				= 3;
@@ -176,6 +182,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_gonome",
 	"weapon_garg",
 	"weapon_babygarg",
+	"weapon_kingpin",
 	"weapon_bigmomma",
 
 	"weapon_hgrunt",
@@ -196,6 +203,7 @@ const array<string> arrsCNPCWeapons =
 const array<string> arrsCNPCGibbable =
 {
 	"cnpc_zombie",
+	"cnpc_kingpin",
 	"cnpc_bigmomma",
 
 	"cnpc_hgrunt",
@@ -223,6 +231,7 @@ enum cnpc_e
 	CNPC_GONOME,
 	CNPC_GARG,
 	CNPC_BABYGARG,
+	CNPC_KINGPIN,
 	CNPC_BIGMOMMA,
 
 	CNPC_HGRUNT,
@@ -417,6 +426,80 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
 
 			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_babygarg::pPainSounds[Math.RandomLong(0,(cnpc_babygarg::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+
+			break;
+		}
+
+		case CNPC_KINGPIN:
+		{
+			CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
+			cnpc_kingpin::weapon_kingpin@ pWeapon = cast<cnpc_kingpin::weapon_kingpin@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
+
+			if( pWeapon !is null )
+			{
+				if( pWeapon.m_bShieldOn )
+				{
+					TraceResult tr = g_Utility.GetGlobalTrace();
+					Vector vecDir = ( pDamageInfo.pAttacker.Center() - Vector(0, 0, 10) - pDamageInfo.pVictim.Center() ).Normalize();
+					Vector vecOrigin = tr.vecEndPos - (vecDir * pDamageInfo.pVictim.pev.scale) * 0.0625;
+
+					NetworkMessage m1( MSG_PVS, NetworkMessages::ShieldRic, vecOrigin );
+						m1.WriteCoord( vecOrigin.x );
+						m1.WriteCoord( vecOrigin.y );
+						m1.WriteCoord( vecOrigin.z );
+					m1.End();
+				}
+
+				float flDamage = pDamageInfo.flDamage;
+				float flDamageMultiplier = 1.0; //??
+
+				if( pWeapon.m_bShieldOn )
+				{
+					pWeapon.m_flShieldTime = g_Engine.time + 0.5;
+
+					if( !pWeapon.m_bSomeBool )
+					{
+						pWeapon.ResolveRenderProps();
+						flDamage = pDamageInfo.flDamage;
+					}
+
+					if( flDamage > 0.0 and pDamageInfo.bitsDamageType & (DMG_FREEZE | DMG_DROWN) == 0 ) //0x4020
+					{
+						if( (pDamageInfo.bitsDamageType & DMG_BLAST) != 0 ) //0x40
+							flDamageMultiplier = 0.4;
+						else
+							flDamageMultiplier = 0.2;
+
+						float flTemp = (flDamage - flDamage * 0.01) * flDamageMultiplier;
+						float flRenderamt = pWeapon.m_flTargetRenderamt;
+
+						if( flTemp > flRenderamt )
+						{
+							pWeapon.m_flTargetRenderamt = 0;
+							pWeapon.ShieldOff();
+							flDamage = flDamage - flRenderamt * (1.0 / flDamageMultiplier);;
+						}
+						else
+						{
+							flDamage = flDamage * 0.01;
+							pWeapon.m_flTargetRenderamt = flRenderamt - flTemp;
+						}
+
+						if( pWeapon.m_bSomeBool )
+							pWeapon.SetRenderAmount( pWeapon.m_flTargetRenderamt );
+					}
+				}
+
+				pDamageInfo.flDamage = flDamage * 0.75;
+			}
+
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + Math.RandomFloat(2.5, 4.0);
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_kingpin::pPainSounds[Math.RandomLong(0,(cnpc_kingpin::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 
 			break;
 		}
@@ -863,6 +946,7 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 	int m_iSpawnFlags; //Just in case
 	int m_iMaxAmmo;
 	float m_flFireRate;
+	float m_flCustomHealth;
 
 	string m_sWeaponName;
 	string m_sModel;
@@ -872,7 +956,13 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 	//scientist
 	int m_iBody;
 
-	int ObjectCaps() { return m_bActive ? (BaseClass.ObjectCaps() | FCAP_IMPULSE_USE) : BaseClass.ObjectCaps(); }
+	int ObjectCaps()
+	{
+		if( (m_iSpawnFlags & CNPC::FL_TRIGGER_ONLY) != 0 )
+			return BaseClass.ObjectCaps();
+
+		return m_bActive ? (BaseClass.ObjectCaps() | FCAP_IMPULSE_USE) : BaseClass.ObjectCaps();
+	}
 
 	bool KeyValue( const string& in szKey, const string& in szValue )
 	{
@@ -881,10 +971,22 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 			m_flRespawnTime = atof( szValue );
 			return true;
 		}
+		else if( szKey == "customhealth" )
+		{
+			m_flCustomHealth = atof( szValue );
+			return true;
+		}
 		else if( szKey == "gag" )
 		{
 			if( atoi(szValue) > 0 )
 				m_iSpawnFlags |= CNPC::FL_GAG;
+
+			return true;
+		}
+		else if( szKey == "triggeronly" )
+		{
+			if( atoi(szValue) > 0 )
+				m_iSpawnFlags |= CNPC::FL_TRIGGER_ONLY;
 
 			return true;
 		}
@@ -953,6 +1055,7 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_iSpawnFlags", "" + m_iSpawnFlags );
 				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_iMaxAmmo", "" + m_iMaxAmmo );
 				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_flFireRate", "" + m_flFireRate );
+				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_flCustomHealth", "" + m_flCustomHealth );
 
 				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "autodeploy", "1" );
 				g_EntityFuncs.DispatchSpawn( m_pCNPCWeapon.edict() );
@@ -1001,8 +1104,6 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 	Disable flashlight and USE-key while controlling a monster ??
 
 	Disable fall damage and sounds
-
-	Use self.m_fSequenceFinished instead ??
 
 	Allow for pvp
 

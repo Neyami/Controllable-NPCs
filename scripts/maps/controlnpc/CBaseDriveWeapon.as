@@ -6,6 +6,8 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 	int m_iAutoDeploy;
 	float m_flNextIdleCheck;
 	protected uint m_uiAnimationState; //for hacky HandleAnimEvent
+	protected float m_flNextThink; //for stuff that shouldn't run every frame
+	float m_flCustomHealth;
 	int m_iSpawnFlags; //Just in case
 	protected int m_iMaxAmmo;
 	protected float m_flFireRate;
@@ -28,6 +30,11 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		if( szKey == "autodeploy" )
 		{
 			m_iAutoDeploy = atoi( szValue );
+			return true;
+		}
+		else if( szKey == "m_flCustomHealth" )
+		{
+			m_flCustomHealth = atof( szValue );
 			return true;
 		}
 		else if( szKey == "m_iSpawnFlags" )
@@ -258,8 +265,8 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		if( m_pDriveEnt is null ) return false;
 
 		int iFrame = int( (m_pDriveEnt.pev.frame/255) * iMaxFrames );
-		if( IsBetween2(iFrame, iTargetFrame-1, iTargetFrame+1) ) return true;
-
+		if( IsBetween2(iFrame, Math.clamp(0, iMaxFrames, iTargetFrame-1), iTargetFrame+1) ) return true;
+ 
 		return false;
 	}
 
@@ -295,6 +302,7 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 abstract class CBaseDriveEntity : ScriptBaseAnimating
 {
 	int m_iSpawnFlags;
+	float m_flCustomHealth;
 
 	protected CBasePlayer@ m_pOwner
 	{
@@ -309,6 +317,11 @@ abstract class CBaseDriveEntity : ScriptBaseAnimating
 		if( szKey == "m_iSpawnFlags" )
 		{
 			m_iSpawnFlags = atoi( szValue );
+			return true;
+		}
+		else if( szKey == "m_flCustomHealth" )
+		{
+			m_flCustomHealth = atof( szValue );
 			return true;
 		}
 		else

@@ -135,11 +135,23 @@ class weapon_turret : CBaseDriveWeapon
 
 	private float m_flCanExit;
 
+	Vector m_vecExitOrigin, m_vecExitAngles; //for noplayerdeath
+
 	bool KeyValue( const string& in szKey, const string& in szValue )
 	{
 		if( szKey == "orientation" )
 		{
 			m_iOrientation = atoi( szValue );
+			return true;
+		}
+		else if( szKey == "m_flCustomHealth" )
+		{
+			m_flCustomHealth = atof( szValue );
+			return true;
+		}
+		else if( szKey == "m_iSpawnFlags" )
+		{
+			m_iSpawnFlags = atoi( szValue );
 			return true;
 		}
 		else if( szKey == "autodeploy" )
@@ -400,7 +412,6 @@ class weapon_turret : CBaseDriveWeapon
 
 	void Shoot( Vector &in vecSrc, Vector &in vecDir )
 	{
-		//m_pDriveEnt.FireBullets( 1, vecSrc, vecDir, TURRET_SPREAD, TURRET_RANGE, BULLET_MONSTER_12MM, 1 );
 		self.FireBullets( 1, vecSrc, vecDir, TURRET_SPREAD, TURRET_RANGE, BULLET_PLAYER_CUSTOMDAMAGE, 1, RANGE_DAMAGE, m_pPlayer.pev ); //BULLET_MONSTER_12MM
 		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, arrsTurretSounds[SND_SHOOT], VOL_NORM, 0.6 );
 		m_pDriveEnt.pev.effects |= EF_MUZZLEFLASH;
@@ -741,30 +752,50 @@ class weapon_turret : CBaseDriveWeapon
 		if( m_pDriveEnt is null ) return;
 		if( m_flCanExit > g_Engine.time ) return;
 
-		if( (m_pPlayer.pev.button & IN_USE) == 0 and (m_pPlayer.pev.oldbuttons & IN_USE) != 0 )
+		if( (m_pPlayer.m_afButtonPressed & IN_USE) != 0 )
+			ExitPlayer();
+	}
+
+	void ExitPlayer( bool bManual = true )
+	{
+		if( bManual )
 		{
 			cnpc_turret@ pDriveEnt = cast<cnpc_turret@>(CastToScriptClass(m_pDriveEnt));
 			if( pDriveEnt !is null and pDriveEnt.m_hRenderEntity.IsValid() ) g_EntityFuncs.Remove( pDriveEnt.m_hRenderEntity.GetEntity() );
-
-			CBaseEntity@ cbeSpawnEnt = null;
-			info_cnpc_turret@ pSpawnEnt = null;
-			while( (@cbeSpawnEnt = g_EntityFuncs.FindEntityByClassname(cbeSpawnEnt, "info_cnpc_turret")) !is null )
-			{
-				@pSpawnEnt = cast<info_cnpc_turret@>(CastToScriptClass(cbeSpawnEnt));
-				if( pSpawnEnt.m_pCNPCWeapon is null ) continue;
-				if( pSpawnEnt.m_pCNPCWeapon.edict() is self.edict() ) break;
-			}
-
-			if( pSpawnEnt !is null )
-				pSpawnEnt.m_flTimeToRespawn = g_Engine.time + CNPC_RESPAWNEXIT;
-
-			g_EntityFuncs.Remove( m_pDriveEnt );
-
-			ResetPlayer();
-
-			g_EntityFuncs.SetOrigin( m_pPlayer, pev.origin );
-			g_EntityFuncs.Remove( self );
 		}
+
+		CBaseEntity@ cbeSpawnEnt = null;
+		info_cnpc_turret@ pSpawnEnt = null;
+		while( (@cbeSpawnEnt = g_EntityFuncs.FindEntityByClassname(cbeSpawnEnt, "info_cnpc_turret")) !is null )
+		{
+			@pSpawnEnt = cast<info_cnpc_turret@>(CastToScriptClass(cbeSpawnEnt));
+			if( pSpawnEnt.m_pCNPCWeapon is null ) continue;
+			if( pSpawnEnt.m_pCNPCWeapon.edict() is self.edict() ) break;
+		}
+
+		if( pSpawnEnt !is null )
+			pSpawnEnt.m_flTimeToRespawn = g_Engine.time + CNPC_RESPAWNEXIT;
+
+		ResetPlayer();
+
+		Vector vecOrigin = pev.origin + Vector( 0, 0, 19 );
+
+		if( m_iOrientation == 1 )
+			vecOrigin = pev.origin + Vector( 0, 0, -19 );
+
+		if( bManual )
+			g_EntityFuncs.Remove( m_pDriveEnt );
+		else
+		{
+			vecOrigin = m_vecExitOrigin;
+			m_pPlayer.pev.angles = m_vecExitAngles;
+			m_pPlayer.pev.fixangle = FAM_FORCEVIEWANGLES;
+			m_pPlayer.pev.health = 100;
+			m_pPlayer.pev.velocity = g_vecZero;
+		}
+
+		g_EntityFuncs.SetOrigin( m_pPlayer, vecOrigin );
+		g_EntityFuncs.Remove( self );
 	}
 
 	void spawnDriveEnt()
@@ -796,16 +827,28 @@ class weapon_turret : CBaseDriveWeapon
 		}
 
 		@m_pDriveEnt = cast<CBaseAnimating@>( g_EntityFuncs.Create("cnpc_turret", vecOrigin, Vector(0, m_pPlayer.pev.angles.y, 0), false, m_pPlayer.edict()) );
+		g_EntityFuncs.DispatchKeyValue( m_pDriveEnt.edict(), "m_iSpawnFlags", "" + m_iSpawnFlags );
+		g_EntityFuncs.DispatchKeyValue( m_pDriveEnt.edict(), "m_flCustomHealth", "" + m_flCustomHealth );
+
+		if( (m_iSpawnFlags & CNPC::FL_NOPLAYERDEATH) != 0 )
+		{
+			cnpc_turret@ pDriveEnt = cast<cnpc_turret@>(CastToScriptClass(m_pDriveEnt));
+			if( pDriveEnt !is null )
+			{
+				pDriveEnt.m_vecExitOrigin = m_vecExitOrigin;
+				pDriveEnt.m_vecExitAngles = m_vecExitAngles;
+			}
+		}
 
 		m_pPlayer.pev.effects |= EF_NODRAW;
 		m_pPlayer.pev.solid = SOLID_NOT;
 		m_pPlayer.pev.movetype = MOVETYPE_NOCLIP;
 		//m_pPlayer.pev.flags |= FL_FLY;
-		m_pPlayer.pev.flags |= FL_NOTARGET;
+		m_pPlayer.pev.flags |= (FL_NOTARGET|FL_GODMODE);
 		m_pPlayer.pev.iuser3 = 1; //disable ducking
 		m_pPlayer.pev.fuser4 = 1; //disable jumping
-		m_pPlayer.pev.max_health = CNPC_HEALTH;
-		m_pPlayer.pev.health = CNPC_HEALTH;
+		m_pPlayer.pev.max_health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
+		m_pPlayer.pev.health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
 		m_pPlayer.m_bloodColor = DONT_BLEED;
 
 		self.m_bExclusiveHold = true;
@@ -894,7 +937,7 @@ class weapon_turret : CBaseDriveWeapon
 		m_pPlayer.pev.view_ofs = Vector( 0, 0, 28 );
 		m_pPlayer.pev.max_health = 100;
 		m_pPlayer.pev.movetype = MOVETYPE_WALK;
-		m_pPlayer.pev.flags &= ~FL_FLY;
+		m_pPlayer.pev.flags &= ~(FL_NOTARGET|FL_GODMODE|FL_FLY);
 
 		m_pPlayer.SetViewMode( ViewMode_FirstPerson );
 		m_pPlayer.SetMaxSpeedOverride( -1 );
@@ -938,8 +981,12 @@ class weapon_turret : CBaseDriveWeapon
 	}
 }
 
-class cnpc_turret : ScriptBaseMonsterEntity//ScriptBaseAnimating
+class cnpc_turret : ScriptBaseMonsterEntity
 {
+	float m_flCustomHealth;
+	int m_iSpawnFlags;
+	Vector m_vecExitOrigin, m_vecExitAngles; //for noplayerdeath
+
 	protected CBasePlayer@ m_pOwner
 	{
 		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
@@ -956,6 +1003,11 @@ class cnpc_turret : ScriptBaseMonsterEntity//ScriptBaseAnimating
 		if( szKey == "orientation" )
 		{
 			m_iOrientation = atoi( szValue );
+			return true;
+		}
+		else if( szKey == "m_iSpawnFlags" )
+		{
+			m_iSpawnFlags = atoi( szValue );
 			return true;
 		}
 		else
@@ -976,11 +1028,10 @@ class cnpc_turret : ScriptBaseMonsterEntity//ScriptBaseAnimating
 		pev.flags |= FL_MONSTER;
 		pev.deadflag = DEAD_NO;
 		pev.takedamage = DAMAGE_AIM;
-		pev.max_health = CNPC_HEALTH;
-		pev.health = CNPC_HEALTH;
+		pev.max_health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
+		pev.health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
 		self.m_bloodColor = DONT_BLEED;
 		self.m_FormattedName = "CNPC Turret";
-		//g_EntityFuncs.DispatchKeyValue( self.edict(), "displayname", "CNPC Turret" );
 
 		pev.sequence = ANIM_IDLE_OFF;
 		pev.frame = 0;
@@ -1018,13 +1069,22 @@ class cnpc_turret : ScriptBaseMonsterEntity//ScriptBaseAnimating
 			flDamage /= 10.0;
 
 		pev.health -= flDamage;
-		if( m_pOwner !is null and m_pOwner.IsConnected() )
+		if( m_pOwner !is null and m_pOwner.IsConnected() and pev.health > 0 )
 			m_pOwner.pev.health = pev.health;
 
 		if( pev.health <= 0 )
 		{
 			if( m_pOwner !is null and m_pOwner.IsConnected() )
-				m_pOwner.Killed( pevAttacker, GIB_NEVER );
+			{
+				if( (m_iSpawnFlags & CNPC::FL_NOPLAYERDEATH) != 0 )
+				{
+					weapon_turret@ pWeapon = cast<weapon_turret@>( CastToScriptClass(m_pOwner.m_hActiveItem.GetEntity()) );
+					if( pWeapon !is null )
+						pWeapon.ExitPlayer( false );
+				}
+				else
+					m_pOwner.Killed( pevAttacker, GIB_NEVER );
+			}
 
 			pev.health = 0;
 			pev.takedamage = DAMAGE_NO;
@@ -1227,8 +1287,16 @@ class info_cnpc_turret : ScriptBaseAnimating
 	private int m_iOrientation;
 	private float m_flRespawnTime; //how long until respawn
 	float m_flTimeToRespawn; //used to check if ready to respawn
+	int m_iSpawnFlags; //Just in case
+	float m_flCustomHealth;
 
-	int ObjectCaps() { return m_bActive ? (BaseClass.ObjectCaps() | FCAP_IMPULSE_USE) : BaseClass.ObjectCaps(); }
+	int ObjectCaps()
+	{
+		if( (m_iSpawnFlags & CNPC::FL_TRIGGER_ONLY) != 0 )
+			return BaseClass.ObjectCaps();
+
+		return m_bActive ? (BaseClass.ObjectCaps() | FCAP_IMPULSE_USE) : BaseClass.ObjectCaps();
+	}
 
 	bool KeyValue( const string& in szKey, const string& in szValue )
 	{
@@ -1237,9 +1305,28 @@ class info_cnpc_turret : ScriptBaseAnimating
 			m_flRespawnTime = atof( szValue );
 			return true;
 		}
+		else if( szKey == "customhealth" )
+		{
+			m_flCustomHealth = atof( szValue );
+			return true;
+		}
 		else if( szKey == "orientation" )
 		{
 			m_iOrientation = atoi( szValue );
+			return true;
+		}
+		else if( szKey == "triggeronly" )
+		{
+			if( atoi(szValue) > 0 )
+				m_iSpawnFlags |= CNPC::FL_TRIGGER_ONLY;
+
+			return true;
+		}
+		else if( szKey == "noplayerdeath" )
+		{
+			if( atoi(szValue) > 0 )
+				m_iSpawnFlags |= CNPC::FL_NOPLAYERDEATH;
+
 			return true;
 		}
 		else
@@ -1313,6 +1400,8 @@ class info_cnpc_turret : ScriptBaseAnimating
 		if( pCustom.GetKeyvalue(CNPC::sCNPCKV).GetInteger() > 0 ) return;
 
 		Vector vecNewOrigin;
+		Vector vecExitOrigin = pActivator.pev.origin;
+		Vector vecExitAngles = pActivator.pev.angles;
 
 		if( m_iOrientation == 0 )
 			vecNewOrigin = pev.origin + Vector(0, 0, 20);
@@ -1325,10 +1414,23 @@ class info_cnpc_turret : ScriptBaseAnimating
 		@m_pCNPCWeapon = g_EntityFuncs.Create( CNPC_WEAPONNAME, pActivator.pev.origin, g_vecZero, true );
 		m_pCNPCWeapon.pev.spawnflags = SF_NORESPAWN | SF_CREATEDWEAPON;
 
+		g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_iSpawnFlags", "" + m_iSpawnFlags );
 		g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "orientation", "" + m_iOrientation );
 		g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "autodeploy", "1" );
 		g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "startyaw", "" + pev.angles.y );
+		g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_flCustomHealth", "" + m_flCustomHealth );
 		g_EntityFuncs.DispatchSpawn( m_pCNPCWeapon.edict() );
+
+		if( (m_iSpawnFlags & CNPC::FL_NOPLAYERDEATH) != 0 )
+		{
+			weapon_turret@ pWeapon = cast<weapon_turret@>( CastToScriptClass(m_pCNPCWeapon) );
+			if( pWeapon !is null )
+			{
+				pWeapon.m_vecExitOrigin = vecExitOrigin;
+				pWeapon.m_vecExitAngles = vecExitAngles;
+			}
+		}
+
 		m_pCNPCWeapon.Touch( pActivator ); //make sure they pick it up
 
 		SetUse( null );

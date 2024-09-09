@@ -224,8 +224,6 @@ class weapon_rgrunt : CBaseDriveWeapon
 		set { m_hSpot = EHandle(@value); }
 	}
 
-	private float m_flNextThink; //for stuff that shouldn't run every frame
-
 	bool m_bShockTouch;
 	private float m_flNextShockTouch;
 	private float m_flNextSpark;
@@ -1210,8 +1208,8 @@ class weapon_rgrunt : CBaseDriveWeapon
 		m_pPlayer.pev.effects |= EF_NODRAW;
 		m_pPlayer.pev.iuser3 = 1; //disable ducking
 		m_pPlayer.pev.fuser4 = 1; //disable jumping
-		m_pPlayer.pev.max_health = CNPC_HEALTH;
-		m_pPlayer.pev.health = CNPC_HEALTH;
+		m_pPlayer.pev.max_health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
+		m_pPlayer.pev.health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
 		m_pPlayer.m_bloodColor = DONT_BLEED;
 
 		self.m_bExclusiveHold = true;
