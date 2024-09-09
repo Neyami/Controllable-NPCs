@@ -4,8 +4,9 @@ A work in progress.
 1) Download and put it in svencoop_addons, keeping directories
 2) Add `map_script controlnpc/cnpc` to the map.cfg
 3) uuuuuuuuuuuuhhhhhhhh
-4) Place or spawn `info_cnpc_monstername`, add weapon_name to the map.cfg, or `.player_give @me weapon_name`
-5) Press the primary attack to turn into the monster, or use the holographic representation  
+4a) Place or spawn `info_cnpc_monstername`, add weapon_name to the map.cfg, or `.player_give @me weapon_name`
+4b) info_cnpc entities can also be set to trigger only
+5) Press the primary attack to turn into the monster, or use the holographic representation
 6) ????
 7) PROFIT
 
@@ -19,6 +20,7 @@ If you want to use custom sentences (scientist only for now), set `USE_CUSTOM_SE
 and add the contents of sound/default_sentences.txt to the bottom of either svencoop\sound\default_sentences.txt, or copy that file into svencood_addon\sound\ (preferable)  
 
 Set `CNPC_NPC_HITBOX` to `true` to use the hitbox of the monster model instead of the player (only for monsters that have special armor, or are smaller/larger than the player) EXPERIMENTAL!!  
+
 
 <BR>
 
@@ -34,19 +36,6 @@ Tertiary Attack: Toggle between first- and third-person view
 <BR>
 
 
-# ZOMBIE #  
-`weapon_zombie` - Can be given to players, Primary Attack spawns the controllable monster.  
-`info_cnpc_zombie` - Usable entity that turns the player into the monster upon using. Mappers can place this  
-
-Primary Attack: Slash right then left  
-Secondary Attack: Overhead strike  
-Tertiary Attack: Toggle between first- and third-person view  
-
-Takes 30% less damage from bullets  
-
-<BR>
-
-
 # HOUNDEYE #  
 `weapon_houndeye` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_houndeye` - Usable entity that turns the player into the monster upon using. Mappers can place this  
@@ -54,6 +43,20 @@ Takes 30% less damage from bullets
 Primary Attack: Sonic Attack  
 Tertiary Attack: Toggle between first- and third-person view  
 Back Key (S): Hop backwards  
+
+
+<BR>
+
+
+# PIT DRONE #  
+`weapon_pitdrone` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_pitdrone` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Shoot Spikes  
+Secondary Attack: Melee  
+Reload: Reload spikes  
+Jump: Short hop  
+Longjump (duck-key, quickly followed by jump): Leap
 
 
 <BR>
@@ -73,6 +76,21 @@ Beamcolors are based on topcolor and bottomcolor.
 
 <BR>
 
+
+# ZOMBIE #  
+`weapon_zombie` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_zombie` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Slash right then left  
+Secondary Attack: Overhead strike  
+Tertiary Attack: Toggle between first- and third-person view  
+
+Takes 30% less damage from bullets  
+
+
+<BR>
+
+
 # ALIEN GRUNT #  
 `weapon_agrunt` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_agrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
@@ -86,26 +104,15 @@ Also; try falling from different heights :ayaya:
 <BR>
 
 
-# ICHTHYOSAUR #  
-`weapon_icky` - Can be given to players, Primary Attack spawns the controllable monster.  
-`info_cnpc_icky` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+# GONOME #  
+`weapon_gonome` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_gonome` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
-Primary Attack: Bite  
-Secondary Attack: Charge and bite the first enemy hit  
-
-
-<BR>
-
-
-# PIT DRONE #  
-`weapon_pitdrone` - Can be given to players, Primary Attack spawns the controllable monster.  
-`info_cnpc_pitdrone` - Usable entity that turns the player into the monster upon using. Mappers can place this  
-
-Primary Attack: Shoot Spikes  
-Secondary Attack: Melee  
-Reload: Reload spikes  
-Jump: Short hop  
-Longjump (duck-key, quickly followed by jump): Leap
+Primary Attack: Melee, Left and Right Slash  
+Secondary Attack: Melee, Bite and Thrash  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: Throw Guts  
+Use: Hold to feed on dead humanoids to regenerate health  
 
 
 <BR>
@@ -127,15 +134,27 @@ Ammo replenishes when idle
 <BR>
 
 
-# GONOME #  
-`weapon_gonome` - Can be given to players, Primary Attack spawns the controllable monster.  
-`info_cnpc_gonome` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+# ICHTHYOSAUR #  
+`weapon_icky` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_icky` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
-Primary Attack: Melee, Left and Right Slash  
-Secondary Attack: Melee, Bite and Thrash  
+Primary Attack: Bite  
+Secondary Attack: Charge and bite the first enemy hit  
+
+
+<BR>
+
+
+# KINGPIN #  
+`weapon_kingpin` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_kingpin` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Melee  
+Secondary Attack: Homing Plasma Ball  
 Tertiary Attack: Toggle between first- and third-person view  
-Reload: Throw Guts  
-Use: Hold to feed on dead humanoids to regenerate health  
+
+Eyes automatically charge and fire at nearby enemies  
+Projectiles fired/thrown at may be deflected or blown up  
 
 
 <BR>
@@ -189,22 +208,6 @@ Duck: Defend (no use yet)
 <BR>
 
 
-# HUMAN GRUNT #  
-`weapon_hgrunt` - Can be given to players, Primary Attack spawns the controllable monster. (not recommended, spawn the entity below instead)  
-`info_cnpc_hgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
-
-Primary Attack: Fire the weapon when aiming, or kick when not aiming  
-Secondary Attack: Aim  
-Tertiary Attack: Toggle between first- and third-person view  
-Reload: M16 will launch a contact grenade, the other weapons will toss a grenade, look straight down~ish to place a grenade on the ground  
-Duck: Crouch, most weapons can be fired while crouching  
-
-Refer to `controlnpc.fgd` to see the keyvalues that set the weapons  
-
-
-<BR>
-
-
 # HUMAN ASSASSIN #  
 `weapon_fassn` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_fassn` - Usable entity that turns the player into the monster upon using. Mappers can place this  
@@ -237,17 +240,17 @@ Turret replenishes ammo when retired
 <BR>
 
 
-# TURRET #  
-`weapon_turret` - Can be given to players, Primary Attack spawns the controllable monster.  
-`info_cnpc_turret` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+# HUMAN GRUNT #  
+`weapon_hgrunt` - Can be given to players, Primary Attack spawns the controllable monster. (not recommended, spawn the entity below instead)  
+`info_cnpc_hgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
-Primary Attack: Shoot  
-Secondary Attack: Deploy and retire  
+Primary Attack: Fire the weapon when aiming, or kick when not aiming  
+Secondary Attack: Aim  
 Tertiary Attack: Toggle between first- and third-person view  
-Use: Exit turret  
+Reload: M16 will launch a contact grenade, the other weapons will toss a grenade, look straight down~ish to place a grenade on the ground  
+Duck: Crouch, most weapons can be fired while crouching  
 
-Turret replenishes ammo when retired  
-When active and not shooting, nearby enemies will be highlighted  
+Refer to `controlnpc.fgd` to see the keyvalues that set the weapons  
 
 
 <BR>
@@ -273,6 +276,36 @@ Refer to `controlnpc.fgd` to see the keyvalues that set the weapons
 <BR>
 
 
+# TURRET #  
+`weapon_turret` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_turret` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Shoot  
+Secondary Attack: Deploy and retire  
+Tertiary Attack: Toggle between first- and third-person view  
+Use: Exit turret  
+
+Turret replenishes ammo when retired  
+When active and not shooting, nearby enemies will be highlighted  
+
+
+<BR>
+
+
+# HEAVY WEAPONS GRUNT #  
+`weapon_hwgrunt` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_hwgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Fire the minigun  
+Tertiary Attack: Toggle between first- and third-person view  
+
+May drop the minigun if hit by explosives, use any dropped minigun to pick it up  
+Refer to `controlnpc.fgd` to see the keyvalues that can be set  
+
+
+<BR>
+
+
 # HEAVY WEAPONS ROBOT GRUNT #  
 `weapon_hwrgrunt` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_hwrgrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
@@ -290,6 +323,20 @@ Refer to `controlnpc.fgd` to see the keyvalues that can be set
 <BR>
 
 
+# APACHE HELICOPTER #  
+`weapon_apache` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_apache` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Fire the auto cannon 
+Secondary Attack: Launch rockets  
+Tertiary Attack: Toggle between first- and third-person view  
+Jump: Go up  
+Duck: Go down  
+
+Rockets replenish automatically  
+
+
+<BR>
 # SCIENTIST #  
 `weapon_scientist` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_scientist` - Usable entity that turns the player into the monster upon using. Mappers can place this  
@@ -305,6 +352,19 @@ Healing ammo replenishes when the syringe isn't out
 <BR>
 
 
+# BARNEY #  
+`weapon_barney` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_barney` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Shoot if gun is drawn  
+Secondary Attack: Draw/Holster gun  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: Reload gun  
+
+
+<BR>
+
+
 # OTIS #  
 `weapon_otis` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_otis` - Usable entity that turns the player into the monster upon using. Mappers can place this  
@@ -313,7 +373,7 @@ Primary Attack: Shoot if gun is drawn, eat if you have a doughnut
 Secondary Attack: Draw/Holster gun  
 Tertiary Attack: Toggle between first- and third-person view  
 Reload: Reload gun  
-Use: When low on health you can get doughnuts from Snack Machines (unless they're brush entities 😦)  
+Use: When low on health you can get doughnuts from Snack Machines (unless they're brush entities?? 😦)  
 
 
 <BR>
