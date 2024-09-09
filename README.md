@@ -4,14 +4,14 @@ A work in progress.
 1) Download and put it in svencoop_addons, keeping directories
 2) Add `map_script controlnpc/cnpc` to the map.cfg
 3) uuuuuuuuuuuuhhhhhhhh
-4a) Place or spawn `info_cnpc_monstername`, add weapon_name to the map.cfg, or `.player_give @me weapon_name`
-4b) info_cnpc entities can also be set to trigger only
+4) Place or spawn `info_cnpc_monstername`, add weapon_name to the map.cfg, or `.player_give @me weapon_name`
 5) Press the primary attack to turn into the monster, or use the holographic representation
 6) ????
 7) PROFIT
 
 The only way to revert to a normal player is to die :ayaya:  
 Turrets can be exited with the Use-key  
+info_cnpc entities can also be set to trigger only  
 
 Refer to `controlnpc.fgd` to see the keyvalues that can be set for the `info_cnpc_*` entities
 
