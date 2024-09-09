@@ -1,0 +1,4 @@
+3
+weapon				640		controlnpc/ui_kingpin		0	170	0	45
+weapon_s			640		controlnpc/ui_kingpin_sel		0	170	0	45
+crosshair       640 ofch1  24  24   24  24
