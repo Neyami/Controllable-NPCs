@@ -57,6 +57,8 @@
 
 
 //BLACK MESA etc
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/gman.mdl") = info_cnpc_gman : "Controllable G-Man" []
+
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/hassassin.mdl") = info_cnpc_fassn : "Controllable Female Assassin" []
 
 @PointClass base(Mandatory, CNPC, NoPlayerDeath) size(-16 -16 -32, 16 16 32) studio("models/miniturret.mdl") = info_cnpc_mturret : "Controllable Mini Turret"
