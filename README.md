@@ -208,6 +208,21 @@ Duck: Defend (no use yet)
 <BR>
 
 
+# Government Man #  
+`weapon_gman` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_gman` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Button push animation (does nothing)  
+Secondary Attack: Talk on the phone  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: Toggle the phone  
+
+Is immune to all damage, and can't be seen by enemies.  
+
+
+<BR>
+
+
 # HUMAN ASSASSIN #  
 `weapon_fassn` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_fassn` - Usable entity that turns the player into the monster upon using. Mappers can place this  
