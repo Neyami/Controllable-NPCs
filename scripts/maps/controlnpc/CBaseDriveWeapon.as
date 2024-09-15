@@ -240,6 +240,21 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		return pFriendOwner.m_hActiveItem.GetEntity();
 	}
 
+	void SetSpeed( int iSpeed )
+	{
+		m_pPlayer.SetMaxSpeedOverride( iSpeed );
+	}
+
+	void SetState( int iState )
+	{
+		m_iState = iState;
+	}
+
+	int GetState()
+	{
+		return m_iState;
+	}
+
 	void SetAnim( int iAnim, float flFrameRate = 1.0, float flFrame = 0.0 )
 	{
 		if( m_pDriveEnt !is null )

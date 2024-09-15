@@ -21,6 +21,7 @@
 #include "hwrgrunt"
 #include "hwgrunt"
 #include "apache"
+#include "gman"
 
 #include "scientist"
 #include "barney"
@@ -56,6 +57,7 @@ void MapInit()
 	cnpc_hwrgrunt::Register();
 	cnpc_hwgrunt::Register();
 	cnpc_apache::Register();
+	cnpc_gman::Register();
 
 	cnpc_scientist::Register();
 	cnpc_barney::Register();
@@ -133,6 +135,8 @@ const int HWGRUNT_SLOT			= 3;
 const int HWGRUNT_POSITION	= 16;
 const int APACHE_SLOT				= 3;
 const int APACHE_POSITION		= 17;
+const int GMAN_SLOT					= 3;
+const int GMAN_POSITION			= 18;
 
 //friendles
 const int SCIENTIST_SLOT			= 4;
@@ -193,6 +197,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_hwrgrunt",
 	"weapon_hwgrunt",
 	"weapon_apache",
+	"weapon_gman",
 
 	"weapon_scientist",
 	"weapon_barney",
@@ -242,6 +247,7 @@ enum cnpc_e
 	CNPC_HWRGRUNT,
 	CNPC_HWGRUNT,
 	CNPC_APACHE,
+	CNPC_GMAN,
 
 	CNPC_SCIENTIST,
 	CNPC_BARNEY,
@@ -741,6 +747,17 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}*/
 
+		case CNPC_GMAN:
+		{
+			pDamageInfo.flDamage = 0.0;
+			pDamageInfo.pVictim.pev.health = pDamageInfo.pVictim.pev.max_health / 2;
+
+			TraceResult tr = g_Utility.GetGlobalTrace();
+			g_Utility.Ricochet( tr.vecEndPos, 1.0 );
+
+			break;
+		}
+
 		case CNPC_SCIENTIST:
 		{
 			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
@@ -932,7 +949,7 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 	CScheduledFunction@ m_RespawnThink; //because SetThink doesn't work here for some reason :aRage:
 
 	protected EHandle m_hCNPCWeapon;
-	protected CBaseEntity@ m_pCNPCWeapon
+	CBaseEntity@ m_pCNPCWeapon
 	{
 		get const { return m_hCNPCWeapon.GetEntity(); }
 		set { m_hCNPCWeapon = EHandle(@value); }

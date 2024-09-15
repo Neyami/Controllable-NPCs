@@ -780,6 +780,7 @@ class weapon_apache : CBaseDriveWeapon
 
 	void ResetPlayer()
 	{
+		m_pPlayer.pev.flags &= ~(FL_NOTARGET|FL_GODMODE);
 		m_pPlayer.pev.iuser3 = 0; //enable ducking
 		m_pPlayer.pev.fuser4 = 0; //enable jumping
 		m_pPlayer.pev.view_ofs = Vector( 0, 0, 28 );
@@ -1367,4 +1368,5 @@ void Register()
 
 /* TODO
 	Add gun autoaim ??
+	Add settings to map entity
 */
