@@ -573,8 +573,8 @@ class weapon_bigmomma : CBaseDriveWeapon
 
 		if( (m_pPlayer.m_afButtonPressed & IN_RELOAD) != 0 )
 		{
-			m_iState = STATE_BIRTH;
-			m_pPlayer.SetMaxSpeedOverride( 0 );
+			SetState( STATE_BIRTH );
+			SetSpeed( 0 );
 			SetAnim( ANIM_SPAWN_BABYCRAB );
 		}
 	}

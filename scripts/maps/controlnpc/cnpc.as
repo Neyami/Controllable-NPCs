@@ -1,27 +1,28 @@
 #include "CBaseDriveWeapon"
 #include "headcrab"
-#include "zombie"
 #include "houndeye"
-#include "islave"
-#include "agrunt"
-#include "icky"
 #include "pitdrone"
-#include "strooper"
+#include "islave"
+#include "zombie"
+#include "bullsquid"
+#include "agrunt"
 #include "gonome"
-#include "garg"
-#include "babygarg"
+#include "strooper"
+#include "icky"
 #include "kingpin"
+#include "babygarg"
+#include "garg"
 #include "bigmomma"
 
-#include "hgrunt"
+#include "gman"
 #include "fassn"
 #include "mturret"
-#include "turret"
+#include "hgrunt"
 #include "rgrunt"
-#include "hwrgrunt"
+#include "turret"
 #include "hwgrunt"
+#include "hwrgrunt"
 #include "apache"
-#include "gman"
 
 #include "scientist"
 #include "barney"
@@ -36,28 +37,30 @@ void MapInit()
 	g_Hooks.RegisterHook( Hooks::Player::ClientSay, @CNPC::ClientSay );
 
 	cnpc_headcrab::Register();
-	cnpc_zombie::Register();
 	cnpc_houndeye::Register();
-	cnpc_islave::Register();
-	cnpc_agrunt::Register();
-	cnpc_icky::Register();
 	cnpc_pitdrone::Register();
-	cnpc_strooper::Register();
+	cnpc_islave::Register();
+	cnpc_zombie::Register();
+	cnpc_bullsquid::Register();
+	cnpc_agrunt::Register();
 	cnpc_gonome::Register();
-	cnpc_garg::Register();
-	cnpc_babygarg::Register();
+	cnpc_strooper::Register();
+	cnpc_icky::Register();
 	cnpc_kingpin::Register();
+	cnpc_babygarg::Register();
+	cnpc_garg::Register();
 	cnpc_bigmomma::Register();
 
-	cnpc_hgrunt::Register();
+	cnpc_gman::Register();
 	cnpc_fassn::Register();
 	cnpc_mturret::Register();
-	cnpc_turret::Register();
+	cnpc_hgrunt::Register();
 	cnpc_rgrunt::Register();
-	cnpc_hwrgrunt::Register();
+	cnpc_turret::Register();
 	cnpc_hwgrunt::Register();
+	cnpc_hwrgrunt::Register();
 	cnpc_apache::Register();
-	cnpc_gman::Register();
+	
 
 	cnpc_scientist::Register();
 	cnpc_barney::Register();
@@ -92,51 +95,53 @@ enum flags_e
 //xen
 const int HEADCRAB_SLOT			= 1;
 const int HEADCRAB_POSITION	= 10;
-const int ZOMBIE_SLOT				= 1;
-const int ZOMBIE_POSITION		= 11;
 const int HOUNDEYE_SLOT			= 1;
-const int HOUNDEYE_POSITION	= 12;
+const int HOUNDEYE_POSITION	= 11;
+const int PITDRONE_SLOT			= 1;
+const int PITDRONE_POSITION	= 12;
 const int ISLAVE_SLOT				= 1;
 const int ISLAVE_POSITION		= 13;
+const int ZOMBIE_SLOT				= 1;
+const int ZOMBIE_POSITION		= 14;
+const int BULLSQUID_SLOT			= 1;
+const int BULLSQUID_POSITION	= 15;
 const int AGRUNT_SLOT				= 1;
-const int AGRUNT_POSITION		= 14;
-const int ICKY_SLOT					= 1;
-const int ICKY_POSITION			= 15;
-const int PITDRONE_SLOT			= 1;
-const int PITDRONE_POSITION	= 16;
-const int STROOPER_SLOT			= 1;
-const int STROOPER_POSITION	= 17;
+const int AGRUNT_POSITION		= 16;
 const int GONOME_SLOT				= 1;
-const int GONOME_POSITION		= 18;
-const int GARG_SLOT					= 1;
-const int GARG_POSITION			= 19;
-const int BABYGARG_SLOT			= 1;
-const int BABYGARG_POSITION	= 20;
-
+const int GONOME_POSITION		= 17;
+const int STROOPER_SLOT			= 1;
+const int STROOPER_POSITION	= 18;
+const int ICKY_SLOT					= 1;
+const int ICKY_POSITION			= 19;
 const int KINGPIN_SLOT				= 2;
-const int KINGPIN_POSITION		= 10;
+const int KINGPIN_POSITION		= 20;
+
+const int BABYGARG_SLOT			= 2;
+const int BABYGARG_POSITION	= 10;
+const int GARG_SLOT					= 2;
+const int GARG_POSITION			= 11;
 const int BIGMOMMA_SLOT			= 2;
-const int BIGMOMMA_POSITION	= 11;
+const int BIGMOMMA_POSITION	= 12;
 
 //black mesa etc
-const int HGRUNT_SLOT				= 3;
-const int HGRUNT_POSITION		= 10;
+const int GMAN_SLOT					= 3;
+const int GMAN_POSITION			= 10;
 const int FASSN_SLOT				= 3;
 const int FASSN_POSITION			= 11;
 const int MTURRET_SLOT			= 3;
 const int MTURRET_POSITION		= 12;
-const int TURRET_SLOT				= 3;
-const int TURRET_POSITION		= 13;
+const int HGRUNT_SLOT				= 3;
+const int HGRUNT_POSITION		= 13;
 const int RGRUNT_SLOT				= 3;
 const int RGRUNT_POSITION		= 14;
-const int HWRGRUNT_SLOT		= 3;
-const int HWRGRUNT_POSITION	= 15;
+const int TURRET_SLOT				= 3;
+const int TURRET_POSITION		= 15;
 const int HWGRUNT_SLOT			= 3;
 const int HWGRUNT_POSITION	= 16;
+const int HWRGRUNT_SLOT		= 3;
+const int HWRGRUNT_POSITION	= 17;
 const int APACHE_SLOT				= 3;
-const int APACHE_POSITION		= 17;
-const int GMAN_SLOT					= 3;
-const int GMAN_POSITION			= 18;
+const int APACHE_POSITION		= 18;
 
 //friendles
 const int SCIENTIST_SLOT			= 4;
@@ -176,28 +181,29 @@ const array<string>arrsFlyingMobs =
 const array<string> arrsCNPCWeapons =
 {
 	"weapon_headcrab",
-	"weapon_zombie",
 	"weapon_houndeye",
-	"weapon_islave",
-	"weapon_agrunt",
-	"weapon_icky",
 	"weapon_pitdrone",
-	"weapon_strooper",
+	"weapon_islave",
+	"weapon_zombie",
+	"weapon_bullsquid",
+	"weapon_agrunt",
 	"weapon_gonome",
-	"weapon_garg",
-	"weapon_babygarg",
+	"weapon_strooper",
+	"weapon_icky",
 	"weapon_kingpin",
+	"weapon_babygarg",
+	"weapon_garg",
 	"weapon_bigmomma",
 
-	"weapon_hgrunt",
+	"weapon_gman",
 	"weapon_fassn",
 	"weapon_mturret",
-	"weapon_turret",
+	"weapon_hgrunt",
 	"weapon_rgrunt",
-	"weapon_hwrgrunt",
+	"weapon_turret",
 	"weapon_hwgrunt",
+	"weapon_hwrgrunt",
 	"weapon_apache",
-	"weapon_gman",
 
 	"weapon_scientist",
 	"weapon_barney",
@@ -208,6 +214,7 @@ const array<string> arrsCNPCWeapons =
 const array<string> arrsCNPCGibbable =
 {
 	"cnpc_zombie",
+	"cnpc_bullsquid",
 	"cnpc_kingpin",
 	"cnpc_bigmomma",
 
@@ -226,28 +233,29 @@ const array<string> arrsCNPCGibbable =
 enum cnpc_e
 {
 	CNPC_HEADCRAB = 1,
-	CNPC_ZOMBIE,
 	CNPC_HOUNDEYE,
-	CNPC_ISLAVE,
-	CNPC_AGRUNT,
-	CNPC_ICKY,
 	CNPC_PITDRONE,
-	CNPC_STROOPER,
+	CNPC_ISLAVE,
+	CNPC_ZOMBIE,
+	CNPC_BULLSQUID,
+	CNPC_AGRUNT,
 	CNPC_GONOME,
-	CNPC_GARG,
-	CNPC_BABYGARG,
+	CNPC_STROOPER,
+	CNPC_ICKY,
 	CNPC_KINGPIN,
+	CNPC_BABYGARG,
+	CNPC_GARG,
 	CNPC_BIGMOMMA,
 
-	CNPC_HGRUNT,
+	CNPC_GMAN,
 	CNPC_FASSN,
 	CNPC_MTURRET,
-	CNPC_TURRET,
+	CNPC_HGRUNT,
 	CNPC_RGRUNT,
-	CNPC_HWRGRUNT,
+	CNPC_TURRET,
 	CNPC_HWGRUNT,
+	CNPC_HWRGRUNT,
 	CNPC_APACHE,
-	CNPC_GMAN,
 
 	CNPC_SCIENTIST,
 	CNPC_BARNEY,
@@ -298,6 +306,36 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
+		case CNPC_HOUNDEYE:
+		{
+			if( pDamageInfo.flDamage > 0 and pDamageInfo.pVictim.pev.deadflag == DEAD_NO )
+				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_houndeye::pPainSounds[Math.RandomLong(0,(cnpc_houndeye::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+			
+			//flinch_small = 11, flinch_small2 = 12
+			break;
+		}
+
+		case CNPC_PITDRONE:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.6, 1.2);
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_pitdrone::pPainSounds[Math.RandomLong(0,(cnpc_pitdrone::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(85, 120) );
+
+			break;
+		}
+
+		case CNPC_ISLAVE:
+		{
+			if( Math.RandomLong(0, 2) == 0 )
+				g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_WEAPON, cnpc_islave::pPainSounds[Math.RandomLong(0,(cnpc_islave::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(85, 110) ); //TODO cnpc_islave::m_iVoicePitch
+
+			break;
+		}
+
 		case CNPC_ZOMBIE:
 		{
 			// Take 30% damage from bullets
@@ -320,19 +358,9 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
-		case CNPC_HOUNDEYE:
+		case CNPC_BULLSQUID:
 		{
-			if( pDamageInfo.flDamage > 0 and pDamageInfo.pVictim.pev.deadflag == DEAD_NO )
-				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_houndeye::pPainSounds[Math.RandomLong(0,(cnpc_houndeye::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
-			
-			//flinch_small = 11, flinch_small2 = 12
-			break;
-		}
-
-		case CNPC_ISLAVE:
-		{
-			if( Math.RandomLong(0, 2) == 0 )
-				g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_WEAPON, cnpc_islave::pPainSounds[Math.RandomLong(0,(cnpc_islave::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(85, 110) ); //TODO cnpc_islave::m_iVoicePitch
+			g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_bullsquid::pPainSounds[Math.RandomLong(0,(cnpc_bullsquid::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(85, 120) );
 
 			break;
 		}
@@ -350,17 +378,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
-		case CNPC_ICKY:
-		{
-			if( pDamageInfo.flDamage > 0 and pDamageInfo.pVictim.pev.deadflag == DEAD_NO )
-				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_icky::pPainSounds[Math.RandomLong(0,(cnpc_icky::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
-
-			//smflinch = 5, bgflinch = 6
-
-			break;
-		}
-
-		case CNPC_PITDRONE:
+		case CNPC_GONOME:
 		{
 			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
 				return HOOK_CONTINUE;
@@ -368,7 +386,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.6, 1.2);
 			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
 
-			g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_pitdrone::pPainSounds[Math.RandomLong(0,(cnpc_pitdrone::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, Math.RandomLong(85, 120) );
+			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_gonome::pPainSounds[Math.RandomLong(0,(cnpc_gonome::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 
 			break;
 		}
@@ -386,52 +404,12 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
-		case CNPC_GONOME:
+		case CNPC_ICKY:
 		{
-			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
-				return HOOK_CONTINUE;
+			if( pDamageInfo.flDamage > 0 and pDamageInfo.pVictim.pev.deadflag == DEAD_NO )
+				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_icky::pPainSounds[Math.RandomLong(0,(cnpc_icky::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 
-			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.6, 1.2);
-			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
-
-			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_gonome::pPainSounds[Math.RandomLong(0,(cnpc_gonome::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
-
-			break;
-		}
-
-		case CNPC_GARG:
-		{
-			if( cnpc_garg::CNPC_NPC_HITBOX )
-				return HOOK_CONTINUE;
-			else
-			{
-				if( (pDamageInfo.bitsDamageType & cnpc_garg::GARG_DAMAGE) == 0 )
-					pDamageInfo.flDamage *= 0.01;
-
-				if( pDamageInfo.bitsDamageType & (cnpc_garg::GARG_DAMAGE|DMG_BLAST) != 0 )
-				{
-					if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
-						return HOOK_CONTINUE;
-
-					float flNextPainTime = g_Engine.time + Math.RandomFloat(2.5, 4.0);
-					pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
-
-					g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_garg::pPainSounds[Math.RandomLong(0,(cnpc_garg::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
-				}
-			}
-
-			break;
-		}
-
-		case CNPC_BABYGARG:
-		{
-			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
-				return HOOK_CONTINUE;
-
-			float flNextPainTime = g_Engine.time + Math.RandomFloat(2.5, 4.0);
-			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
-
-			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_babygarg::pPainSounds[Math.RandomLong(0,(cnpc_babygarg::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+			//smflinch = 5, bgflinch = 6
 
 			break;
 		}
@@ -510,6 +488,43 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
+		case CNPC_BABYGARG:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + Math.RandomFloat(2.5, 4.0);
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_babygarg::pPainSounds[Math.RandomLong(0,(cnpc_babygarg::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+
+			break;
+		}
+
+		case CNPC_GARG:
+		{
+			if( cnpc_garg::CNPC_NPC_HITBOX )
+				return HOOK_CONTINUE;
+			else
+			{
+				if( (pDamageInfo.bitsDamageType & cnpc_garg::GARG_DAMAGE) == 0 )
+					pDamageInfo.flDamage *= 0.01;
+
+				if( pDamageInfo.bitsDamageType & (cnpc_garg::GARG_DAMAGE|DMG_BLAST) != 0 )
+				{
+					if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+						return HOOK_CONTINUE;
+
+					float flNextPainTime = g_Engine.time + Math.RandomFloat(2.5, 4.0);
+					pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+					g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_garg::pPainSounds[Math.RandomLong(0,(cnpc_garg::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+				}
+			}
+
+			break;
+		}
+
 		case CNPC_BIGMOMMA:
 		{
 			// Don't take any acid damage -- BigMomma's mortar is acid
@@ -530,6 +545,16 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 		}
 
 
+		case CNPC_GMAN:
+		{
+			pDamageInfo.flDamage = 0.0;
+			pDamageInfo.pVictim.pev.health = pDamageInfo.pVictim.pev.max_health / 2;
+
+			TraceResult tr = g_Utility.GetGlobalTrace();
+			g_Utility.Ricochet( tr.vecEndPos, 1.0 );
+
+			break;
+		}
 
 		case CNPC_HGRUNT:
 		{
@@ -624,6 +649,50 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
+		/*TODO, add berserk mode??
+		case CNPC_TURRET:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.6, 1.2);
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			//if (pev.health <= 10)
+			//{
+				//if (m_iOn && (1 || RANDOM_LONG(0, 0x7FFF) > 800))
+				//{
+					//m_fBeserk = 1;
+					//SetThink(&CBaseTurret::SearchThink);
+				//}
+			//}
+
+			break;
+		}*/
+
+		case CNPC_HWGRUNT:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + 1.0;
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			if( Math.RandomLong(0, 6) <= 4 )
+				g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_hwgrunt::pPainSounds[Math.RandomLong(0,(cnpc_hwgrunt::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, 95 + Math.RandomLong(0, 9) );
+
+			if( (pDamageInfo.bitsDamageType & DMG_BLAST) != 0 and pDamageInfo.flDamage > 50.0 and Math.RandomLong(0, 10) > 9 )
+			{
+				CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
+				cnpc_hwgrunt::weapon_hwgrunt@ pWeapon = cast<cnpc_hwgrunt::weapon_hwgrunt@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
+
+				if( pWeapon !is null and (pWeapon.m_iSpawnFlags & FL_DISABLEDROP) == 0 )
+					pWeapon.m_bShouldDropMinigun = true;
+			}
+
+			break;
+		}
+
 		case CNPC_HWRGRUNT:
 		{
 			if( pDamageInfo.flDamage < 0 or pDamageInfo.pVictim.pev.takedamage == DAMAGE_NO )
@@ -703,60 +772,8 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
-		case CNPC_HWGRUNT:
-		{
-			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
-				return HOOK_CONTINUE;
 
-			float flNextPainTime = g_Engine.time + 1.0;
-			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
 
-			if( Math.RandomLong(0, 6) <= 4 )
-				g_SoundSystem.EmitSoundDyn( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_hwgrunt::pPainSounds[Math.RandomLong(0,(cnpc_hwgrunt::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM, 0, 95 + Math.RandomLong(0, 9) );
-
-			if( (pDamageInfo.bitsDamageType & DMG_BLAST) != 0 and pDamageInfo.flDamage > 50.0 and Math.RandomLong(0, 10) > 9 )
-			{
-				CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
-				cnpc_hwgrunt::weapon_hwgrunt@ pWeapon = cast<cnpc_hwgrunt::weapon_hwgrunt@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
-
-				if( pWeapon !is null and (pWeapon.m_iSpawnFlags & FL_DISABLEDROP) == 0 )
-					pWeapon.m_bShouldDropMinigun = true;
-			}
-
-			break;
-		}
-
-		/*TODO, add berserk mode??
-		case CNPC_TURRET:
-		{
-			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
-				return HOOK_CONTINUE;
-
-			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.6, 1.2);
-			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
-
-			//if (pev.health <= 10)
-			//{
-				//if (m_iOn && (1 || RANDOM_LONG(0, 0x7FFF) > 800))
-				//{
-					//m_fBeserk = 1;
-					//SetThink(&CBaseTurret::SearchThink);
-				//}
-			//}
-
-			break;
-		}*/
-
-		case CNPC_GMAN:
-		{
-			pDamageInfo.flDamage = 0.0;
-			pDamageInfo.pVictim.pev.health = pDamageInfo.pVictim.pev.max_health / 2;
-
-			TraceResult tr = g_Utility.GetGlobalTrace();
-			g_Utility.Ricochet( tr.vecEndPos, 1.0 );
-
-			break;
-		}
 
 		case CNPC_SCIENTIST:
 		{
@@ -1129,4 +1146,6 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 	Flinch animations ??
 
 	Use the driveent as a targetable entity with the proper hitbox
+
+	use g_EngineFuncs.ChangeYaw(edict_t@ pEntity) for head-turners. This updates entvars_t::angles[ 1 ] to approach entvars_t::ideal_yaw, at entvars_t::yaw_speed degrees speed.
 */
