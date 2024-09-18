@@ -37,6 +37,8 @@
 
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/zombie.mdl") = info_cnpc_zombie : "Controllable Zombie" []
 
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/bullsquid.mdl") = info_cnpc_bullsquid : "Controllable Bullsquid" []
+
 @PointClass base(Mandatory, CNPC) size(-32 -32 0, 32 32 64) studio("models/agrunt.mdl") = info_cnpc_agrunt : "Controllable Alien Grunt" []
 
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/gonome.mdl") = info_cnpc_gonome : "Controllable Gonome" []
