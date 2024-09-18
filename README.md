@@ -91,6 +91,20 @@ Takes 30% less damage from bullets
 <BR>
 
 
+# Bullsquid #  
+`weapon_bullsquid` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_bullsquid` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Spit  
+Secondary Attack: Bite  
+Tertiary Attack: Toggle between first- and third-person view  
+Jump: Tail-whip  
+Duck: Sprint  
+
+
+<BR>
+
+
 # ALIEN GRUNT #  
 `weapon_agrunt` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_agrunt` - Usable entity that turns the player into the monster upon using. Mappers can place this  
