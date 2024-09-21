@@ -254,6 +254,22 @@ Stealth power replenishes when not in stealth
 <BR>
 
 
+# SENTRY #  
+`weapon_sentry` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_sentry` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Shoot  
+Secondary Attack: Deploy and retire  
+Tertiary Attack: Toggle between first- and third-person view  
+Duck: Rotates the turret when idle  
+Use: Exit turret  
+
+Turret replenishes ammo when retired  
+
+
+<BR>
+
+
 # MINI TURRET #  
 `weapon_mturret` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_mturret` - Usable entity that turns the player into the monster upon using. Mappers can place this  
