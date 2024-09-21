@@ -35,7 +35,8 @@ const int AMMO_MAX							= 240;
 const float AMMO_REGEN_RATE			= 0.1; //+1 per AMMO_REGEN_RATE seconds
 const Vector TURRET_SPREAD				= VECTOR_CONE_5DEGREES;//g_vecZero;
 const float TURRET_RANGE					= 1200.0;
-const float RANGE_DAMAGE				= 12.0;
+const float TURRET_DAMAGE				= 12.0;
+const float TURRET_MAXPITCH			= 65.0; //the turret can't be aimed lower than this
 
 //forced to use this because of some bug with the normal usage of ammo
 const int HUD_CHANNEL_AMMO			= 9; //0-15
@@ -101,7 +102,6 @@ enum states_e
 class weapon_turret : CBaseDriveWeapon
 {
 	private float m_flPingTime;
-	private float m_flDetectOffTime;
 
 	private int m_iBaseTurnRate; // angles per second
 	private float m_fTurnRate; // actual turn rate
@@ -173,7 +173,7 @@ class weapon_turret : CBaseDriveWeapon
 		Precache();
 
 		m_iState = STATE_IDLE_INACTIVE;
-		m_iBaseTurnRate = 30.0;
+		m_iBaseTurnRate = 30;
 		m_fTurnRate = 30.0;
 		m_iAmmoMax = AMMO_MAX;
 		m_iAmmoCurrent = AMMO_MAX;
@@ -404,6 +404,18 @@ class weapon_turret : CBaseDriveWeapon
 		{
 			Vector vecSrc;
 			Vector vecAngle = m_pPlayer.pev.v_angle;
+
+			if( m_iOrientation == 0 )
+			{
+				if( vecAngle.x > TURRET_MAXPITCH )
+					vecAngle.x = TURRET_MAXPITCH;
+			}
+			else
+			{
+				if( vecAngle.x < -TURRET_MAXPITCH )
+					vecAngle.x = -TURRET_MAXPITCH;
+			}
+
 			m_pDriveEnt.GetAttachment( 0, vecSrc, void );
 			Math.MakeVectors( vecAngle );
 			Shoot( vecSrc, g_Engine.v_forward );			
@@ -412,7 +424,7 @@ class weapon_turret : CBaseDriveWeapon
 
 	void Shoot( Vector &in vecSrc, Vector &in vecDir )
 	{
-		self.FireBullets( 1, vecSrc, vecDir, TURRET_SPREAD, TURRET_RANGE, BULLET_PLAYER_CUSTOMDAMAGE, 1, RANGE_DAMAGE, m_pPlayer.pev ); //BULLET_MONSTER_12MM
+		self.FireBullets( 1, vecSrc, vecDir, TURRET_SPREAD, TURRET_RANGE, BULLET_PLAYER_CUSTOMDAMAGE, 1, TURRET_DAMAGE, m_pPlayer.pev ); //BULLET_MONSTER_12MM
 		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, arrsTurretSounds[SND_SHOOT], VOL_NORM, 0.6 );
 		m_pDriveEnt.pev.effects |= EF_MUZZLEFLASH;
 
@@ -500,7 +512,6 @@ class weapon_turret : CBaseDriveWeapon
 			else if( m_flPingTime <= g_Engine.time )
 			{
 				m_flPingTime = g_Engine.time + 1.0;
-				m_flDetectOffTime = g_Engine.time + 0.8;
 				g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_ITEM, arrsTurretSounds[SND_PING], VOL_NORM, ATTN_NORM );
 
 				EyeOn();
@@ -581,32 +592,28 @@ class weapon_turret : CBaseDriveWeapon
 	{
 		if( m_iState == STATE_IDLE_ACTIVE or m_iState == STATE_FIRE )
 		{
+			float flPitch = m_pPlayer.pev.v_angle.x;
+
 			if( m_iOrientation == 0 )
 			{
-				if( m_pPlayer.pev.v_angle.x > 40.0 )
-				{
-					m_pPlayer.pev.angles.x = 40.0;
-					m_pPlayer.pev.fixangle = FAM_FORCEVIEWANGLES;
-				}
+				if( flPitch > TURRET_MAXPITCH )
+					flPitch = TURRET_MAXPITCH;
 			}
 			else
 			{
-				if( m_pPlayer.pev.v_angle.x < -40.0 )
-				{
-					m_pPlayer.pev.angles.x = -40.0;
-					m_pPlayer.pev.fixangle = FAM_FORCEVIEWANGLES;
-				}
+				if( flPitch < -TURRET_MAXPITCH )
+					flPitch = -TURRET_MAXPITCH;
 			}
 
 			if( m_iOrientation == 0 )
 			{
 				m_pDriveEnt.SetBoneController( 0, m_pPlayer.pev.v_angle.y - m_pDriveEnt.pev.angles.y );
-				m_pDriveEnt.SetBoneController( 1, m_pPlayer.pev.v_angle.x );
+				m_pDriveEnt.SetBoneController( 1, flPitch );
 			}
 			else
 			{
 				m_pDriveEnt.SetBoneController( 0, -(m_pPlayer.pev.v_angle.y - 180 - m_pDriveEnt.pev.angles.y) );
-				m_pDriveEnt.SetBoneController( 1, -m_pPlayer.pev.v_angle.x );
+				m_pDriveEnt.SetBoneController( 1, -flPitch );
 			}
 		}
 	}
@@ -784,7 +791,10 @@ class weapon_turret : CBaseDriveWeapon
 			vecOrigin = pev.origin + Vector( 0, 0, -19 );
 
 		if( bManual )
+		{
 			g_EntityFuncs.Remove( m_pDriveEnt );
+			m_pPlayer.pev.health = 100;
+		}
 		else
 		{
 			vecOrigin = m_vecExitOrigin;
@@ -938,6 +948,7 @@ class weapon_turret : CBaseDriveWeapon
 		m_pPlayer.pev.max_health = 100;
 		m_pPlayer.pev.movetype = MOVETYPE_WALK;
 		m_pPlayer.pev.flags &= ~(FL_NOTARGET|FL_GODMODE|FL_FLY);
+		m_pPlayer.pev.effects &= ~EF_NODRAW;
 
 		m_pPlayer.SetViewMode( ViewMode_FirstPerson );
 		m_pPlayer.SetMaxSpeedOverride( -1 );

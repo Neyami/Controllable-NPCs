@@ -221,7 +221,7 @@ class weapon_gman : CBaseDriveWeapon
 	{
 		m_pPlayer.pev.friction = 2; //no sliding!
 
-		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or GetState() == STATE_PHONE_USE ) return;
+		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or GetState(STATE_PHONE_USE) ) return;
 
 		SetSpeed( int(SPEED_WALK) );
 
@@ -350,6 +350,8 @@ class weapon_gman : CBaseDriveWeapon
 
 		ResetPlayer();
 
+		m_pPlayer.pev.health = 100;
+
 		Vector vecOrigin = pev.origin + Vector( 0, 0, 19 );
 
 		g_EntityFuncs.Remove( m_pDriveEnt );
@@ -359,7 +361,7 @@ class weapon_gman : CBaseDriveWeapon
 
 	void MoveHead()
 	{
-		if( GetState() == STATE_PHONE_USE )
+		if( GetState(STATE_PHONE_USE) )
 		{
 			m_pDriveEnt.pev.set_controller( 0,  127 ); //look straight ahead
 			return;

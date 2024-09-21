@@ -320,13 +320,13 @@ class weapon_bullsquid : CBaseDriveWeapon
 
 		if( m_pPlayer.pev.velocity.Length() <= 10.0 )
 		{
-			if( GetState() != STATE_IDLE )
+			if( !GetState(STATE_IDLE) )
 			{
 				SetSpeed( int(SPEED_RUN) );
 				SetState( STATE_IDLE );
 				SetAnim( ANIM_IDLE );
 			}
-			else if( GetState() == STATE_IDLE and CNPC_FIDGETANIMS )
+			else if( GetState(STATE_IDLE) and CNPC_FIDGETANIMS )
 			{
 				if( m_pDriveEnt.m_fSequenceFinished )
 					SetAnim( m_pDriveEnt.LookupActivity(ACT_IDLE) );

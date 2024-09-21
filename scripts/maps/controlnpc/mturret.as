@@ -23,7 +23,6 @@ const float CNPC_VOFS_FPV_OFF_CL	= 42.0;
 const float CNPC_VOFS_TPV_CL			= -48.0;
 const float CNPC_RESPAWNTIME			= 13.0; //from the point that the weapon is removed, not the turret itself
 const float CNPC_RESPAWNEXIT			= 5.0; //time until it can be used again after a player exits
-const float CNPC_MODEL_OFFSET		= 38.0; //sometimes the model floats above the ground
 
 const float CNPC_FIRERATE					= 0.05;
 const float CD_DEPLOY						= 1.0;
@@ -32,7 +31,8 @@ const int AMMO_MAX							= 140;
 const float AMMO_REGEN_RATE			= 0.1; //+1 per AMMO_REGEN_RATE seconds
 const Vector TURRET_SPREAD				= VECTOR_CONE_3DEGREES;//g_vecZero;
 const float TURRET_RANGE					= 1200.0;
-const float RANGE_DAMAGE				= 12.0;
+const float TURRET_DAMAGE				= 12.0;
+const float TURRET_MAXPITCH			= 65.0; //the turret can't be aimed lower than this
 
 //forced to use this because of some bug with the normal usage of ammo
 const int HUD_CHANNEL_AMMO			= 9; //0-15
@@ -95,14 +95,12 @@ enum states_e
 	STATE_IDLE_ACTIVE,
 	STATE_DEPLOYING,
 	STATE_RETIRING,
-	STATE_FIRE,
-	STATE_DEATH
+	STATE_FIRE
 };
 
 class weapon_mturret : CBaseDriveWeapon
 {
 	private float m_flPingTime;
-	private float m_flDetectOffTime;
 
 	private int m_iBaseTurnRate; // angles per second
 	private float m_fTurnRate; // actual turn rate
@@ -164,8 +162,8 @@ class weapon_mturret : CBaseDriveWeapon
 	{
 		Precache();
 
-		m_iState = STATE_IDLE_INACTIVE;
-		m_iBaseTurnRate = 30.0;
+		SetState( STATE_IDLE_INACTIVE );
+		m_iBaseTurnRate = 30;
 		m_fTurnRate = 30.0;
 		m_iAmmoMax = AMMO_MAX;
 		m_iAmmoCurrent = AMMO_MAX;
@@ -284,20 +282,20 @@ class weapon_mturret : CBaseDriveWeapon
 			return;
 		}
 
-		if( m_iState == STATE_IDLE_INACTIVE )
+		if( GetState(STATE_IDLE_INACTIVE) )
 		{
-			m_iState = STATE_DEPLOYING;
+			SetState( STATE_DEPLOYING );
 			SetAnim( ANIM_DEPLOY );
 			g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_BODY, arrsTurretSounds[SND_DEPLOY], 0.5, ATTN_NORM );
 		}
-		else if( m_iState == STATE_IDLE_ACTIVE )
+		else if( GetState(STATE_IDLE_ACTIVE) )
 		{
 			m_vecCurAngles = m_pPlayer.pev.v_angle;
 			m_vecGoalAngles.x = 0.0;
 			m_vecGoalAngles.y = m_flStartYaw;
-			m_iState = STATE_RETIRING;
+			SetState( STATE_RETIRING );
 
-			SetTurretAnim( ANIM_RETIRE );
+			SetAnim( ANIM_RETIRE, -1.0, 255 );
 			g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_ITEM, arrsTurretSounds[SND_SPINDOWN], 0.5, ATTN_NORM );
 			g_SoundSystem.EmitSoundDyn( m_pDriveEnt.edict(), CHAN_BODY, arrsTurretSounds[SND_DEPLOY], 0.5, ATTN_NORM, 0, 120 );
 
@@ -319,7 +317,7 @@ class weapon_mturret : CBaseDriveWeapon
 		{
 			m_pPlayer.SetViewMode( ViewMode_FirstPerson );
 
-			if( m_iState == STATE_IDLE_INACTIVE )
+			if( GetState(STATE_IDLE_INACTIVE) )
 				m_pPlayer.pev.view_ofs = Vector( 0, 0, m_iOrientation == 0 ? CNPC_VOFS_FPV_OFF : CNPC_VOFS_FPV_OFF_CL );
 			else
 				m_pPlayer.pev.view_ofs = Vector( 0, 0, m_iOrientation == 0 ? CNPC_VOFS_FPV_ON : CNPC_VOFS_FPV_ON_CL );
@@ -350,7 +348,7 @@ class weapon_mturret : CBaseDriveWeapon
 			if( m_pDriveEnt.pev.sequence == ANIM_DEPLOY and m_pDriveEnt.m_fSequenceFinished )
 			{
 				SetAnim( ANIM_SPIN );
-				m_iState = STATE_IDLE_ACTIVE;
+				SetState( STATE_IDLE_ACTIVE );
 				g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_BODY, arrsTurretSounds[SND_SPINUP], 0.5, ATTN_NORM );
 				g_EntityFuncs.SetSize( m_pDriveEnt.pev, CNPC_SIZEMIN_ON, CNPC_SIZEMAX_ON );
 
@@ -362,7 +360,7 @@ class weapon_mturret : CBaseDriveWeapon
 			else if( m_pDriveEnt.pev.sequence == ANIM_RETIRE and m_pDriveEnt.m_fSequenceFinished )
 			{
 				SetAnim( ANIM_IDLE_OFF );
-				m_iState = STATE_IDLE_INACTIVE;
+				SetState( STATE_IDLE_INACTIVE );
 				g_EntityFuncs.SetSize( m_pDriveEnt.pev, CNPC_SIZEMIN_OFF, CNPC_SIZEMAX_OFF );
 
 				if( CNPC_FIRSTPERSON )
@@ -370,7 +368,7 @@ class weapon_mturret : CBaseDriveWeapon
 				else
 					m_pPlayer.pev.view_ofs = Vector( 0, 0, m_iOrientation == 0 ? CNPC_VOFS_TPV : CNPC_VOFS_TPV_CL );
 			}
-			else if( m_iState == STATE_FIRE and ((m_pPlayer.pev.button & IN_ATTACK) == 0 or m_iAmmoCurrent <= 0) )
+			else if( GetState(STATE_FIRE) and ((m_pPlayer.pev.button & IN_ATTACK) == 0 or m_iAmmoCurrent <= 0) )
 				DoIdleAnimation();
 
 			DoPing();
@@ -385,15 +383,27 @@ class weapon_mturret : CBaseDriveWeapon
 
 	void DoGun()
 	{
-		if( m_iState == STATE_IDLE_ACTIVE )
+		if( GetState(STATE_IDLE_ACTIVE) )
 		{
-			m_iState = STATE_FIRE;
+			SetState( STATE_FIRE );
 			SetAnim( ANIM_FIRE );
 		}
-		else if( m_iState == STATE_FIRE )
+		else if( GetState(STATE_FIRE) )
 		{
 			Vector vecSrc;
 			Vector vecAngle = m_pPlayer.pev.v_angle;
+
+			if( m_iOrientation == 0 )
+			{
+				if( vecAngle.x > TURRET_MAXPITCH )
+					vecAngle.x = TURRET_MAXPITCH;
+			}
+			else
+			{
+				if( vecAngle.x < -TURRET_MAXPITCH )
+					vecAngle.x = -TURRET_MAXPITCH;
+			}
+
 			m_pDriveEnt.GetAttachment( 0, vecSrc, void );
 			Math.MakeVectors( vecAngle );
 			Shoot( vecSrc, g_Engine.v_forward );			
@@ -402,7 +412,7 @@ class weapon_mturret : CBaseDriveWeapon
 
 	void Shoot( Vector &in vecSrc, Vector &in vecDir )
 	{
-		self.FireBullets( 1, vecSrc, vecDir, TURRET_SPREAD, TURRET_RANGE, BULLET_PLAYER_CUSTOMDAMAGE, 1, RANGE_DAMAGE, m_pPlayer.pev ); //BULLET_MONSTER_9MM
+		self.FireBullets( 1, vecSrc, vecDir, TURRET_SPREAD, TURRET_RANGE, BULLET_PLAYER_CUSTOMDAMAGE, 1, TURRET_DAMAGE, m_pPlayer.pev ); //BULLET_MONSTER_9MM
 		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, arrsTurretSounds[Math.RandomLong(SND_SHOOT1, SND_SHOOT3)], VOL_NORM, ATTN_NORM );
 		m_pDriveEnt.pev.effects |= EF_MUZZLEFLASH;
 
@@ -412,7 +422,7 @@ class weapon_mturret : CBaseDriveWeapon
 
 	void DoAmmoRegen()
 	{
-		if( m_iState == STATE_IDLE_INACTIVE and m_iAmmoCurrent < m_iAmmoMax )
+		if( GetState(STATE_IDLE_INACTIVE) and m_iAmmoCurrent < m_iAmmoMax )
 		{
 			if( m_flNextAmmoRegen < g_Engine.time )
 			{
@@ -428,7 +438,7 @@ class weapon_mturret : CBaseDriveWeapon
 	{
 		if( !BLOCK_PLAYER_AIMING ) return;
 
-		if( m_iState == STATE_IDLE_INACTIVE or m_iState == STATE_DEPLOYING or m_iState == STATE_RETIRING )
+		if( GetState(STATE_IDLE_INACTIVE) or GetState(STATE_DEPLOYING) or GetState(STATE_RETIRING) )
 		{
 			m_pPlayer.pev.angles = m_pDriveEnt.pev.angles;
 			m_pPlayer.pev.fixangle = FAM_FORCEVIEWANGLES;
@@ -483,14 +493,13 @@ class weapon_mturret : CBaseDriveWeapon
 
 	void DoPing()
 	{
-		if( m_iState == STATE_IDLE_ACTIVE )
+		if( GetState(STATE_IDLE_ACTIVE) )
 		{
 			if( m_flPingTime == 0 )
 				m_flPingTime = g_Engine.time + 1.0;
 			else if( m_flPingTime <= g_Engine.time )
 			{
 				m_flPingTime = g_Engine.time + 1.0;
-				m_flDetectOffTime = g_Engine.time + 0.8;
 				g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_ITEM, arrsTurretSounds[SND_PING], VOL_NORM, ATTN_NORM );
 			}
 		}
@@ -498,34 +507,30 @@ class weapon_mturret : CBaseDriveWeapon
 
 	void MoveTurret()
 	{
-		if( m_iState == STATE_IDLE_ACTIVE or m_iState == STATE_FIRE )
+		if( GetState(STATE_IDLE_ACTIVE) or GetState(STATE_FIRE) )
 		{
+			float flPitch = m_pPlayer.pev.v_angle.x;
+
 			if( m_iOrientation == 0 )
 			{
-				if( m_pPlayer.pev.v_angle.x > 40.0 )
-				{
-					m_pPlayer.pev.angles.x = 40.0;
-					m_pPlayer.pev.fixangle = FAM_FORCEVIEWANGLES;
-				}
+				if( flPitch > TURRET_MAXPITCH )
+					flPitch = TURRET_MAXPITCH;
 			}
 			else
 			{
-				if( m_pPlayer.pev.v_angle.x < -40.0 )
-				{
-					m_pPlayer.pev.angles.x = -40.0;
-					m_pPlayer.pev.fixangle = FAM_FORCEVIEWANGLES;
-				}
+				if( flPitch < -TURRET_MAXPITCH )
+					flPitch = -TURRET_MAXPITCH;
 			}
 
 			if( m_iOrientation == 0 )
 			{
 				m_pDriveEnt.SetBoneController( 0, m_pPlayer.pev.v_angle.y - m_pDriveEnt.pev.angles.y );
-				m_pDriveEnt.SetBoneController( 1, m_pPlayer.pev.v_angle.x );
+				m_pDriveEnt.SetBoneController( 1, flPitch );
 			}
 			else
 			{
 				m_pDriveEnt.SetBoneController( 0, -(m_pPlayer.pev.v_angle.y - 180 - m_pDriveEnt.pev.angles.y) );
-				m_pDriveEnt.SetBoneController( 1, -m_pPlayer.pev.v_angle.x );
+				m_pDriveEnt.SetBoneController( 1, -flPitch );
 			}
 		}
 	}
@@ -534,7 +539,7 @@ class weapon_mturret : CBaseDriveWeapon
 	{
 		pev.nextthink = g_Engine.time + 0.1;
 
-		if( m_iState == STATE_RETIRING )
+		if( GetState(STATE_RETIRING) )
 		{
 			bool state = false;
 
@@ -615,54 +620,9 @@ class weapon_mturret : CBaseDriveWeapon
 			SetThink( null );
 	}
 
-	void SetTurretAnim( int anim )
-	{
-		if( m_pDriveEnt.pev.sequence != anim )
-		{
-			switch( anim )
-			{
-				case ANIM_FIRE:
-				case ANIM_SPIN:
-				{
-					if( m_pDriveEnt.pev.sequence != ANIM_FIRE and m_pDriveEnt.pev.sequence != ANIM_SPIN )
-						pev.frame = 0;
-
-					break;
-				}
-
-				default:
-				{
-					pev.frame = 0;
-					break;
-				}
-			}
-
-			m_pDriveEnt.pev.sequence = anim;
-			m_pDriveEnt.ResetSequenceInfo();
-
-			switch( anim )
-			{
-				case ANIM_RETIRE:
-				{
-					m_pDriveEnt.pev.frame			= 255;
-					m_pDriveEnt.pev.framerate		= -1.0;
-					break;
-				}
-
-				case ANIM_DIE:
-				{
-					m_pDriveEnt.pev.framerate		= 1.0;
-					break;
-				}
-			}
-		}
-	}
-
 	void DoIdleAnimation()
 	{
-		if( m_pDriveEnt is null ) return;
-
-		m_iState = STATE_IDLE_ACTIVE;
+		SetState( STATE_IDLE_ACTIVE );
 		SetAnim( ANIM_SPIN );
 	}
 
@@ -703,7 +663,10 @@ class weapon_mturret : CBaseDriveWeapon
 			vecOrigin = pev.origin + Vector( 0, 0, -19 );
 
 		if( bManual )
+		{
 			g_EntityFuncs.Remove( m_pDriveEnt );
+			m_pPlayer.pev.health = 100;
+		}
 		else
 		{
 			vecOrigin = m_vecExitOrigin;
@@ -848,9 +811,10 @@ class weapon_mturret : CBaseDriveWeapon
 		m_pPlayer.pev.max_health = 100;
 		m_pPlayer.pev.movetype = MOVETYPE_WALK;
 		m_pPlayer.pev.flags &= ~(FL_NOTARGET|FL_GODMODE|FL_FLY);
+		m_pPlayer.pev.effects &= ~EF_NODRAW;
 
 		m_pPlayer.SetViewMode( ViewMode_FirstPerson );
-		m_pPlayer.SetMaxSpeedOverride( -1 );
+		SetSpeed( -1 );
 
 		NetworkMessage m1( MSG_ONE, NetworkMessages::SVC_STUFFTEXT, m_pPlayer.edict() );
 			m1.WriteString( "cam_idealdist 64\n" );
@@ -1076,7 +1040,7 @@ class cnpc_mturret : ScriptBaseMonsterEntity
 			else 
 				g_SoundSystem.EmitSound( self.edict(), CHAN_BODY, pDieSounds[2], VOL_NORM, ATTN_NORM );
 
-			//g_SoundSystem.EmitSoundDyn( self.edict(), CHAN_STATIC, arrsTurretSounds[SND_ACTIVE], 0, 0, SND_STOP,100 );
+			//g_SoundSystem.EmitSoundDyn( self.edict(), CHAN_STATIC, arrsTurretSounds[SND_ACTIVE], 0, 0, SND_STOP, 100 );
 
 			/*if( m_iOrientation == 0 )
 				m_vecGoalAngles.x = -15;
@@ -1096,8 +1060,8 @@ class cnpc_mturret : ScriptBaseMonsterEntity
 				m1.WriteCoord( Math.RandomFloat(pev.absmin.y, pev.absmax.y) );
 				m1.WriteCoord( pev.origin.z - m_iOrientation * 64 );
 				m1.WriteShort( g_EngineFuncs.ModelIndex(TURRET_SMOKE_SPRITE) );
-				m1.WriteByte( 25 ); // scale * 10
-				m1.WriteByte( 10 - m_iOrientation * 5 ); // framerate
+				m1.WriteByte( 25 );
+				m1.WriteByte( 10 - m_iOrientation * 5 );
 			m1.End(); 
 		}
 		
@@ -1280,7 +1244,7 @@ class info_cnpc_mturret : ScriptBaseAnimating
 		}
 	}
 
-	void UseCNPC( CBaseEntity@ pActivator, CBaseEntity@ pCaller, USE_TYPE useType, float flValue  ) 
+	void UseCNPC( CBaseEntity@ pActivator, CBaseEntity@ pCaller, USE_TYPE useType, float flValue )
 	{
 		if( !m_bActive or !pActivator.pev.FlagBitSet(FL_CLIENT) ) return;
 		if( m_iOrientation == 0 and !pActivator.pev.FlagBitSet(FL_ONGROUND) ) return;

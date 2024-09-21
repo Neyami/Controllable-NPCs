@@ -255,14 +255,18 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		return m_iState;
 	}
 
+	bool GetState( int iState )
+	{
+		return m_iState == iState;
+	}
+
 	void SetAnim( int iAnim, float flFrameRate = 1.0, float flFrame = 0.0 )
 	{
 		if( m_pDriveEnt !is null )
 		{
 			m_pDriveEnt.pev.sequence = iAnim;
-			m_pDriveEnt.pev.frame = flFrame;
-
 			m_pDriveEnt.ResetSequenceInfo();
+			m_pDriveEnt.pev.frame = flFrame;
 			m_pDriveEnt.pev.framerate = flFrameRate;
 			m_uiAnimationState = 0;
 		}

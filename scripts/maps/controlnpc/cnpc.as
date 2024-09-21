@@ -16,6 +16,7 @@
 
 #include "gman"
 #include "fassn"
+#include "sentry"
 #include "mturret"
 #include "hgrunt"
 #include "rgrunt"
@@ -53,6 +54,7 @@ void MapInit()
 
 	cnpc_gman::Register();
 	cnpc_fassn::Register();
+	cnpc_sentry::Register();
 	cnpc_mturret::Register();
 	cnpc_hgrunt::Register();
 	cnpc_rgrunt::Register();
@@ -128,20 +130,22 @@ const int GMAN_SLOT					= 3;
 const int GMAN_POSITION			= 10;
 const int FASSN_SLOT				= 3;
 const int FASSN_POSITION			= 11;
+const int SENTRY_SLOT				= 3;
+const int SENTRY_POSITION		= 12;
 const int MTURRET_SLOT			= 3;
-const int MTURRET_POSITION		= 12;
+const int MTURRET_POSITION		= 13;
 const int HGRUNT_SLOT				= 3;
-const int HGRUNT_POSITION		= 13;
+const int HGRUNT_POSITION		= 14;
 const int RGRUNT_SLOT				= 3;
-const int RGRUNT_POSITION		= 14;
+const int RGRUNT_POSITION		= 15;
 const int TURRET_SLOT				= 3;
-const int TURRET_POSITION		= 15;
+const int TURRET_POSITION		= 16;
 const int HWGRUNT_SLOT			= 3;
-const int HWGRUNT_POSITION	= 16;
+const int HWGRUNT_POSITION	= 17;
 const int HWRGRUNT_SLOT		= 3;
-const int HWRGRUNT_POSITION	= 17;
+const int HWRGRUNT_POSITION	= 18;
 const int APACHE_SLOT				= 3;
-const int APACHE_POSITION		= 18;
+const int APACHE_POSITION		= 19;
 
 //friendles
 const int SCIENTIST_SLOT			= 4;
@@ -197,6 +201,7 @@ const array<string> arrsCNPCWeapons =
 
 	"weapon_gman",
 	"weapon_fassn",
+	"weapon_sentry",
 	"weapon_mturret",
 	"weapon_hgrunt",
 	"weapon_rgrunt",
@@ -249,6 +254,7 @@ enum cnpc_e
 
 	CNPC_GMAN,
 	CNPC_FASSN,
+	CNPC_SENTRY,
 	CNPC_MTURRET,
 	CNPC_HGRUNT,
 	CNPC_RGRUNT,
@@ -1024,6 +1030,13 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 
 			return true;
 		}
+		else if( szKey == "noplayerdeath" )
+		{
+			if( atoi(szValue) > 0 )
+				m_iSpawnFlags |= CNPC::FL_NOPLAYERDEATH;
+
+			return true;
+		}
 		else
 			return BaseClass.KeyValue( szKey, szValue );
 	}
@@ -1053,7 +1066,7 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 
 	void DoSpecificStuff() {}
 
-	void Use( CBaseEntity@ pActivator, CBaseEntity@ pCaller, USE_TYPE useType, float flValue  )
+	void Use( CBaseEntity@ pActivator, CBaseEntity@ pCaller, USE_TYPE useType, float flValue )
 	{
 		if( !m_bActive or !pActivator.pev.FlagBitSet(FL_CLIENT) ) return;
 
@@ -1062,11 +1075,12 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 			CustomKeyvalues@ pCustom = pActivator.GetCustomKeyvalues();
 			if( pCustom.GetKeyvalue(CNPC::sCNPCKV).GetInteger() <= 0 )
 			{
+				Vector vecExitOrigin = pActivator.pev.origin;
+				Vector vecExitAngles = pActivator.pev.angles;
 				Vector vecOrigin = pev.origin;
 				vecOrigin.z += m_flSpawnOffset;
 				g_EntityFuncs.SetOrigin( pActivator, vecOrigin );
-				pActivator.pev.angles = pev.angles;
-				pActivator.pev.fixangle = FAM_FORCEVIEWANGLES;
+
 				@m_pCNPCWeapon = g_EntityFuncs.Create( m_sWeaponName, pActivator.pev.origin, g_vecZero, true );
 				m_pCNPCWeapon.pev.spawnflags = SF_NORESPAWN | SF_CREATEDWEAPON;
 
@@ -1099,9 +1113,15 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 				m_bActive = false;
 
 				@m_RespawnThink = g_Scheduler.SetTimeout( @this, "RespawnThink", 0.0 );
+
+				SpecialUse( vecExitOrigin, vecExitAngles );
+				pActivator.pev.angles = pev.angles;
+				pActivator.pev.fixangle = FAM_FORCEVIEWANGLES;
 			}
 		}
 	}
+
+	void SpecialUse( Vector vecOrigin, Vector vecAngles ) {}
 
 	void RespawnThink()
 	{
