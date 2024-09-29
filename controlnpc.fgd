@@ -51,6 +51,8 @@
 
 @PointClass base(Mandatory, CNPC) size(-32 -32 0, 32 32 128) studio("models/babygarg.mdl") = info_cnpc_babygarg : "Controllable Baby Gargantua" []
 
+@PointClass base(Mandatory, CNPC, NoPlayerDeath) size(-32 -32 0, 32 32 64) studio("models/tentacle.mdl") = info_cnpc_tentacle : "Controllable Tentacle" []
+
 @PointClass base(Mandatory, CNPC, NoPlayerDeath) size(-32 -32 0, 32 32 128) studio("models/garg.mdl") = info_cnpc_garg : "Controllable Gargantua"
 
 @PointClass base(Mandatory, CNPC) size(-95 -95 0, 95 95 190) studio("models/big_mom.mdl") = info_cnpc_bigmomma : "Controllable Big Momma" []
@@ -62,6 +64,8 @@
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/gman.mdl") = info_cnpc_gman : "Controllable G-Man" []
 
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/hassassin.mdl") = info_cnpc_fassn : "Controllable Female Assassin" []
+
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/sentry.mdl") = info_cnpc_sentry : "Controllable Sentry Turret Gun" []
 
 @PointClass base(Mandatory, CNPC, NoPlayerDeath) size(-16 -16 -32, 16 16 32) studio("models/miniturret.mdl") = info_cnpc_mturret : "Controllable Mini Turret"
 [
