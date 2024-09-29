@@ -292,8 +292,8 @@ class weapon_kingpin : CBaseDriveWeapon
 		{
 			if( !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
 
-			m_iState = STATE_RANGE;
-			m_pPlayer.SetMaxSpeedOverride( 0 );
+			SetState( STATE_RANGE );
+			SetSpeed( 0 );
 			SetAnim( ANIM_RANGE );
 
 			self.m_flNextPrimaryAttack = g_Engine.time + CD_PRIMARY;

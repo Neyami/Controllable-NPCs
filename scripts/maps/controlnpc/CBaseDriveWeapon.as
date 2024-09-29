@@ -52,9 +52,13 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 			m_flFireRate = atof( szValue );
 			return true;
 		}
+		else if( CustomKeyValue(szKey, szValue) )
+			return true;
 		else
 			return BaseClass.KeyValue( szKey, szValue );
 	}
+
+	bool CustomKeyValue( const string& in szKey, const string& in szValue ) { return false; }
 
 	void DoIdleSound()
 	{
@@ -272,6 +276,19 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		}
 	}
 
+	int GetAnim()
+	{
+		return m_pDriveEnt.pev.sequence;
+	}
+
+	bool GetAnim( int iAnim )
+	{
+		if( m_pDriveEnt !is null )
+			return m_pDriveEnt.pev.sequence == iAnim;
+
+		return false;
+	}
+
 	int GetFrame( int iMaxFrames )
 	{
 		if( m_pDriveEnt is null ) return 0;
@@ -345,5 +362,53 @@ abstract class CBaseDriveEntity : ScriptBaseAnimating
 		}
 		else
 			return BaseClass.KeyValue( szKey, szValue );
+	}
+}
+
+abstract class CBaseDriveEntityHitbox : ScriptBaseMonsterEntity
+{
+	Vector m_vecExitOrigin, m_vecExitAngles; //for noplayerdeath
+
+	int m_iSpawnFlags;
+	float m_flCustomHealth;
+
+	protected CBasePlayer@ m_pOwner
+	{
+		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
+	}
+
+	EHandle m_hRenderEntity;
+	float m_flNextOriginUpdate; //hopefully fixes hacky movement on other players
+
+	bool KeyValue( const string& in szKey, const string& in szValue )
+	{
+		if( szKey == "m_iSpawnFlags" )
+		{
+			m_iSpawnFlags = atoi( szValue );
+			return true;
+		}
+		else if( szKey == "m_flCustomHealth" )
+		{
+			m_flCustomHealth = atof( szValue );
+			return true;
+		}
+		else
+			return BaseClass.KeyValue( szKey, szValue );
+	}
+
+	int Classify()
+	{
+		if( CNPC::PVP )
+		{
+			if( m_pOwner !is null and m_pOwner.IsConnected() )
+			{
+				if( m_pOwner.Classify() == CLASS_PLAYER )
+					return CLASS_PLAYER_ALLY;
+				else
+					return m_pOwner.Classify();
+			}
+		}
+
+		return CLASS_PLAYER_ALLY;
 	}
 }

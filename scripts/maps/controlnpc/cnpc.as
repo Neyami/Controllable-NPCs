@@ -11,6 +11,7 @@
 #include "icky"
 #include "kingpin"
 #include "babygarg"
+#include "tentacle"
 #include "garg"
 #include "bigmomma"
 
@@ -49,6 +50,7 @@ void MapInit()
 	cnpc_icky::Register();
 	cnpc_kingpin::Register();
 	cnpc_babygarg::Register();
+	cnpc_tentacle::Register();
 	cnpc_garg::Register();
 	cnpc_bigmomma::Register();
 
@@ -120,10 +122,12 @@ const int KINGPIN_POSITION		= 20;
 
 const int BABYGARG_SLOT			= 2;
 const int BABYGARG_POSITION	= 10;
+const int TENTACLE_SLOT			= 2;
+const int TENTACLE_POSITION	= 11;
 const int GARG_SLOT					= 2;
-const int GARG_POSITION			= 11;
+const int GARG_POSITION			= 12;
 const int BIGMOMMA_SLOT			= 2;
-const int BIGMOMMA_POSITION	= 12;
+const int BIGMOMMA_POSITION	= 13;
 
 //black mesa etc
 const int GMAN_SLOT					= 3;
@@ -196,6 +200,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_icky",
 	"weapon_kingpin",
 	"weapon_babygarg",
+	"weapon_tentacle",
 	"weapon_garg",
 	"weapon_bigmomma",
 
@@ -249,6 +254,7 @@ enum cnpc_e
 	CNPC_ICKY,
 	CNPC_KINGPIN,
 	CNPC_BABYGARG,
+	CNPC_TENTACLE,
 	CNPC_GARG,
 	CNPC_BIGMOMMA,
 
@@ -1037,9 +1043,13 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 
 			return true;
 		}
+		else if( CustomKeyValue(szKey, szValue) )
+			return true;
 		else
 			return BaseClass.KeyValue( szKey, szValue );
 	}
+
+	bool CustomKeyValue( const string& in szKey, const string& in szValue ) { return false; }
 
 	void Spawn()
 	{
