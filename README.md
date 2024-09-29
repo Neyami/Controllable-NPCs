@@ -91,7 +91,7 @@ Takes 30% less damage from bullets
 <BR>
 
 
-# Bullsquid #  
+# BULLSQUID #  
 `weapon_bullsquid` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_bullsquid` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
