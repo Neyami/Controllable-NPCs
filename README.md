@@ -190,6 +190,20 @@ Flamethrower ammo replenishes automatically.
 <BR>
 
 
+# TENTACLE #  
+`weapon_tentacle` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_tentacle` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Long range strike 
+Secondary Attack: Close range tap  
+Tertiary Attack: Toggle between first- and third-person view  
+Jump: Move up  
+Duck: Move down  
+
+
+<BR>
+
+
 # GARGANTUA #  
 `weapon_garg` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_garg` - Usable entity that turns the player into the monster upon using. Mappers can place this  
