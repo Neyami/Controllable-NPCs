@@ -612,7 +612,7 @@ class weapon_apache : CBaseDriveWeapon
 		Vector posBarrel, posGun;
 		m_pDriveEnt.GetAttachment( 0, posBarrel, void );
 		m_pDriveEnt.GetAttachment( 1, posGun, void );
-		Vector vecGun = (posBarrel - posGun).Normalize( );
+		Vector vecGun = (posBarrel - posGun).Normalize();
 
 		self.FireBullets( 1, posGun, vecGun, VECTOR_CONE_4DEGREES, 8192, BULLET_PLAYER_CUSTOMDAMAGE, 1, DAMAGE_GUN, m_pPlayer.pev );
 		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[SND_GUN], VOL_NORM, 0.3 );

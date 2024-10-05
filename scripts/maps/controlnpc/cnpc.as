@@ -1,3 +1,5 @@
+#include "quake2/cnpcq2"
+
 #include "CBaseDriveWeapon"
 #include "headcrab"
 #include "houndeye"
@@ -70,6 +72,8 @@ void MapInit()
 	cnpc_barney::Register();
 	cnpc_otis::Register();
 	cnpc_engineer::Register();
+
+	CNPC::Q2::MapInitCNPCQ2();
 }
 
 namespace CNPC
@@ -186,7 +190,7 @@ const array<string>arrsFlyingMobs =
 	"info_cnpc_icky"
 };
 
-const array<string> arrsCNPCWeapons =
+array<string> arrsCNPCWeapons =
 {
 	"weapon_headcrab",
 	"weapon_houndeye",
@@ -221,7 +225,7 @@ const array<string> arrsCNPCWeapons =
 	"weapon_engineer"
 };
 
-const array<string> arrsCNPCGibbable =
+array<string> arrsCNPCGibbable =
 {
 	"cnpc_zombie",
 	"cnpc_bullsquid",
@@ -272,7 +276,8 @@ enum cnpc_e
 	CNPC_SCIENTIST,
 	CNPC_BARNEY,
 	CNPC_OTIS,
-	CNPC_ENGINEER
+	CNPC_ENGINEER,
+	CNPC_LASTVANILLA
 };
 
 enum heads_e { HEAD_GLASSES = 0, HEAD_EINSTEIN = 1, HEAD_LUTHER = 2, HEAD_SLICK = 3 };

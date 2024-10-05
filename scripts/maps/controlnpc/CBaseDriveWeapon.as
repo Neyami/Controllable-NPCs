@@ -244,6 +244,11 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		return pFriendOwner.m_hActiveItem.GetEntity();
 	}
 
+	bool GetSpawnflags( int iSpawnflags )
+	{
+		return (m_iSpawnFlags & iSpawnflags) != 0;
+	}
+
 	void SetSpeed( int iSpeed )
 	{
 		m_pPlayer.SetMaxSpeedOverride( iSpeed );
@@ -311,6 +316,14 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		if( m_pDriveEnt is null ) return 0;
 
 		return float( (flFrame / flMaxFrames) * 255 );
+	}
+
+	void SetYaw( float flYaw )
+	{
+		if( m_pDriveEnt !is null )
+		{
+			m_pDriveEnt.pev.angles.y = flYaw;
+		}
 	}
 
 	bool IsBetween( float flValue, float flMin, float flMax )
