@@ -449,3 +449,17 @@ Secondary Attack: Aim
 Tertiary Attack: Toggle between first- and third-person view  
 Reload: Reload the weapon  
 Use: Plant the explosives in the sandstone map
+
+
+<BR>
+
+
+# QUAKE 2 TANK #  
+`weapon_q2tank` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_q2tank` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Fire the blaster, hold to sometimes fire more shots  
+Secondary Attack: Chaingun for close range  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: Rocket launcher, hold to sometimes fire more rockets  
+Jump: Victory pose that gibs corpses  
