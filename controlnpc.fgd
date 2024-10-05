@@ -193,3 +193,10 @@
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/otis.mdl") = info_cnpc_otis : "Controllable Otis" []
 
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/sandstone/engineer.mdl") = info_cnpc_engineer : "Controllable Sandstone Engineer" []
+
+
+
+
+
+//QUAKE 2
+@PointClass base(Mandatory, CNPC) size(-32 -32 0, 32 32 128) studio("models/quake2/monsters/tank/tank.mdl") = info_cnpc_q2tank : "Controllable Quake 2 Tank" []
