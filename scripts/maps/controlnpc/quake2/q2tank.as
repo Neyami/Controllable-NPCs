@@ -53,6 +53,7 @@ const array<string> arrsCNPCSounds =
 {
 	"ambience/particle_suck1.wav", //only here for the precache
 	"quake2/misc/udeath.wav",
+	"quake2/npcs/tank/sight1.wav",
 	"quake2/npcs/tank/tnkidle1.wav",
 	"quake2/npcs/tank/step.wav",
 	"quake2/npcs/tank/tnkdeth2.wav",
@@ -70,6 +71,7 @@ const array<string> arrsCNPCSounds =
 enum sound_e
 {
 	SND_GIB = 1,
+	SND_SIGHT,
 	SND_IDLE,
 	SND_STEP,
 	SND_THUD,
@@ -327,6 +329,11 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 					SetAnim( m_pDriveEnt.LookupActivity(ACT_IDLE) );
 			}
 		}
+	}
+
+	void AlertSound()
+	{
+		g_SoundSystem.EmitSound( self.edict(), CHAN_VOICE, arrsCNPCSounds[SND_SIGHT], VOL_NORM, ATTN_NORM );
 	}
 
 	void IdleSound()
@@ -620,6 +627,8 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 
 		CustomKeyvalues@ pCustom = m_pPlayer.GetCustomKeyvalues();
 		pCustom.SetKeyvalue( CNPC::sCNPCKV, CNPC::Q2::CNPC_Q2TANK );
+
+		AlertSound();
 	}
 
 	void DoFirstPersonView()
