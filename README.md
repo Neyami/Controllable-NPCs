@@ -454,6 +454,19 @@ Use: Plant the explosives in the sandstone map
 <BR>
 
 
+# QUAKE 2 GLADIATOR #  
+`weapon_q2gladiator` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_q2gladiator` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Melee attack  
+Secondary Attack: Railgun  
+Tertiary Attack: Toggle between first- and third-person view  
+Jump: Dance or something idk  
+
+
+<BR>
+
+
 # QUAKE 2 TANK #  
 `weapon_q2tank` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_q2tank` - Usable entity that turns the player into the monster upon using. Mappers can place this  
