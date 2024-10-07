@@ -1,0 +1,4 @@
+3
+weapon				640		controlnpc/ui_q2gladiator		0	170	0	45
+weapon_s			640		controlnpc/ui_q2gladiator_sel		0	170	0	45
+crosshair			640		crosshairs	48	0	24	24
