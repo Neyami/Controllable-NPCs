@@ -146,14 +146,6 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 		pLaser.pev.velocity = vecDir * flSpeed;
 		pLaser.pev.dmg = flDamage;
 		pLaser.pev.angles = Math.VecToAngles( vecDir.Normalize() );
-
-		/*fire_blaster (self, vecStart, vecDir, iDamage, flSpeed, effect, false);
-		   fire_blaster(edict_t *self, const vec3_t &start, const vec3_t &dir, int damage, int speed, effects_t effect, mod_t mod)
-
-		gi.WriteByte (svc_muzzleflash2);
-		gi.WriteShort (self - g_edicts);
-		gi.WriteByte (flashtype);
-		gi.multicast (vecStart, MULTICAST_PVS);*/
 	}
 
 	void monster_fire_rocket( Vector vecStart, Vector vecDir, float flDamage, int flSpeed )
@@ -162,25 +154,17 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 		pRocket.pev.velocity = vecDir * flSpeed;
 		pRocket.pev.dmg = flDamage;
 		pRocket.pev.angles = Math.VecToAngles( vecDir.Normalize() );
-
-		/*fire_rocket (self, start, vecDir, iDamage, flSpeed, iDamage+20, iDamage);
-	edict_t *fire_rocket(edict_t *self, const vec3_t &start, const vec3_t &dir, int damage, int speed, float damage_radius, int radius_damage)
-
-		gi.WriteByte (svc_muzzleflash2);
-		gi.WriteShort (self - g_edicts);
-		gi.WriteByte (flashtype);
-		gi.multicast (start, MULTICAST_PVS);*/
 	}
 
-	void monster_fire_railgun( Vector vecStart, Vector vecEnd, float flDamage )
+	void monster_fire_railgun( Vector vecStart, Vector vecDir, float flDamage )
 	{
-		/*TraceResult tr;
+		TraceResult tr;
 
-		vecEnd = vecStart + vecEnd * 8192;
+		Vector vecEnd = vecStart + vecDir * 8192;
 		Vector railstart = vecStart;
-		
-		edict_t@ ignore = self.edict();
-		
+
+		edict_t@ ignore = m_pPlayer.edict();
+
 		while( ignore !is null )
 		{
 			g_Utility.TraceLine( vecStart, vecEnd, dont_ignore_monsters, ignore, tr );
@@ -202,7 +186,7 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 			vecStart = tr.vecEndPos;
 		}
 
-		q2::CreateNPCRailbeam( railstart, tr.vecEndPos );
+		CreateRailbeam( railstart, tr.vecEndPos );
 
 		if( tr.pHit !is null )
 		{
@@ -228,7 +212,17 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 					railimpact.WriteByte( 12 );//decay
 				railimpact.End();
 			}
-		}*/
+		}
+	}
+
+	void CreateRailbeam( Vector vecStart, Vector vecEnd )
+	{
+		CBaseEntity@ cbeBeam = g_EntityFuncs.CreateEntity( "cnpcq2railbeam", null, false );
+		CNPC::Q2::cnpcq2railbeam@ pBeam = cast<CNPC::Q2::cnpcq2railbeam@>(CastToScriptClass(cbeBeam));
+		pBeam.m_vecStart = vecStart;
+		pBeam.m_vecEnd = vecEnd;
+		g_EntityFuncs.SetOrigin( pBeam.self, vecStart );
+		g_EntityFuncs.DispatchSpawn( pBeam.self.edict() );
 	}
 
 	bool GetSpawnflags( int iSpawnflags )
@@ -369,7 +363,7 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 	}
 
 	//More true to the original ??
-	void ThrowGib( int iCount, const string &in sGibName, float flDamage, int iType, bool bHead = false )
+	void ThrowGib( int iCount, const string &in sGibName, float flDamage, int iType = 0, bool bHead = false )
 	{
 		Vector vecOrigin = pev.origin;
 
@@ -404,12 +398,14 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 		pGib.LimitVelocity();
 
 		if( iType == BREAK_FLESH )
+		{
 			pGib.m_bloodColor = BLOOD_COLOR_RED;
+			pGib.m_cBloodDecals = 5;
+			pGib.m_material = matFlesh;
+			g_WeaponFuncs.SpawnBlood( pGib.pev.origin, BLOOD_COLOR_RED, 400 );
+		}
 		else
 			pGib.m_bloodColor = DONT_BLEED;
-
-		if( iType == BREAK_FLESH )
-			g_WeaponFuncs.SpawnBlood( pGib.pev.origin, BLOOD_COLOR_RED, 400 );
 	}
 
 	/*void ThrowGib( int iCount, const string &in sGibName, float flDamage, int iType, bool bHead = false )
@@ -448,14 +444,27 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 	{
 		Vector vec( Math.RandomFloat(-100, 100), Math.RandomFloat(-100, 100), Math.RandomFloat(200, 300) );
 
-		if( flDamage > -50 )
+		if( flDamage > 50 )
 			vec = vec * 0.7;
-		else if( flDamage > -200 )
+		else if( flDamage > 200 )
 			vec = vec * 2;
 		else
 			vec = vec * 10;
 
 		return vec;
+	}
+
+	bool GetFrame( int iMaxFrames, int iTargetFrame )
+	{
+		int iFrame = int( (pev.frame/255) * iMaxFrames );
+		if( IsBetween2(iFrame, Math.clamp(0, iMaxFrames, iTargetFrame-1), iTargetFrame+1) ) return true;
+ 
+		return false;
+	}
+
+	bool IsBetween2( float flValue, float flMin, float flMax )
+	{
+		return (flValue >= flMin and flValue <= flMax);
 	}
 }
 

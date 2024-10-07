@@ -1,6 +1,7 @@
 #include "CBaseDriveWeaponQ2"
 #include "cnpcq2entities"
 
+#include "q2gladiator"
 #include "q2tank"
 
 namespace CNPC
@@ -9,22 +10,27 @@ namespace CNPC
 namespace Q2
 {
 
-const int Q2TANK_SLOT			= 5;
-const int Q2TANK_POSITION	= 10;
+const int Q2GLADIATOR_SLOT			= 5;
+const int Q2GLADIATOR_POSITION	= 10;
+const int Q2TANK_SLOT					= 5;
+const int Q2TANK_POSITION			= 11;
 
 const array<string> arrsCNPCQ2Weapons =
 {
+	"weapon_q2gladiator",
 	"weapon_q2tank"
 };
 
 const array<string> arrsCNPCQ2Gibbable =
 {
+	"cnpc_q2gladiator",
 	"cnpc_q2tank"
 };
 
 enum cnpcq2_e
 {
-	CNPC_Q2TANK = CNPC::CNPC_LASTVANILLA + 1
+	CNPC_Q2GLADIATOR = CNPC::CNPC_LASTVANILLA + 1,
+	CNPC_Q2TANK
 };
 
 void MapInitCNPCQ2()
@@ -37,6 +43,7 @@ void MapInitCNPCQ2()
     for( uint i = 0; i < arrsCNPCQ2Gibbable.length(); i++ )
       arrsCNPCGibbable.insertLast( arrsCNPCQ2Gibbable[i] );
 
+	cnpc_q2gladiator::Register();
 	cnpc_q2tank::Register();
 }
 
@@ -59,6 +66,25 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 
 	switch( pCustom.GetKeyvalue(sCNPCKV).GetInteger() )
 	{
+		case CNPC_Q2GLADIATOR:
+		{
+			CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
+			cnpc_q2gladiator::weapon_q2gladiator@ pWeapon = cast<cnpc_q2gladiator::weapon_q2gladiator@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
+
+			if( pWeapon !is null and pWeapon.m_pDriveEnt !is null )
+				pWeapon.m_pDriveEnt.pev.dmg = pDamageInfo.flDamage;
+
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + 3.0;
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_q2gladiator::pPainSounds[Math.RandomLong(0,(cnpc_q2gladiator::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+
+			break;
+		}
+
 		case CNPC_Q2TANK:
 		{
 			CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
@@ -67,13 +93,13 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			if( pWeapon !is null and pWeapon.m_pDriveEnt !is null )
 				pWeapon.m_pDriveEnt.pev.dmg = pDamageInfo.flDamage;
 
-			/*if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
 				return HOOK_CONTINUE;
 
-			float flNextPainTime = g_Engine.time + Math.RandomFloat(0.6, 1.2);
+			float flNextPainTime = g_Engine.time + 3.0;
 			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
 
-			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_tank::pPainSounds[Math.RandomLong(0,(cnpc_tank::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );*/
+			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_q2tank::pPainSounds[Math.RandomLong(0,(cnpc_q2tank::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 
 			break;
 		}
@@ -89,5 +115,10 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 } //namespace CNPC END
 
 
+/* FIXME
+	Pain sounds get played at origin 0 0 0 for some reason
+*/
+
 /* TODO
+	Flinch animations
 */

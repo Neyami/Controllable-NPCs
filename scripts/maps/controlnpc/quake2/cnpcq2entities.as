@@ -296,6 +296,120 @@ class cnpcq2rocket : ScriptBaseEntity
 	}
 }
 
+class cnpcq2railbeam : ScriptBaseEntity
+{
+	Vector m_vecStart, m_vecEnd;
+	private int iBrightness;
+
+	protected EHandle m_hRailBeam;
+	protected CBeam@ m_pRailBeam
+	{
+		get const { return cast<CBeam@>(m_hRailBeam.GetEntity()); }
+		set { m_hRailBeam = EHandle(@value); }
+	}
+
+	protected EHandle m_hRailBeam2;
+	protected CBeam@ m_pRailBeam2
+	{
+		get const { return cast<CBeam@>(m_hRailBeam2.GetEntity()); }
+		set { m_hRailBeam2 = EHandle(@value); }
+	}
+
+	void Spawn()
+	{
+		Precache();
+		iBrightness = 255;
+		g_EntityFuncs.SetSize( self.pev, g_vecZero, g_vecZero );
+		pev.solid = SOLID_NOT;
+		pev.takedamage = DAMAGE_NO;
+		pev.movetype = MOVETYPE_NONE;
+
+		CreateBeams();
+	}
+
+	void Precache()
+	{
+		g_Game.PrecacheModel( "sprites/laserbeam.spr" );
+	}
+
+	void CreateBeams()
+	{
+		DestroyBeams();
+
+		@m_pRailBeam = g_EntityFuncs.CreateBeam( "sprites/laserbeam.spr", 50 );
+		m_pRailBeam.SetType( BEAM_POINTS );
+		m_pRailBeam.SetScrollRate( 50 );
+		m_pRailBeam.SetBrightness( 255 );
+		m_pRailBeam.SetColor( 255, 255, 255 );
+		m_pRailBeam.PointsInit( m_vecStart, m_vecEnd );
+
+		@m_pRailBeam2 = g_EntityFuncs.CreateBeam( "sprites/laserbeam.spr", 15 );
+		m_pRailBeam2.SetType( BEAM_POINTS );
+		m_pRailBeam2.SetFlags( BEAM_FSINE );
+		m_pRailBeam2.SetScrollRate( 50 );
+		m_pRailBeam2.SetNoise( 20 );
+		m_pRailBeam2.SetBrightness( 255 );
+		m_pRailBeam2.SetColor( 100, 100, 255 );
+		m_pRailBeam2.PointsInit( m_vecStart, m_vecEnd );
+
+		SetThink( ThinkFunction(this.FadeBeams) );
+		pev.nextthink = g_Engine.time + 0.1;
+	}
+
+	void DestroyBeams()
+	{
+		if( m_pRailBeam !is null )
+		{
+			g_EntityFuncs.Remove( m_pRailBeam );
+			@m_pRailBeam = null;
+		}
+
+		if( m_pRailBeam2 !is null )
+		{
+			g_EntityFuncs.Remove( m_pRailBeam2 );
+			@m_pRailBeam2 = null;
+		}
+	}
+
+	void FadeBeams()
+	{
+		if( m_pRailBeam !is null )
+			m_pRailBeam.SetBrightness( iBrightness );
+
+		if( m_pRailBeam2 !is null )
+			m_pRailBeam2.SetBrightness( iBrightness );
+
+		if( iBrightness > 7 )
+		{
+			iBrightness -= 7;
+			pev.nextthink = g_Engine.time + 0.01;
+		}
+		else 
+		{
+			iBrightness = 0;
+			pev.nextthink = g_Engine.time + 0.2;
+			SetThink( ThinkFunction(this.SUB_Remove) );
+		}
+	}
+
+	void SUB_Remove()
+	{
+		self.UpdateOnRemove();
+
+		if( pev.health > 0 )
+			pev.health = 0;
+
+		NetworkMessage killbeam( MSG_BROADCAST, NetworkMessages::SVC_TEMPENTITY, null );
+			killbeam.WriteByte(TE_KILLBEAM);
+			killbeam.WriteShort(self.entindex());
+		killbeam.End();
+
+		DestroyBeams();
+
+		g_EntityFuncs.Remove(self);
+	}
+}
+
 } //namespace Q2 END
 
 } //namespace CNPC END

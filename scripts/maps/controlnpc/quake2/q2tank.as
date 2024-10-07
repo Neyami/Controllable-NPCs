@@ -39,10 +39,10 @@ const float BLASTER_SPEED			= 800;
 const float ROCKET_DMG				= 50;
 const float ROCKET_SPEED				= 550;
 
-/*const array<string> pPainSounds = 
+const array<string> pPainSounds = 
 {
 	"quake2/npcs/tank/tnkpain2.wav"
-};*/
+};
 
 const array<string> pDieSounds = 
 {
@@ -150,8 +150,8 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 		for( uint i = 0; i < arrsCNPCSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( arrsCNPCSounds[i] );
 
-		//for( uint i = 0; i < pPainSounds.length(); i++ )
-			//g_SoundSystem.PrecacheSound( pPainSounds[i] );
+		for( uint i = 0; i < pPainSounds.length(); i++ )
+			g_SoundSystem.PrecacheSound( pPainSounds[i] );
 
 		for( uint i = 0; i < pDieSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( pDieSounds[i] );
@@ -746,7 +746,9 @@ class cnpc_q2tank : CBaseDriveEntityQ2
 
 		if( bGibbed )
 		{
+			g_SoundSystem.EmitSound( self.edict(), CHAN_BODY, arrsCNPCSounds[SND_GIB], VOL_NORM, ATTN_NORM );
 			SpawnGibs();
+
 			SetThink( ThinkFunction(this.SUB_Remove) );
 			pev.nextthink = g_Engine.time;
 
@@ -769,8 +771,6 @@ class cnpc_q2tank : CBaseDriveEntityQ2
 
 	void SpawnGibs()
 	{
-		g_SoundSystem.EmitSound( self.edict(), CHAN_BODY, arrsCNPCSounds[SND_GIB], VOL_NORM, ATTN_NORM );
-
 		ThrowGib( 1, MODEL_GIB_MEAT, pev.dmg, BREAK_FLESH );
 		ThrowGib( 3, MODEL_GIB_METAL, pev.dmg, BREAK_METAL );
 		ThrowGib( 1, MODEL_GIB_GEAR, pev.dmg, BREAK_METAL );
@@ -865,19 +865,6 @@ class cnpc_q2tank : CBaseDriveEntityQ2
 
 		g_EntityFuncs.Remove(self);
 	}
-
-	bool GetFrame( int iMaxFrames, int iTargetFrame )
-	{
-		int iFrame = int( (pev.frame/255) * iMaxFrames );
-		if( IsBetween2(iFrame, Math.clamp(0, iMaxFrames, iTargetFrame-1), iTargetFrame+1) ) return true;
- 
-		return false;
-	}
-
-	bool IsBetween2( float flValue, float flMin, float flMax )
-	{
-		return (flValue >= flMin and flValue <= flMax);
-	}
 }
 
 final class info_cnpc_q2tank : CNPCSpawnEntity
@@ -923,6 +910,5 @@ void Register()
 
 /* TODO
 	Use a think for the machinegun instead of HandleAnimEvent ??
-	NPC HITBOX
-	Pain sounds and flinching
+	NPC Hitbox
 */
