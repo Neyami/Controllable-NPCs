@@ -110,18 +110,23 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			break;
 		}
 
-		/*case CNPC_Q2SUPERTANK:
+		case CNPC_Q2SUPERTANK:
 		{
-			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+			if( cnpc_q2supertank::CNPC_NPC_HITBOX )
 				return HOOK_CONTINUE;
+			else
+			{
+				if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+					return HOOK_CONTINUE;
 
-			float flNextPainTime = g_Engine.time + 3.0;
-			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+				float flNextPainTime = g_Engine.time + 3.0;
+				pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
 
-			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_q2supertank::pPainSounds[Math.RandomLong(0,(cnpc_q2supertank::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_q2supertank::pPainSounds[Math.RandomLong(0,(cnpc_q2supertank::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 
-			break;
-		}*/
+				break;
+			}
+		}
 
 		default: break;
 	}
