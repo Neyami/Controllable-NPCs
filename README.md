@@ -476,3 +476,16 @@ Secondary Attack: Chaingun for close range
 Tertiary Attack: Toggle between first- and third-person view  
 Reload: Rocket launcher, hold to sometimes fire more rockets  
 Jump: Victory pose that gibs corpses  
+
+
+<BR>
+
+
+# QUAKE 2 SUPER TANK #  
+`weapon_q2supertank` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_q2supertank` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Rocket launcher  
+Secondary Attack: Chaingun  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: Fire grenades  
