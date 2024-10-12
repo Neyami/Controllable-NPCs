@@ -4,6 +4,8 @@ namespace CNPC
 namespace Q2
 {
 
+const string GRENADE_MODEL = "models/quake2/grenade1_hd.mdl";
+
 const array<string> pExplosionSprites = 
 {
 	"sprites/exp_a.spr",
@@ -29,7 +31,8 @@ class cnpcq2laser : ScriptBaseEntity
 		g_EntityFuncs.SetSize( self.pev, g_vecZero, g_vecZero );
 		g_EntityFuncs.SetOrigin( self, pev.origin );
 
-		pev.movetype = MOVETYPE_FLYMISSILE;
+		//pev.movetype = MOVETYPE_FLYMISSILE;
+		pev.movetype = MOVETYPE_FLY;
 		pev.solid = SOLID_BBOX;
 		pev.effects |= EF_DIMLIGHT;
 		pev.scale = 0.9;
@@ -173,14 +176,14 @@ class cnpcq2rocket : ScriptBaseEntity
 		Precache();
 
 		g_EntityFuncs.SetModel( self, "models/quake2/rocket.mdl" );
-		g_EntityFuncs.SetSize( self.pev, Vector(-1, -1, -1), Vector(1, 1, 1) );
+		g_EntityFuncs.SetSize( self.pev, g_vecZero, g_vecZero );
 		g_EntityFuncs.SetOrigin( self, pev.origin );
 		g_SoundSystem.EmitSound( self.edict(), CHAN_VOICE, "quake2/weapons/rocket_fly.wav", 1, ATTN_NORM );
-		//pev.nextthink = g_Engine.time + 0.05;
-		pev.movetype = MOVETYPE_FLYMISSILE;
+		pev.movetype = MOVETYPE_FLY;
+		
 		pev.solid = SOLID_BBOX;
 		pev.effects |= EF_DIMLIGHT;
-		//SetThink( ThinkFunction(Ignite) );
+
 		Glow();
 	}
 
@@ -204,31 +207,6 @@ class cnpcq2rocket : ScriptBaseEntity
 		m_pGlow.SetScale( 0.3 );
 		m_pGlow.SetAttachment( self.edict(), 1 );
 	}
-	
-	void Ignite()
-	{
-		g_SoundSystem.EmitSound( self.edict(), CHAN_VOICE, "quake2/weapons/rocket_fly.wav", 1, ATTN_NORM );
-		SetThink( ThinkFunction(this.FlyThink) );
-		self.pev.nextthink = g_Engine.time;
-	}
-
-	void FlyThink()
-	{
-		NetworkMessage m1( MSG_PVS, NetworkMessages::SVC_TEMPENTITY );
-			m1.WriteByte( TE_DLIGHT );
-			m1.WriteCoord( pev.origin.x );
-			m1.WriteCoord( pev.origin.y );
-			m1.WriteCoord( pev.origin.z );
-			m1.WriteByte( 16 );//radius
-			m1.WriteByte( 100 );
-			m1.WriteByte( 50 );
-			m1.WriteByte( 0 );
-			m1.WriteByte( 4 );//life
-			m1.WriteByte( 128 );//decay
-		m1.End();
-		
-		pev.nextthink = g_Engine.time;
-	}
 
 	void Touch( CBaseEntity@ pOther )
 	{
@@ -241,7 +219,7 @@ class cnpcq2rocket : ScriptBaseEntity
 			return;
 		}
 
-		if( pOther.edict() is pev.owner )
+		if( pOther.edict() is pev.owner or (pOther.GetClassname().StartsWith("cnpc_") and pOther.pev.owner is pev.owner) )
 			return;
 
 		if( pOther !is null )
@@ -293,6 +271,97 @@ class cnpcq2rocket : ScriptBaseEntity
 		g_SoundSystem.StopSound( self.edict(), CHAN_VOICE, "quake2/weapons/rocket_fly.wav" );
 		g_EntityFuncs.Remove( self );
 		g_EntityFuncs.Remove( m_pGlow );
+	}
+}
+
+class cnpcq2grenade : ScriptBaseEntity
+{
+	void Spawn()
+	{
+		Precache();
+
+		g_EntityFuncs.SetModel( self, GRENADE_MODEL );
+		g_EntityFuncs.SetSize( self.pev, Vector(-0.5, -0.5, -0.5), Vector(0.5, 0.5, 0.5) );
+		g_EntityFuncs.SetOrigin( self, self.pev.origin );
+
+		pev.movetype = MOVETYPE_TOSS;
+		pev.solid = SOLID_BBOX;
+		pev.avelocity = Vector( 300, 300, 300 );
+
+		SetThink( ThinkFunction(Explode) );
+		pev.nextthink = g_Engine.time + 2.5;
+	}
+
+	void Precache()
+	{
+		g_Game.PrecacheModel( GRENADE_MODEL );
+		g_Game.PrecacheModel( "sprites/WXplo1.spr" );
+
+		for( uint i = 0; i < pExplosionSprites.length(); ++i )
+			g_Game.PrecacheModel( pExplosionSprites[i] );
+
+		g_SoundSystem.PrecacheSound( "quake2/weapons/grenlx1a.wav" );
+		g_SoundSystem.PrecacheSound( "quake2/weapons/grenlb1b.wav" );
+	}
+
+	void Touch( CBaseEntity@ pOther )
+	{
+		if( pOther is null or pOther.IsBSPModel() or pOther.edict() is pev.owner or (pOther.GetClassname().StartsWith("cnpc_") and pOther.pev.owner is pev.owner) )
+		{
+			if( pev.velocity.Length() > 15.0 )
+				g_SoundSystem.EmitSound( self.edict(), CHAN_AUTO, "quake2/weapons/grenlb1b.wav", 1, ATTN_NORM );
+			else
+			{
+				pev.angles.x = 0;
+				pev.avelocity = g_vecZero;
+			}
+
+			pev.velocity = pev.velocity * 0.5;
+
+			return;
+		}
+
+		Explode();
+	}
+
+	void Explode()
+	{
+		NetworkMessage m1( MSG_BROADCAST, NetworkMessages::SVC_TEMPENTITY );
+			m1.WriteByte( TE_EXPLOSION );
+			m1.WriteCoord( pev.origin.x );
+			m1.WriteCoord( pev.origin.y );
+			m1.WriteCoord( pev.origin.z );
+
+			if( g_EngineFuncs.PointContents(pev.origin) == CONTENTS_WATER )
+				m1.WriteShort( g_Game.PrecacheModel("sprites/WXplo1.spr") );
+			else
+				m1.WriteShort( g_Game.PrecacheModel(pExplosionSprites[Math.RandomLong(0, pExplosionSprites.length() - 1)]) );
+
+			m1.WriteByte( 30 );//scale
+			m1.WriteByte( 30 );//framerate
+			m1.WriteByte( TE_EXPLFLAG_NOSOUND | TE_EXPLFLAG_NOPARTICLES );
+		m1.End();
+
+		TraceResult tr;
+		Vector vecSpot, vecEnd;
+
+		g_SoundSystem.EmitSound( self.edict(), CHAN_AUTO, "quake2/weapons/grenlx1a.wav", 1, ATTN_NORM );
+		g_Utility.TraceLine( pev.origin, pev.origin + Vector( 0, 0, -32 ),  ignore_monsters, self.edict(), tr );
+		g_Utility.DecalTrace( tr, DECAL_SCORCH1 + Math.RandomLong(0,1) );
+
+		GetSoundEntInstance().InsertSound( bits_SOUND_COMBAT, pev.origin, NORMAL_EXPLOSION_VOLUME, 3.0, self );
+
+		entvars_t@ pevOwner;
+		if( pev.owner !is null )
+			@pevOwner = pev.owner.vars;
+		else
+			@pevOwner = null;
+
+		@pev.owner = null;
+
+		g_WeaponFuncs.RadiusDamage( pev.origin, pevOwner, pevOwner, pev.dmg, pev.dmg * 2.5, CLASS_NONE, DMG_BLAST );
+
+		g_EntityFuncs.Remove( self );
 	}
 }
 

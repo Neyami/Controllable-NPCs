@@ -53,6 +53,7 @@ const array<string> arrsCNPCSounds =
 	"ambience/particle_suck1.wav", //only here for the precache
 	"quake2/misc/udeath.wav",
 	"quake2/npcs/gladiator/gldidle1.wav",
+	"quake2/npcs/gladiator/gldsrch1.wav",
 	"quake2/npcs/gladiator/sight.wav",
 	"quake2/npcs/gladiator/melee1.wav",
 	"quake2/npcs/gladiator/melee2.wav",
@@ -64,6 +65,7 @@ enum sound_e
 {
 	SND_GIB = 1,
 	SND_IDLE,
+	SND_SEARCH,
 	SND_SIGHT,
 	SND_MELEE,
 	SND_MELEE_HIT,
@@ -85,8 +87,7 @@ enum anim_e
 enum states_e
 {
 	STATE_IDLE = 0,
-	STATE_WALK,
-	STATE_RUN,
+	STATE_MOVING,
 	STATE_ATTACK
 };
 
@@ -185,7 +186,7 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 	{
 		if( m_pDriveEnt !is null )
 		{
-			if( GetState() > STATE_RUN ) return;
+			if( GetState() > STATE_MOVING ) return;
 
 			SetState( STATE_ATTACK );
 			SetSpeed( 0 );
@@ -206,7 +207,7 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 	{
 		if( m_pDriveEnt !is null )
 		{
-			if( GetState() > STATE_RUN ) return;			
+			if( GetState() > STATE_MOVING ) return;			
 
 			SetState( STATE_ATTACK );
 			SetSpeed( 0 );
@@ -247,6 +248,7 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 			DoMovementAnimation();
 			DoIdleAnimation();
 			DoIdleSound();
+			DoSearchSound();
 			HandleAnimEvent( m_pDriveEnt.pev.sequence );
 
 			CheckDanceInput();
@@ -257,7 +259,7 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 	{
 		m_pPlayer.pev.friction = 2; //no sliding!
 
-		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or GetState() > STATE_RUN ) return;
+		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or GetState() > STATE_MOVING ) return;
 
 		SetSpeed( int(SPEED_RUN) );
 
@@ -268,7 +270,7 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 		{
 			if( m_pDriveEnt.pev.sequence != ANIM_WALK )
 			{
-				SetState( STATE_WALK );
+				SetState( STATE_MOVING );
 				SetSpeed( int(SPEED_WALK) );
 				SetAnim( ANIM_WALK, 0.8 );
 			}
@@ -277,7 +279,7 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 		{
 			if( m_pDriveEnt.pev.sequence != ANIM_RUN )
 			{
-				SetState( STATE_RUN );
+				SetState( STATE_MOVING );
 				SetSpeed( int(SPEED_RUN) );
 				SetAnim( ANIM_RUN );
 			}
@@ -314,6 +316,11 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 	void IdleSound()
 	{
 		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[SND_IDLE], VOL_NORM, ATTN_IDLE );
+	}
+
+	void SearchSound()
+	{
+		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[SND_SEARCH], VOL_NORM, ATTN_NORM );
 	}
 
 	void HandleAnimEvent( int iSequence )
@@ -386,9 +393,9 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 
 	void CheckDanceInput()
 	{
-		if( GetState() > STATE_RUN or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
+		if( GetState() > STATE_MOVING or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
 
-		if( (m_pPlayer.m_afButtonPressed & IN_JUMP) != 0 )
+		if( GetButton(IN_JUMP) )
 		{
 			SetState( STATE_ATTACK );
 			SetSpeed( 0 );

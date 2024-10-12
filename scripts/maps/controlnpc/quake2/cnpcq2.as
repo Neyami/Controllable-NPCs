@@ -3,6 +3,7 @@
 
 #include "q2gladiator"
 #include "q2tank"
+#include "q2supertank"
 
 namespace CNPC
 {
@@ -14,11 +15,14 @@ const int Q2GLADIATOR_SLOT			= 5;
 const int Q2GLADIATOR_POSITION	= 10;
 const int Q2TANK_SLOT					= 5;
 const int Q2TANK_POSITION			= 11;
+const int Q2SUPERTANK_SLOT		= 5;
+const int Q2SUPERTANK_POSITION	= 12;
 
 const array<string> arrsCNPCQ2Weapons =
 {
 	"weapon_q2gladiator",
-	"weapon_q2tank"
+	"weapon_q2tank",
+	"weapon_q2supertank"
 };
 
 const array<string> arrsCNPCQ2Gibbable =
@@ -30,7 +34,8 @@ const array<string> arrsCNPCQ2Gibbable =
 enum cnpcq2_e
 {
 	CNPC_Q2GLADIATOR = CNPC::CNPC_LASTVANILLA + 1,
-	CNPC_Q2TANK
+	CNPC_Q2TANK,
+	CNPC_Q2SUPERTANK
 };
 
 void MapInitCNPCQ2()
@@ -45,6 +50,7 @@ void MapInitCNPCQ2()
 
 	cnpc_q2gladiator::Register();
 	cnpc_q2tank::Register();
+	cnpc_q2supertank::Register();
 }
 
 HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
@@ -103,6 +109,19 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 
 			break;
 		}
+
+		/*case CNPC_Q2SUPERTANK:
+		{
+			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
+				return HOOK_CONTINUE;
+
+			float flNextPainTime = g_Engine.time + 3.0;
+			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
+
+			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_q2supertank::pPainSounds[Math.RandomLong(0,(cnpc_q2supertank::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+
+			break;
+		}*/
 
 		default: break;
 	}

@@ -1,6 +1,7 @@
 class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 {
 	int STATE_IDLE = 0;
+	int STATE_MOVING = 1;
 
 	int m_iState;
 	int m_iAutoDeploy;
@@ -76,6 +77,22 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 
 	void IdleSound() {}
 
+	void DoSearchSound()
+	{
+		if( !GetSpawnflags(CNPC::FL_GAG) and GetState(STATE_MOVING) and g_Engine.time > m_flNextIdleCheck )
+		{
+			if( m_flNextIdleCheck > 0.0 )
+			{
+				SearchSound();
+				m_flNextIdleCheck = g_Engine.time + 15 + Math.RandomFloat(0, 1) * 15;
+			}
+			else
+				m_flNextIdleCheck = g_Engine.time + Math.RandomFloat(0, 1) * 15;
+		}
+	}
+
+	void SearchSound() {}
+
 	//Prevent weapon from being dropped manually
 	CBasePlayerItem@ DropItem() { return null; }
 
@@ -140,6 +157,32 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 		return null;
 	}
 
+	void MachineGunEffects( Vector vecOrigin, int iScale = 5 )
+	{
+		NetworkMessage m1( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecOrigin );
+			m1.WriteByte( TE_SMOKE );
+			m1.WriteCoord( vecOrigin.x );
+			m1.WriteCoord( vecOrigin.y );
+			m1.WriteCoord( vecOrigin.z - 10.0 );
+			m1.WriteShort( g_EngineFuncs.ModelIndex("sprites/steam1.spr") );
+			m1.WriteByte( iScale ); // scale * 10
+			m1.WriteByte( 105 ); // framerate
+		m1.End();
+
+		NetworkMessage m2( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecOrigin );
+			m2.WriteByte( TE_DLIGHT );
+			m2.WriteCoord( vecOrigin.x );
+			m2.WriteCoord( vecOrigin.y );
+			m2.WriteCoord( vecOrigin.z );
+			m2.WriteByte( 16 ); //radius
+			m2.WriteByte( 240 ); //rgb
+			m2.WriteByte( 180 );
+			m2.WriteByte( 0 );
+			m2.WriteByte( 8 ); //lifetime
+			m2.WriteByte( 50 ); //decay
+		m2.End();
+	}
+
 	void monster_fire_blaster( Vector vecStart, Vector vecDir, float flDamage, int flSpeed )
 	{
 		CBaseEntity@ pLaser = g_EntityFuncs.Create( "cnpcq2laser", vecStart, vecDir, false, m_pPlayer.edict() ); 
@@ -148,12 +191,29 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 		pLaser.pev.angles = Math.VecToAngles( vecDir.Normalize() );
 	}
 
-	void monster_fire_rocket( Vector vecStart, Vector vecDir, float flDamage, int flSpeed )
+	void monster_fire_rocket( Vector vecStart, Vector vecDir, float flDamage, int flSpeed, float flScale = 1.0 )
 	{
-		CBaseEntity@ pRocket = g_EntityFuncs.Create( "cnpcq2rocket", vecStart, vecDir, false, m_pPlayer.edict() ); 
+		CBaseEntity@ pRocket = g_EntityFuncs.Create( "cnpcq2rocket", vecStart, vecDir, false, m_pPlayer.edict() );
 		pRocket.pev.velocity = vecDir * flSpeed;
 		pRocket.pev.dmg = flDamage;
 		pRocket.pev.angles = Math.VecToAngles( vecDir.Normalize() );
+		pRocket.pev.scale = flScale;
+	}
+
+	/*void monster_fire_grenade( Vector vecStart, Vector vecDir, float flDamage, int flSpeed, float flScale = 1.0 )
+	{
+		CBaseEntity@ pGrenade = g_EntityFuncs.Create( "cnpcq2grenade", vecStart, vecDir, false, m_pPlayer.edict() );
+		pGrenade.pev.velocity = vecDir * flSpeed;
+		pGrenade.pev.dmg = flDamage;
+		pGrenade.pev.scale = flScale;
+	}*/
+
+	void monster_fire_grenade( Vector vecStart, Vector vecVelocity, float flDamage, float flScale = 1.0 )
+	{
+		CBaseEntity@ pGrenade = g_EntityFuncs.Create( "cnpcq2grenade", vecStart, g_vecZero, false, m_pPlayer.edict() );
+		pGrenade.pev.velocity = vecVelocity;
+		pGrenade.pev.dmg = flDamage;
+		pGrenade.pev.scale = flScale;
 	}
 
 	void monster_fire_railgun( Vector vecStart, Vector vecDir, float flDamage )
@@ -223,6 +283,33 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 		pBeam.m_vecEnd = vecEnd;
 		g_EntityFuncs.SetOrigin( pBeam.self, vecStart );
 		g_EntityFuncs.DispatchSpawn( pBeam.self.edict() );
+	}
+
+	//from h_ai.cpp
+	Vector VecCheckThrow( const Vector& in vecSpot1, Vector vecSpot2, float flSpeed, float flGravityAdj )
+	{
+		float flGravity = g_EngineFuncs.CVarGetFloat("sv_gravity") * flGravityAdj;
+
+		Vector vecGrenadeVel = (vecSpot2 - vecSpot1);
+
+		float time = vecGrenadeVel.Length() / flSpeed;
+		vecGrenadeVel = vecGrenadeVel * (1.0 / time);
+
+		vecGrenadeVel.z += flGravity * time * 0.5;
+
+		Vector vecApex = vecSpot1 + (vecSpot2 - vecSpot1) * 0.5;
+		vecApex.z += 0.5 * flGravity * (time * 0.5) * (time * 0.5);
+
+		/*TraceResult tr;
+		g_Utility.TraceLine( vecSpot1, vecApex, dont_ignore_monsters, m_pPlayer.edict(), tr );
+		if( tr.flFraction != 1.0 )
+			return g_vecZero;
+
+		g_Utility.TraceLine( vecSpot2, vecApex, ignore_monsters, m_pPlayer.edict(), tr );
+		if( tr.flFraction != 1.0 )
+			return g_vecZero;*/
+
+		return vecGrenadeVel;
 	}
 
 	bool GetSpawnflags( int iSpawnflags )
@@ -310,6 +397,11 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 	bool GetButton( int iButtons )
 	{
 		return (m_pPlayer.pev.button & iButtons) != 0;
+	}
+
+	bool GetPressed( int iButton )
+	{
+		return(m_pPlayer.m_afButtonPressed & iButton) != 0;
 	}
 
 	bool IsBetween( float flValue, float flMin, float flMax )
@@ -442,7 +534,7 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 
 	Vector VelocityForDamage( float flDamage )
 	{
-		Vector vec( Math.RandomFloat(-100, 100), Math.RandomFloat(-100, 100), Math.RandomFloat(200, 300) );
+		Vector vec( Math.RandomFloat(-200, 200), Math.RandomFloat(-200, 200), Math.RandomFloat(300, 400) );
 
 		if( flDamage > 50 )
 			vec = vec * 0.7;
@@ -452,6 +544,133 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 			vec = vec * 10;
 
 		return vec;
+	}
+
+	/*Vector VelocityForDamage( float flDamage )
+	{
+		return Vector( Math.RandomFloat(-1.0, 1.0) * flDamage, Math.RandomFloat(-1.0, 1.0) * flDamage, Math.RandomFloat(-1.0, 1.0) * flDamage + 200.0 );
+	}*/
+
+	int GetAnim()
+	{
+		return pev.sequence;
+	}
+
+	bool GetAnim( int iAnim )
+	{
+		return pev.sequence == iAnim;
+	}
+
+	bool GetFrame( int iMaxFrames, int iTargetFrame )
+	{
+		int iFrame = int( (pev.frame/255) * iMaxFrames );
+		if( IsBetween2(iFrame, Math.clamp(0, iMaxFrames, iTargetFrame-1), iTargetFrame+1) ) return true;
+ 
+		return false;
+	}
+
+	bool IsBetween2( float flValue, float flMin, float flMax )
+	{
+		return (flValue >= flMin and flValue <= flMax);
+	}
+}
+
+abstract class CBaseDriveEntityHitboxQ2 : ScriptBaseMonsterEntity
+{
+	int m_iSpawnFlags;
+	float m_flCustomHealth;
+
+	protected CBasePlayer@ m_pOwner
+	{
+		get { return cast<CBasePlayer@>( g_EntityFuncs.Instance(pev.owner) ); }
+	}
+
+	EHandle m_hRenderEntity;
+	float m_flNextOriginUpdate; //hopefully fixes hacky movement on other players
+
+	bool KeyValue( const string& in szKey, const string& in szValue )
+	{
+		if( szKey == "m_iSpawnFlags" )
+		{
+			m_iSpawnFlags = atoi( szValue );
+			return true;
+		}
+		else if( szKey == "m_flCustomHealth" )
+		{
+			m_flCustomHealth = atof( szValue );
+			return true;
+		}
+		else
+			return BaseClass.KeyValue( szKey, szValue );
+	}
+
+	void ThrowGib( int iCount, const string &in sGibName, float flDamage, int iType = 0, bool bHead = false )
+	{
+		Vector vecOrigin = pev.origin;
+
+		CGib@ pGib = g_EntityFuncs.CreateGib( pev.origin, g_vecZero );
+		pGib.Spawn( sGibName );
+
+		if( bHead )
+		{
+			pGib.pev.origin.x = pev.origin.x;
+			pGib.pev.origin.y = pev.origin.y;
+			pGib.pev.origin.z = pev.origin.z + pev.size.z;
+		}
+		else
+		{
+			pGib.pev.origin.x = pev.absmin.x + pev.size.x * (Math.RandomFloat(0 , 1));
+			pGib.pev.origin.y = pev.absmin.y + pev.size.y * (Math.RandomFloat(0 , 1));
+			pGib.pev.origin.z = pev.absmin.z + pev.size.z * (Math.RandomFloat(0 , 1)) + 1;
+		}
+
+		pGib.pev.velocity = VelocityForDamage( flDamage );
+
+		pGib.pev.velocity.x += Math.RandomFloat( -0.15, 0.15 );
+		pGib.pev.velocity.y += Math.RandomFloat( -0.25, 0.15 );
+		pGib.pev.velocity.z += Math.RandomFloat( -0.2, 1.9 );
+
+		pGib.pev.avelocity.x = Math.RandomFloat( 70, 200 );
+		pGib.pev.avelocity.y = Math.RandomFloat( 70, 200 );
+
+		pGib.pev.solid = SOLID_NOT;
+		g_EntityFuncs.SetSize( pGib.pev, g_vecZero, g_vecZero );
+
+		pGib.LimitVelocity();
+
+		if( iType == BREAK_FLESH )
+		{
+			pGib.m_bloodColor = BLOOD_COLOR_RED;
+			pGib.m_cBloodDecals = 5;
+			pGib.m_material = matFlesh;
+			g_WeaponFuncs.SpawnBlood( pGib.pev.origin, BLOOD_COLOR_RED, 400 );
+		}
+		else
+			pGib.m_bloodColor = DONT_BLEED;
+	}
+
+	Vector VelocityForDamage( float flDamage )
+	{
+		Vector vec( Math.RandomFloat(-200, 200), Math.RandomFloat(-200, 200), Math.RandomFloat(300, 400) );
+
+		if( flDamage > 50 )
+			vec = vec * 0.7;
+		else if( flDamage > 200 )
+			vec = vec * 2;
+		else
+			vec = vec * 10;
+
+		return vec;
+	}
+
+	int GetAnim()
+	{
+		return pev.sequence;
+	}
+
+	bool GetAnim( int iAnim )
+	{
+		return pev.sequence == iAnim;
 	}
 
 	bool GetFrame( int iMaxFrames, int iTargetFrame )

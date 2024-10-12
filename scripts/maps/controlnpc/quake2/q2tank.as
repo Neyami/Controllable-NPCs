@@ -6,14 +6,14 @@ const bool CNPC_REFIRE				= true; //Gives some attacks a chance to fire more pro
 
 const string CNPC_WEAPONNAME	= "weapon_q2tank";
 const string CNPC_MODEL				= "models/quake2/monsters/tank/tank.mdl";
+const string MODEL_GIB_GEAR		= "models/quake2/objects/gibs/gear.mdl";
+const string MODEL_GIB_MEAT		= "models/quake2/objects/gibs/sm_meat.mdl";
+const string MODEL_GIB_METAL		= "models/quake2/objects/gibs/sm_metal.mdl";
 const string MODEL_GIB_ARM			= "models/quake2/monsters/tank/gibs/barm.mdl";
 const string MODEL_GIB_CHEST		= "models/quake2/monsters/tank/gibs/chest.mdl";
 const string MODEL_GIB_FOOT		= "models/quake2/monsters/tank/gibs/foot.mdl";
 const string MODEL_GIB_HEAD		= "models/quake2/monsters/tank/gibs/head.mdl";
 const string MODEL_GIB_THIGH		= "models/quake2/monsters/tank/gibs/thigh.mdl";
-const string MODEL_GIB_MEAT		= "models/quake2/objects/gibs/sm_meat.mdl";
-const string MODEL_GIB_METAL		= "models/quake2/objects/gibs/sm_metal.mdl";
-const string MODEL_GIB_GEAR		= "models/quake2/objects/gibs/gear.mdl";
 
 const Vector CNPC_SIZEMIN			= Vector( -32, -32, 0 );
 const Vector CNPC_SIZEMAX			= Vector( 32, 32, 128 );
@@ -100,8 +100,7 @@ enum anim_e
 enum states_e
 {
 	STATE_IDLE = 0,
-	STATE_WALK,
-	STATE_RUN,
+	STATE_MOVING,
 	STATE_ATTACK
 };
 
@@ -113,7 +112,7 @@ enum attach_e
 	ATTACH_ROCKET_MIDDLE
 };
 
-class weapon_q2tank : CBaseDriveWeaponQ2
+final class weapon_q2tank : CBaseDriveWeaponQ2
 {
 	void Spawn()
 	{
@@ -127,13 +126,13 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 	void Precache()
 	{
 		g_Game.PrecacheModel( CNPC_MODEL );
+		g_Game.PrecacheModel( MODEL_GIB_GEAR );
+		g_Game.PrecacheModel( MODEL_GIB_MEAT );
+		g_Game.PrecacheModel( MODEL_GIB_METAL );
 		g_Game.PrecacheModel( MODEL_GIB_ARM );
 		g_Game.PrecacheModel( MODEL_GIB_CHEST );
 		g_Game.PrecacheModel( MODEL_GIB_FOOT );
-		g_Game.PrecacheModel( MODEL_GIB_GEAR );
 		g_Game.PrecacheModel( MODEL_GIB_HEAD );
-		g_Game.PrecacheModel( MODEL_GIB_MEAT );
-		g_Game.PrecacheModel( MODEL_GIB_METAL );
 		g_Game.PrecacheModel( MODEL_GIB_THIGH );
 
 		//machine gun
@@ -223,7 +222,7 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 	{
 		if( m_pDriveEnt !is null )
 		{
-			if( GetState() > STATE_RUN ) return;
+			if( GetState() > STATE_MOVING ) return;
 
 			SetState( STATE_ATTACK );
 			SetSpeed( 0 );
@@ -244,7 +243,7 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 	{
 		if( m_pDriveEnt !is null )
 		{
-			if( GetState() > STATE_RUN ) return;			
+			if( GetState() > STATE_MOVING ) return;			
 
 			SetYaw( m_pPlayer.pev.v_angle.y );
 			SetState( STATE_ATTACK );
@@ -286,6 +285,7 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 			DoMovementAnimation();
 			DoIdleAnimation();
 			DoIdleSound();
+			DoSearchSound();
 			HandleAnimEvent( m_pDriveEnt.pev.sequence );
 
 			CheckRocketInput();
@@ -297,13 +297,13 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 	{
 		m_pPlayer.pev.friction = 2; //no sliding!
 
-		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or GetState() > STATE_RUN ) return;
+		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or GetState() > STATE_MOVING ) return;
 
 		SetSpeed( int(SPEED_WALK) );
 
 		if( m_pDriveEnt.pev.sequence != ANIM_WALK )
 		{
-			SetState( STATE_WALK );
+			SetState( STATE_MOVING );
 			SetSpeed( int(SPEED_WALK) );
 			SetAnim( ANIM_WALK );
 		}
@@ -339,6 +339,10 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 	void IdleSound()
 	{
 		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[SND_IDLE], VOL_NORM, ATTN_IDLE );
+	}
+
+	void SearchSound()
+	{
 	}
 
 	void HandleAnimEvent( int iSequence )
@@ -384,9 +388,9 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 			case ANIM_ROCKET:
 			{
 				if( GetFrame(53, 15) and m_uiAnimationState == 0 ) { FootStep(); m_uiAnimationState++; }
-				else if( GetFrame(53, 23) and m_uiAnimationState == 1 ) { Rocket(1); m_uiAnimationState++; }
-				else if( GetFrame(53, 25) and m_uiAnimationState == 2 ) { Rocket(2); m_uiAnimationState++; }
-				else if( GetFrame(53, 29) and m_uiAnimationState == 3 ) { Rocket(3); m_uiAnimationState++; }
+				else if( GetFrame(53, 23) and m_uiAnimationState == 1 ) { FireRocket(1); m_uiAnimationState++; }
+				else if( GetFrame(53, 25) and m_uiAnimationState == 2 ) { FireRocket(2); m_uiAnimationState++; }
+				else if( GetFrame(53, 29) and m_uiAnimationState == 3 ) { FireRocket(3); m_uiAnimationState++; }
 				else if( GetFrame(53, 32) and m_uiAnimationState == 4 ) { RocketRefire(); m_uiAnimationState++; }
 				else if( GetFrame(53, 45) and m_uiAnimationState == 5 ) { FootStep(); m_pDriveEnt.pev.framerate = 2.0; m_uiAnimationState++; }
 				else if( m_pDriveEnt.m_fSequenceFinished and m_uiAnimationState == 6 ) { m_uiAnimationState = 0; }
@@ -420,7 +424,7 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 		Vector vecOrigin;
 		m_pDriveEnt.GetAttachment( ATTACH_MG_MUZZLE, vecOrigin, void );
 
-		TankMachineGunEffects( vecOrigin );
+		MachineGunEffects( vecOrigin );
 
 		Vector vecGunBase, vecGunMuzzle;
 		m_pDriveEnt.GetAttachment( ATTACH_MG_BASE, vecGunBase, void );
@@ -462,7 +466,7 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 		}
 	}
 
-	void Rocket( int iRocketNum )
+	void FireRocket( int iRocketNum )
 	{
 		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[SND_ROCKET], VOL_NORM, ATTN_NORM );
 		Vector vecOrigin;
@@ -504,7 +508,7 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 
 	void CheckRocketInput()
 	{
-		if( GetState() > STATE_RUN or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
+		if( GetState() > STATE_MOVING or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
 
 		if( (m_pPlayer.m_afButtonPressed & IN_RELOAD) != 0 )
 		{
@@ -515,35 +519,9 @@ class weapon_q2tank : CBaseDriveWeaponQ2
 		}
 	}
 
-	void TankMachineGunEffects( Vector vecOrigin )
-	{
-		NetworkMessage m1( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecOrigin );
-			m1.WriteByte( TE_SMOKE );
-			m1.WriteCoord( vecOrigin.x );
-			m1.WriteCoord( vecOrigin.y );
-			m1.WriteCoord( vecOrigin.z - 10.0 );
-			m1.WriteShort( g_EngineFuncs.ModelIndex("sprites/steam1.spr") );
-			m1.WriteByte( 5 ); // scale * 10
-			m1.WriteByte( 105 ); // framerate
-		m1.End();
-
-		NetworkMessage m2( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecOrigin );
-			m2.WriteByte( TE_DLIGHT );
-			m2.WriteCoord( vecOrigin.x );
-			m2.WriteCoord( vecOrigin.y );
-			m2.WriteCoord( vecOrigin.z );
-			m2.WriteByte( 16 ); //radius
-			m2.WriteByte( 240 ); //rgb
-			m2.WriteByte( 180 );
-			m2.WriteByte( 0 );
-			m2.WriteByte( 8 ); //lifetime
-			m2.WriteByte( 50 ); //decay
-		m2.End();
-	}
-
 	void CheckStrikeInput()
 	{
-		if( GetState() > STATE_RUN or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
+		if( GetState() > STATE_MOVING or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
 
 		if( (m_pPlayer.m_afButtonPressed & IN_JUMP) != 0 )
 		{

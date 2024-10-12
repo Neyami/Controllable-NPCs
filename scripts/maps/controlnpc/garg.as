@@ -1360,7 +1360,7 @@ class cnpc_garg : ScriptBaseMonsterEntity//ScriptBaseAnimating
 
 			pev.health -= flDamage;
 
-			if( m_pOwner !is null and m_pOwner.IsConnected() )
+			if( m_pOwner !is null and m_pOwner.IsConnected() and pev.health > 0 )
 				m_pOwner.pev.health = pev.health;
 
 			if( pev.health <= 0 )
