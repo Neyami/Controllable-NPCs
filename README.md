@@ -454,6 +454,19 @@ Use: Plant the explosives in the sandstone map
 <BR>
 
 
+# QUAKE 2 IRON MAIDEN #  
+`weapon_q2ironmaiden` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_q2ironmaiden` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Rocket launcher  
+Secondary Attack: Melee attack  
+Tertiary Attack: Toggle between first- and third-person view  
+Duck: Duck to reduce incoming damage by 50% while holding  
+
+
+<BR>
+
+
 # QUAKE 2 GLADIATOR #  
 `weapon_q2gladiator` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_q2gladiator` - Usable entity that turns the player into the monster upon using. Mappers can place this  
