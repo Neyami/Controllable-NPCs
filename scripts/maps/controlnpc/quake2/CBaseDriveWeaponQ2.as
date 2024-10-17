@@ -12,6 +12,7 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 	int m_iSpawnFlags; //Just in case
 	protected int m_iMaxAmmo;
 	protected float m_flFireRate;
+	int m_iStepLeft; //for alternating right and left footsteps
 
 	protected CBasePlayer@ m_pPlayer
 	{
@@ -337,14 +338,14 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 		return m_iState == iState;
 	}
 
-	void SetAnim( int iAnim, float flFrameRate = 1.0, float flFrame = 0.0 )
+	void SetAnim( int iAnim, float flFramerate = 1.0, float flFrame = 0.0 )
 	{
 		if( m_pDriveEnt !is null )
 		{
 			m_pDriveEnt.pev.sequence = iAnim;
 			m_pDriveEnt.ResetSequenceInfo();
 			m_pDriveEnt.pev.frame = flFrame;
-			m_pDriveEnt.pev.framerate = flFrameRate;
+			m_pDriveEnt.pev.framerate = flFramerate;
 			m_uiAnimationState = 0;
 		}
 	}
@@ -379,11 +380,16 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 		return false;
 	}
 
-	float SetFrame( float flFrame, float flMaxFrames )
+	float SetFrame( float flMaxFrames, float flFrame )
 	{
 		if( m_pDriveEnt is null ) return 0;
 
 		return float( (flFrame / flMaxFrames) * 255 );
+	}
+
+	void SetFramerate( float flFramerate)
+	{
+		m_pDriveEnt.pev.framerate = flFramerate;
 	}
 
 	void SetYaw( float flYaw )
@@ -429,6 +435,8 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 {
 	int m_iSpawnFlags;
 	float m_flCustomHealth;
+	uint m_uiAnimationState;
+	int m_iStepLeft;
 
 	protected CBasePlayer@ m_pOwner
 	{
@@ -579,6 +587,7 @@ abstract class CBaseDriveEntityHitboxQ2 : ScriptBaseMonsterEntity
 {
 	int m_iSpawnFlags;
 	float m_flCustomHealth;
+	uint m_uiAnimationState;
 
 	protected CBasePlayer@ m_pOwner
 	{

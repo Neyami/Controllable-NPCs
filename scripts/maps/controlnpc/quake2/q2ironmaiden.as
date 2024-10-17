@@ -1,88 +1,97 @@
-namespace cnpc_q2gladiator
+namespace cnpc_q2ironmaiden
 {
 
 bool CNPC_FIRSTPERSON				= false;
 
-const string CNPC_WEAPONNAME	= "weapon_q2gladiator";
-const string CNPC_MODEL				= "models/quake2/monsters/gladiator/gladiator.mdl";
+const string CNPC_WEAPONNAME	= "weapon_q2ironmaiden";
+const string CNPC_MODEL				= "models/quake2/monsters/ironmaiden/ironmaiden.mdl";
 const string MODEL_GIB_BONE		= "models/quake2/objects/gibs/bone.mdl";
 const string MODEL_GIB_MEAT		= "models/quake2/objects/gibs/sm_meat.mdl";
-const string MODEL_GIB_CHEST		= "models/quake2/monsters/gladiator/gibs/chest.mdl";
-const string MODEL_GIB_HEAD		= "models/quake2/monsters/gladiator/gibs/head.mdl";
-const string MODEL_GIB_LARM		= "models/quake2/monsters/gladiator/gibs/larm.mdl";
-const string MODEL_GIB_RARM		= "models/quake2/monsters/gladiator/gibs/rarm.mdl";
-const string MODEL_GIB_THIGH		= "models/quake2/monsters/gladiator/gibs/thigh.mdl";
+const string MODEL_GIB_ARM			= "models/quake2/monsters/ironmaiden/gibs/arm.mdl";
+const string MODEL_GIB_CHEST		= "models/quake2/monsters/ironmaiden/gibs/chest.mdl";
+const string MODEL_GIB_FOOT		= "models/quake2/monsters/ironmaiden/gibs/foot.mdl";
+const string MODEL_GIB_HEAD		= "models/quake2/monsters/ironmaiden/gibs/head.mdl";
+const string MODEL_GIB_TUBE		= "models/quake2/monsters/ironmaiden/gibs/tube.mdl";
 
-const Vector CNPC_SIZEMIN			= Vector( -16, -16, 0 );
-const Vector CNPC_SIZEMAX			= Vector( 16, 16, 88 );
+const Vector CNPC_SIZEMIN			= VEC_HUMAN_HULL_MIN;
+const Vector CNPC_SIZEMAX			= VEC_HUMAN_HULL_MAX;
 
-const float CNPC_HEALTH				= 400.0;
-const float CNPC_VIEWOFS_FPV		= 54.0; //camera height offset
-const float CNPC_VIEWOFS_TPV		= 54.0;
-const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the gladiator itself
+const float CNPC_HEALTH				= 175.0;
+const float CNPC_VIEWOFS_FPV		= 43.0; //camera height offset
+const float CNPC_VIEWOFS_TPV		= 42.0;
+const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the ironmaiden itself
 const float CNPC_MODEL_OFFSET	= 36.0; //sometimes the model floats above the ground
 const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
-const bool CNPC_FIDGETANIMS		= false; //does this monster have more than 1 idle animation?
+const bool CNPC_FIDGETANIMS		= true; //does this monster have more than 1 idle animation?
 const float CNPC_FADETIME			= 0.5;
 
-const float SPEED_RUN					= -1;
-const float SPEED_WALK					= -1;
-const float VELOCITY_WALK			= 150.0; //if the player's velocity is this or lower, use the walking animation
+const float SPEED_WALK					= 270*0.6;
+
+const float CD_ROCKET					= 2.0;
+const float ROCKET_DMG				= 50;
+const float ROCKET_SPEED				= 750;
+const float CNPC_MAXPITCH			= 30.0;
 
 const float CD_MELEE						= 1.5;
 const float MELEE_RANGE				= 80.0;
-const int MELEE_DAMAGE				= 20;
-
-const float CD_RAILGUN					= 1.5;
-const float RAILGUN_DAMAGE			= 50.0;
-const float RAILGUN_MAXPITCH		= 30.0;
+const int MELEE_DAMAGE				= 10; //+Math.RandomLong(0, 6)
+const float MELEE_KICK					= 100.0;
 
 const array<string> pPainSounds = 
 {
-	"quake2/npcs/gladiator/pain.wav",
-	"quake2/npcs/gladiator/gldpain2.wav"
+	"quake2/npcs/ironmaiden/chkpain1.wav",
+	"quake2/npcs/ironmaiden/chkpain2.wav",
+	"quake2/npcs/ironmaiden/chkpain3.wav"
 };
 
 const array<string> pDieSounds = 
 {
-	"quake2/npcs/gladiator/glddeth2.wav"
+	"quake2/npcs/ironmaiden/chkdeth1.wav",
+	"quake2/npcs/ironmaiden/chkdeth2.wav"
 };
 
 const array<string> arrsCNPCSounds = 
 {
 	"ambience/particle_suck1.wav", //only here for the precache
 	"quake2/misc/udeath.wav",
-	"quake2/npcs/gladiator/gldidle1.wav",
-	"quake2/npcs/gladiator/gldsrch1.wav",
-	"quake2/npcs/gladiator/sight.wav",
-	"quake2/npcs/gladiator/melee1.wav",
-	"quake2/npcs/gladiator/melee2.wav",
-	"quake2/npcs/gladiator/melee3.wav",
-	"quake2/npcs/gladiator/railgun.wav"
+	"quake2/npcs/ironmaiden/chkidle1.wav",
+	"quake2/npcs/ironmaiden/chkidle2.wav",
+	"quake2/npcs/ironmaiden/chksght1.wav",
+	"quake2/npcs/ironmaiden/chksrch1.wav",
+	"quake2/npcs/ironmaiden/chkatck1.wav",
+	"quake2/npcs/ironmaiden/chkatck2.wav",
+	"quake2/npcs/ironmaiden/chkatck3.wav",
+	"quake2/npcs/ironmaiden/chkatck4.wav",
+	"quake2/npcs/ironmaiden/chkatck5.wav"
 };
 
 enum sound_e
 {
 	SND_GIB = 1,
-	SND_IDLE,
-	SND_SEARCH,
+	SND_IDLE1,
+	SND_IDLE2,
 	SND_SIGHT,
-	SND_MELEE,
+	SND_SEARCH,
+	SND_ROCKET_PRELAUNCH,
+	SND_ROCKET_LAUNCH,
+	SND_MELEE_SWING,
 	SND_MELEE_HIT,
-	SND_MELEE_MISS,
-	SND_RAILGUN
+	SND_ROCKET_RELOAD
 };
 
 enum anim_e
 {
 	ANIM_IDLE = 0,
-	ANIM_WALK,
-	ANIM_RUN,
-	ANIM_MELEE,
-	ANIM_RAILGUN,
-	ANIM_PAIN,
-	ANIM_DEATH,
-	ANIM_DANCE
+	ANIM_IDLE_FIDGET,
+	ANIM_ROCKET,
+	ANIM_MELEE = 6,
+	ANIM_DEATH1 = 10,
+	ANIM_DEATH2,
+	ANIM_DUCK,
+	ANIM_PAIN1,
+	ANIM_PAIN2,
+	ANIM_PAIN3,
+	ANIM_WALK
 };
 
 enum states_e
@@ -90,10 +99,11 @@ enum states_e
 	STATE_IDLE = 0,
 	STATE_MOVING,
 	STATE_ATTACK,
+	STATE_DUCKING,
 	STATE_PAIN
 };
 
-class weapon_q2gladiator : CBaseDriveWeaponQ2
+final class weapon_q2ironmaiden : CBaseDriveWeaponQ2
 {
 	void Spawn()
 	{
@@ -109,11 +119,11 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 		g_Game.PrecacheModel( CNPC_MODEL );
 		g_Game.PrecacheModel( MODEL_GIB_BONE );
 		g_Game.PrecacheModel( MODEL_GIB_MEAT );
+		g_Game.PrecacheModel( MODEL_GIB_ARM );
 		g_Game.PrecacheModel( MODEL_GIB_CHEST );
+		g_Game.PrecacheModel( MODEL_GIB_FOOT );
 		g_Game.PrecacheModel( MODEL_GIB_HEAD );
-		g_Game.PrecacheModel( MODEL_GIB_LARM );
-		g_Game.PrecacheModel( MODEL_GIB_RARM );
-		g_Game.PrecacheModel( MODEL_GIB_THIGH );
+		g_Game.PrecacheModel( MODEL_GIB_TUBE );
 
 		for( uint i = 0; i < arrsCNPCSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( arrsCNPCSounds[i] );
@@ -125,17 +135,17 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 			g_SoundSystem.PrecacheSound( pDieSounds[i] );
 
 		//Precache these for downloading
-		g_Game.PrecacheGeneric( "sprites/controlnpc/weapon_q2gladiator.txt" );
-		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_q2gladiator.spr" );
-		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_q2gladiator_sel.spr" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/weapon_q2ironmaiden.txt" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_q2ironmaiden.spr" );
+		g_Game.PrecacheGeneric( "sprites/controlnpc/ui_q2ironmaiden_sel.spr" );
 	}
 
 	bool GetItemInfo( ItemInfo& out info )
 	{
 		info.iMaxAmmo1	= -1;
 		info.iMaxClip			= WEAPON_NOCLIP;
-		info.iSlot				= CNPC::Q2::Q2GLADIATOR_SLOT - 1;
-		info.iPosition			= CNPC::Q2::Q2GLADIATOR_POSITION - 1;
+		info.iSlot				= CNPC::Q2::Q2IRONMAIDEN_SLOT - 1;
+		info.iPosition			= CNPC::Q2::Q2IRONMAIDEN_POSITION - 1;
 		info.iFlags 				= ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_NOAUTOSWITCHEMPTY;
 		info.iWeight			= 0; //-1 ??
 
@@ -188,11 +198,11 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 	{
 		if( m_pDriveEnt !is null )
 		{
-			if( GetState() > STATE_MOVING ) return;
+			if( GetState() > STATE_MOVING or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
 
 			SetState( STATE_ATTACK );
 			SetSpeed( 0 );
-			SetAnim( ANIM_MELEE );
+			SetAnim( ANIM_ROCKET );
 		}
 		else
 		{
@@ -202,21 +212,21 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 			return;
 		}
 
-		self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + CD_MELEE;
+		self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + CD_ROCKET;
 	}
 
 	void SecondaryAttack()
 	{
 		if( m_pDriveEnt !is null )
 		{
-			if( GetState() > STATE_MOVING ) return;
+			if( GetState() > STATE_MOVING or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
 
 			SetState( STATE_ATTACK );
 			SetSpeed( 0 );
-			SetAnim( ANIM_RAILGUN );
+			SetAnim( ANIM_MELEE );
 		}
 
-		self.m_flNextSecondaryAttack = g_Engine.time + CD_RAILGUN;
+		self.m_flNextSecondaryAttack = g_Engine.time + 0.5;
 	}
 
 	void TertiaryAttack()
@@ -234,7 +244,7 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 		}
 		else
 		{
-			cnpc_q2gladiator@ pDriveEnt = cast<cnpc_q2gladiator@>(CastToScriptClass(m_pDriveEnt));
+			cnpc_q2ironmaiden@ pDriveEnt = cast<cnpc_q2ironmaiden@>(CastToScriptClass(m_pDriveEnt));
 			if( pDriveEnt !is null and pDriveEnt.m_hRenderEntity.IsValid() ) g_EntityFuncs.Remove( pDriveEnt.m_hRenderEntity.GetEntity() );
 
 			m_pPlayer.SetViewMode( ViewMode_ThirdPerson );
@@ -249,11 +259,10 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 		{
 			DoMovementAnimation();
 			DoIdleAnimation();
-			DoIdleSound();
 			DoSearchSound();
 			HandleAnimEvent( m_pDriveEnt.pev.sequence );
 
-			CheckDanceInput();
+			CheckDuckInput();
 		}
 	}
 
@@ -263,42 +272,27 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 
 		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or GetState() > STATE_MOVING ) return;
 
-		SetSpeed( int(SPEED_RUN) );
+		SetSpeed( int(SPEED_WALK) );
 
-		float flMinWalkVelocity = -VELOCITY_WALK;
-		float flMaxWalkVelocity = VELOCITY_WALK;
-
-		if( (m_pPlayer.pev.button & IN_USE) != 0 or IsBetween(m_pPlayer.pev.velocity.Length(), flMinWalkVelocity, flMaxWalkVelocity) )
+		if( m_pDriveEnt.pev.sequence != ANIM_WALK )
 		{
-			if( m_pDriveEnt.pev.sequence != ANIM_WALK )
-			{
-				SetState( STATE_MOVING );
-				SetSpeed( int(SPEED_WALK) );
-				SetAnim( ANIM_WALK, 0.8 );
-			}
+			SetState( STATE_MOVING );
+			SetSpeed( int(SPEED_WALK) );
+			SetAnim( ANIM_WALK );
 		}
 		else
-		{
-			if( m_pDriveEnt.pev.sequence != ANIM_RUN )
-			{
-				SetState( STATE_MOVING );
-				SetSpeed( int(SPEED_RUN) );
-				SetAnim( ANIM_RUN );
-			}
-			else
-				m_pPlayer.pev.flTimeStepSound = 9999; //prevents normal footsteps from playing
-		}
+			m_pPlayer.pev.flTimeStepSound = 9999; //prevents normal footsteps from playing
 	}
 
 	void DoIdleAnimation()
 	{
-		if( GetState(STATE_ATTACK) and !m_pDriveEnt.m_fSequenceFinished ) return;
+		if( GetState() >= STATE_ATTACK and !m_pDriveEnt.m_fSequenceFinished ) return;
 
 		if( m_pPlayer.pev.velocity.Length() <= 10.0 )
 		{
 			if( !GetState(STATE_IDLE) )
 			{
-				SetSpeed( int(SPEED_RUN) );
+				SetSpeed( int(SPEED_WALK) );
 				SetState( STATE_IDLE );
 				SetAnim( ANIM_IDLE );
 			}
@@ -313,11 +307,6 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 	void AlertSound()
 	{
 		g_SoundSystem.EmitSound( self.edict(), CHAN_VOICE, arrsCNPCSounds[SND_SIGHT], VOL_NORM, ATTN_NORM );
-	}
-
-	void IdleSound()
-	{
-		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[SND_IDLE], VOL_NORM, ATTN_IDLE );
 	}
 
 	void SearchSound()
@@ -337,10 +326,18 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 
 		m_pDriveEnt.pev.pain_finished = g_Engine.time + 3.0;
 
-		g_SoundSystem.StopSound( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[SND_RAILGUN] );
 		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, pPainSounds[Math.RandomLong(0,(pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
 
-		SetAnim( ANIM_PAIN );
+		if( GetState(STATE_DUCKING) )
+			return;
+
+		if( flDamage <= 10 )
+			SetAnim( ANIM_PAIN1 );
+		else if( flDamage <= 25 )
+			SetAnim( ANIM_PAIN2 );
+		else
+			SetAnim( ANIM_PAIN3 );
+
 		SetSpeed( 0 );
 		SetState( STATE_PAIN );
 	}
@@ -349,41 +346,77 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 	{
 		switch( iSequence )
 		{
-			case ANIM_WALK:
+			case ANIM_IDLE_FIDGET:
 			{
-				if( GetFrame(17, 4) and m_uiAnimationState == 0 ) { Footstep(55); m_uiAnimationState++; }
-				else if( GetFrame(17, 12) and m_uiAnimationState == 1 ) { Footstep(55); m_uiAnimationState++; }
-				else if( m_pDriveEnt.m_fSequenceFinished and m_uiAnimationState == 2 ) { m_uiAnimationState = 0; }
-
-				break;
-			}
-
-			case ANIM_RUN:
-			{
-				if( GetFrame(7, 2) and m_uiAnimationState == 0 ) { Footstep(55); m_uiAnimationState++; }
-				else if( GetFrame(7, 5) and m_uiAnimationState == 1 ) { Footstep(55); m_uiAnimationState++; }
-				else if( m_pDriveEnt.m_fSequenceFinished and m_uiAnimationState == 2 ) { m_uiAnimationState = 0; }
+				if( GetFrame(30, 8) and m_uiAnimationState == 0 ) { ChickMoan(); m_uiAnimationState++; }
+				else if( m_pDriveEnt.m_fSequenceFinished and m_uiAnimationState == 1 ) { m_uiAnimationState = 0; }
 
 				break;
 			}
 
 			case ANIM_MELEE:
 			{
-				if( GetFrame(17, 4) and m_uiAnimationState == 0 ) { AttackSound(); m_uiAnimationState++; }
-				else if( GetFrame(17, 6) and m_uiAnimationState == 1 ) { MeleeAttack(); m_uiAnimationState++; }
-				else if( GetFrame(17, 10) and m_uiAnimationState == 2 ) { AttackSound(); m_uiAnimationState++; }
-				else if( GetFrame(17, 13) and m_uiAnimationState == 3 ) { MeleeAttack(); m_uiAnimationState++; }
+				if( GetFrame(16, 4) and m_uiAnimationState <= 1 ) { ChickSlash(); m_uiAnimationState++; }
+				else if( GetFrame(16, 5) and m_uiAnimationState == 1 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(16, 11) and m_uiAnimationState == 2 ) { ChickReslash(); m_uiAnimationState++; }
+				else if( GetFrame(16, 15) and m_uiAnimationState == 3 ) { Footstep(); m_uiAnimationState++; }
 				else if( m_pDriveEnt.m_fSequenceFinished and m_uiAnimationState == 4 ) { m_uiAnimationState = 0; }
 
 				break;
 			}
 
-			case ANIM_RAILGUN:
+			case ANIM_ROCKET:
 			{
-				if( GetFrame(9, 0) and m_uiAnimationState == 0 ) { m_pDriveEnt.pev.framerate = 0.29; AttackSound(true); m_uiAnimationState++; } //lower the framerate to time the shot with the sound
-				else if( GetFrame(9, 3) and m_uiAnimationState == 1 ) { FireRailgun(); m_uiAnimationState++; }
-				else if( GetFrame(9, 7) and m_uiAnimationState == 2 ) { Footstep(55); m_uiAnimationState++; }
-				else if( m_pDriveEnt.m_fSequenceFinished and m_uiAnimationState == 3 ) { m_uiAnimationState = 0; }
+				if( GetFrame(32, 0) and m_uiAnimationState == 0 ) { ChickPreLaunch(); m_uiAnimationState++; }
+				else if( GetFrame(32, 8) and m_uiAnimationState == 1 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(32, 13) and m_uiAnimationState == 2 ) { FireRocket(); SetSpeed(0); m_uiAnimationState++; } //refire at 12
+				else if( GetFrame(32, 14) and m_uiAnimationState == 3 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(32, 17) and m_uiAnimationState == 4 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(32, 20) and m_uiAnimationState == 5 ) { ChickReload(); SetSpeed(int(SPEED_WALK));m_uiAnimationState++; }
+				else if( GetFrame(32, 22) and m_uiAnimationState == 6 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(32, 26) and m_uiAnimationState == 7 ) { ChickRefire(); Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(32, 31) and m_uiAnimationState == 8 ) { Footstep(); SetSpeed(0); m_uiAnimationState++; }
+				else if( m_pDriveEnt.m_fSequenceFinished and m_uiAnimationState == 9 ) { m_uiAnimationState = 0; }
+
+				break;
+			}
+
+			case ANIM_DUCK:
+			{
+				if( GetFrame(7, 3) ) { DoDucking(); }
+
+				break;
+			}
+
+			case ANIM_WALK:
+			{
+				if( GetFrame(11, 1) and m_uiAnimationState == 0 )
+				{
+					Vector vecLeftFoot;
+					m_pDriveEnt.GetAttachment( 1, vecLeftFoot, void ); //for more precision lmao www
+					Footstep( PITCH_NORM, true, vecLeftFoot );
+					m_uiAnimationState++;
+				}
+				else if( GetFrame(11, 6) and m_uiAnimationState == 1 )
+				{
+					Vector vecRightFoot;
+					m_pDriveEnt.GetAttachment( 2, vecRightFoot, void );
+					Footstep( PITCH_NORM, true, vecRightFoot );
+					m_uiAnimationState++;
+				}
+				else if( m_pDriveEnt.m_fSequenceFinished and m_uiAnimationState == 2 )
+					m_uiAnimationState = 0;
+
+				break;
+			}
+
+			case ANIM_PAIN3:
+			{
+				if( GetFrame(21, 1) and m_uiAnimationState == 0 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(21, 3) and m_uiAnimationState == 1 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(21, 5) and m_uiAnimationState == 2 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(21, 20) and m_uiAnimationState == 3 ) { Footstep(); m_uiAnimationState++; }
+				else if( m_pDriveEnt.m_fSequenceFinished and m_uiAnimationState == 4 ) { m_uiAnimationState = 0; }
 
 				break;
 			}
@@ -398,58 +431,96 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 		CNPC::monster_footstep( EHandle(m_pDriveEnt), EHandle(m_pPlayer), m_iStepLeft, iPitch, bSetOrigin, vecSetOrigin );
 	}
 
-	void AttackSound( bool bRailgun = false )
+	void ChickMoan()
 	{
-		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[bRailgun ? SND_RAILGUN : SND_MELEE], VOL_NORM, ATTN_NORM );
+		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[Math.RandomLong(SND_IDLE1, SND_IDLE2)], VOL_NORM, ATTN_IDLE );
 	}
 
-	void MeleeAttack()
+	void ChickSlash()
 	{
-		int iDamage = MELEE_DAMAGE + Math.RandomLong(0, 4);
+		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[SND_MELEE_SWING], VOL_NORM, ATTN_IDLE );
+
+		int iDamage = MELEE_DAMAGE + Math.RandomLong(0, 6);
 		CBaseEntity@ pHurt = CheckTraceHullAttack( MELEE_RANGE, iDamage, DMG_SLASH );
 		if( pHurt !is null )
 		{
 			if( pHurt.pev.FlagBitSet(FL_MONSTER) or (pHurt.pev.FlagBitSet(FL_CLIENT) and CNPC::PVP) )
 			{
 				pHurt.pev.punchangle.x = 5;
-				pHurt.pev.velocity = pHurt.pev.velocity + g_Engine.v_forward * -800;
+				Math.MakeVectors( m_pDriveEnt.pev.angles );
+				pHurt.pev.velocity = pHurt.pev.velocity + g_Engine.v_forward * MELEE_KICK;
 			}
 
 			g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_BODY, arrsCNPCSounds[SND_MELEE_HIT], VOL_NORM, ATTN_NORM );
 		}
-		else
-			g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_BODY, arrsCNPCSounds[SND_MELEE_MISS], VOL_NORM, ATTN_NORM );
 	}
 
-	void FireRailgun()
+	void ChickReslash()
 	{
-		m_pDriveEnt.pev.framerate = 1.0;
-		Vector vecStart;
-		m_pDriveEnt.GetAttachment( 0, vecStart, void );
+		if( GetButton(IN_ATTACK2) and Math.RandomFloat(0.0, 1.0) <= 0.9 )
+		{
+			m_uiAnimationState = 0;
+			m_pDriveEnt.pev.frame = SetFrame( 16, 3 );
+		}
+	}
+
+	void ChickPreLaunch()
+	{
+		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[SND_ROCKET_PRELAUNCH], VOL_NORM, ATTN_NORM );
+	}
+
+	void FireRocket()
+	{
+		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_WEAPON, arrsCNPCSounds[SND_ROCKET_LAUNCH], VOL_NORM, ATTN_NORM );
+
+		Vector vecOrigin;
+		m_pDriveEnt.GetAttachment( 0, vecOrigin, void );
+		Math.MakeVectors( m_pDriveEnt.pev.angles );
 
 		Vector vecAim = m_pPlayer.pev.v_angle;
-		if( vecAim.x > RAILGUN_MAXPITCH )
-			vecAim.x = RAILGUN_MAXPITCH;
-		else if( vecAim.x < -RAILGUN_MAXPITCH )
-			vecAim.x = -RAILGUN_MAXPITCH;
+		if( vecAim.x > CNPC_MAXPITCH )
+			vecAim.x = CNPC_MAXPITCH;
+		else if( vecAim.x < -CNPC_MAXPITCH )
+			vecAim.x = -CNPC_MAXPITCH;
 
-		vecAim.y += 1.0; //closer to the crosshairs
-		vecAim.x -= 0.5; //closer to the crosshairs
+		g_EngineFuncs.MakeVectors( vecAim );
 
-		Math.MakeVectors( vecAim );
-		monster_fire_railgun( vecStart, g_Engine.v_forward, RAILGUN_DAMAGE );
+		monster_fire_rocket( vecOrigin, g_Engine.v_forward, ROCKET_DMG, ROCKET_SPEED, 2.0 );
 	}
 
-	void CheckDanceInput()
+	void ChickReload()
+	{
+		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[SND_ROCKET_RELOAD], VOL_NORM, ATTN_NORM );
+	}
+
+	void ChickRefire()
+	{
+		if( GetButton(IN_ATTACK) and Math.RandomFloat(0.0, 1.0) <= 0.7 )
+		{
+			m_uiAnimationState = 1;
+			m_pDriveEnt.pev.frame = SetFrame( 32, 12 );
+			SetSpeed( int(SPEED_WALK) ); //allow for moving while firing
+		}
+	}
+
+	void CheckDuckInput()
 	{
 		if( GetState() > STATE_MOVING or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) ) return;
 
-		if( GetButton(IN_JUMP) )
+		if( GetButton(IN_DUCK) )
 		{
-			SetState( STATE_ATTACK );
+			SetState( STATE_DUCKING );
 			SetSpeed( 0 );
-			SetAnim( ANIM_DANCE );
+			SetAnim( ANIM_DUCK );
 		}
+	}
+
+	void DoDucking()
+	{
+		if( GetButton(IN_DUCK) )
+			SetFramerate( 0 );
+		else
+			SetFramerate( 1.0 );
 	}
 
 	void spawnDriveEnt()
@@ -465,7 +536,7 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 
 		vecOrigin.z -= CNPC_MODEL_OFFSET;
 
-		@m_pDriveEnt = cast<CBaseAnimating@>( g_EntityFuncs.Create("cnpc_q2gladiator", vecOrigin, Vector(0, m_pPlayer.pev.angles.y, 0), false, m_pPlayer.edict()) );
+		@m_pDriveEnt = cast<CBaseAnimating@>( g_EntityFuncs.Create("cnpc_q2ironmaiden", vecOrigin, Vector(0, m_pPlayer.pev.angles.y, 0), false, m_pPlayer.edict()) );
 
 		if( m_pDriveEnt !is null )
 			g_EntityFuncs.DispatchKeyValue( m_pDriveEnt.edict(), "m_iSpawnFlags", "" + m_iSpawnFlags );
@@ -495,17 +566,17 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 		m1.End();
 
 		CustomKeyvalues@ pCustom = m_pPlayer.GetCustomKeyvalues();
-		pCustom.SetKeyvalue( CNPC::sCNPCKV, CNPC::Q2::CNPC_Q2GLADIATOR );
+		pCustom.SetKeyvalue( CNPC::sCNPCKV, CNPC::Q2::CNPC_Q2IRONMAIDEN );
 
 		AlertSound();
 	}
 
 	void DoFirstPersonView()
 	{
-		cnpc_q2gladiator@ pDriveEnt = cast<cnpc_q2gladiator@>(CastToScriptClass(m_pDriveEnt));
+		cnpc_q2ironmaiden@ pDriveEnt = cast<cnpc_q2ironmaiden@>(CastToScriptClass(m_pDriveEnt));
 		if( pDriveEnt is null ) return;
 
-		string szDriveEntTargetName = "cnpc_q2gladiator_rend_" + m_pPlayer.entindex();
+		string szDriveEntTargetName = "cnpc_q2ironmaiden_rend_" + m_pPlayer.entindex();
 		m_pDriveEnt.pev.targetname = szDriveEntTargetName;
 
 		dictionary keys;
@@ -542,7 +613,7 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 	}
 }
 
-class cnpc_q2gladiator : CBaseDriveEntityQ2
+class cnpc_q2ironmaiden : CBaseDriveEntityQ2
 {
 	void Spawn()
 	{
@@ -592,9 +663,9 @@ class cnpc_q2gladiator : CBaseDriveEntityQ2
 
 		pev.angles.x = 0;
 
-		if( m_pOwner.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and pev.velocity.Length2D() > 0.0 and (pev.sequence == ANIM_RUN or pev.sequence == ANIM_WALK) )
+		if( m_pOwner.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) != 0 and pev.velocity.Length2D() > 0.0 and pev.sequence == ANIM_WALK )
 			pev.angles.y = Math.VecToAngles( pev.velocity ).y;
-		else if( pev.sequence == ANIM_MELEE or pev.sequence == ANIM_RAILGUN or pev.sequence == ANIM_DANCE )
+		else if( GetAnim(ANIM_ROCKET) or GetAnim(ANIM_MELEE) )
 			pev.angles.y = m_pOwner.pev.angles.y;
 
 		pev.angles.z = 0;
@@ -622,11 +693,12 @@ class cnpc_q2gladiator : CBaseDriveEntityQ2
 			return;
 		}
 
-		pev.sequence = ANIM_DEATH;
+		pev.sequence = Math.RandomLong(ANIM_DEATH1, ANIM_DEATH2);
 		pev.frame = 0;
 		self.ResetSequenceInfo();
 
-		g_SoundSystem.EmitSound( self.edict(), CHAN_VOICE, pDieSounds[Math.RandomLong(0, pDieSounds.length()-1)], VOL_NORM, ATTN_NORM );
+		int iSound = GetAnim(ANIM_DEATH1) ? 0 : 1;
+		g_SoundSystem.EmitSound( self.edict(), CHAN_VOICE, pDieSounds[iSound], VOL_NORM, ATTN_NORM );
 
 		SetThink( ThinkFunction(this.DieThink) );
 		pev.nextthink = g_Engine.time;
@@ -635,10 +707,10 @@ class cnpc_q2gladiator : CBaseDriveEntityQ2
 	void SpawnGibs()
 	{
 		ThrowGib( 2, MODEL_GIB_BONE, pev.dmg );
-		ThrowGib( 2, MODEL_GIB_MEAT, pev.dmg, BREAK_FLESH );
-		ThrowGib( 2, MODEL_GIB_THIGH, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_LARM, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_RARM, pev.dmg );
+		ThrowGib( 3, MODEL_GIB_MEAT, pev.dmg, BREAK_FLESH );
+		ThrowGib( 1, MODEL_GIB_ARM, pev.dmg );
+		ThrowGib( 1, MODEL_GIB_FOOT, pev.dmg );
+		ThrowGib( 1, MODEL_GIB_TUBE, pev.dmg );
 		ThrowGib( 1, MODEL_GIB_CHEST, pev.dmg );
 		ThrowGib( 1, MODEL_GIB_HEAD, pev.dmg, BREAK_FLESH, true );
 	}
@@ -648,8 +720,30 @@ class cnpc_q2gladiator : CBaseDriveEntityQ2
 		pev.nextthink = g_Engine.time + 0.01;
 		self.StudioFrameAdvance();
 
-		if( GetFrame(22, 3) and m_uiAnimationState == 0 ) { Footstep(55); m_uiAnimationState++; }
-		else if( self.m_fSequenceFinished and m_uiAnimationState == 1 ) { m_uiAnimationState = 0; }
+		switch( pev.sequence )
+		{
+			case ANIM_DEATH1:
+			{
+				if( GetFrame(12, 1) and m_uiAnimationState == 0 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(12, 3) and m_uiAnimationState == 1 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(12, 6) and m_uiAnimationState == 2 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(12, 10) and m_uiAnimationState == 3 ) { Footstep(); m_uiAnimationState++; }
+				else if( self.m_fSequenceFinished and m_uiAnimationState == 4 ) { m_uiAnimationState = 0; }
+
+				break;
+			}
+
+			case ANIM_DEATH2:
+			{
+				if( GetFrame(23, 3) and m_uiAnimationState == 0 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(23, 10) and m_uiAnimationState == 1 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(23, 16) and m_uiAnimationState == 2 ) { Footstep(); m_uiAnimationState++; }
+				else if( GetFrame(23, 21) and m_uiAnimationState == 3 ) { Footstep(); m_uiAnimationState++; }
+				else if( self.m_fSequenceFinished and m_uiAnimationState == 4 ) { m_uiAnimationState = 0; }
+
+				break;
+			}
+		}
 
 		if( self.m_fSequenceFinished )
 		{
@@ -707,9 +801,9 @@ class cnpc_q2gladiator : CBaseDriveEntityQ2
 	}
 }
 
-final class info_cnpc_q2gladiator : CNPCSpawnEntity
+final class info_cnpc_q2ironmaiden : CNPCSpawnEntity
 {
-	info_cnpc_q2gladiator()
+	info_cnpc_q2ironmaiden()
 	{
 		m_sWeaponName = CNPC_WEAPONNAME;
 		m_sModel = CNPC_MODEL;
@@ -722,23 +816,20 @@ final class info_cnpc_q2gladiator : CNPCSpawnEntity
 
 void Register()
 {
-	g_CustomEntityFuncs.RegisterCustomEntity( "CNPC::Q2::cnpcq2railbeam", "cnpcq2railbeam" );
-	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2gladiator::info_cnpc_q2gladiator", "info_cnpc_q2gladiator" );
-	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2gladiator::cnpc_q2gladiator", "cnpc_q2gladiator" );
-	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2gladiator::weapon_q2gladiator", CNPC_WEAPONNAME );
+	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2ironmaiden::info_cnpc_q2ironmaiden", "info_cnpc_q2ironmaiden" );
+	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2ironmaiden::cnpc_q2ironmaiden", "cnpc_q2ironmaiden" );
+	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2ironmaiden::weapon_q2ironmaiden", CNPC_WEAPONNAME );
 	g_ItemRegistry.RegisterWeapon( CNPC_WEAPONNAME, "controlnpc" );
 
-	g_Game.PrecacheOther( "cnpcq2railbeam" );
-	g_Game.PrecacheOther( "info_cnpc_q2gladiator" );
-	g_Game.PrecacheOther( "cnpc_q2gladiator" );
+	g_Game.PrecacheOther( "info_cnpc_q2ironmaiden" );
+	g_Game.PrecacheOther( "cnpc_q2ironmaiden" );
 	g_Game.PrecacheOther( CNPC_WEAPONNAME );
 }
 
-} //namespace cnpc_q2gladiator END
+} //namespace cnpc_q2ironmaiden END
 
 /* FIXME
 */
 
 /* TODO
-	NPC Hitbox
 */

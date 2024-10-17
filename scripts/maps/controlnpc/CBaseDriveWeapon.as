@@ -269,14 +269,14 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		return m_iState == iState;
 	}
 
-	void SetAnim( int iAnim, float flFrameRate = 1.0, float flFrame = 0.0 )
+	void SetAnim( int iAnim, float flFramerate = 1.0, float flFrame = 0.0 )
 	{
 		if( m_pDriveEnt !is null )
 		{
 			m_pDriveEnt.pev.sequence = iAnim;
 			m_pDriveEnt.ResetSequenceInfo();
 			m_pDriveEnt.pev.frame = flFrame;
-			m_pDriveEnt.pev.framerate = flFrameRate;
+			m_pDriveEnt.pev.framerate = flFramerate;
 			m_uiAnimationState = 0;
 		}
 	}
@@ -311,7 +311,7 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		return false;
 	}
 
-	float SetFrame( float flFrame, float flMaxFrames )
+	float SetFrame( float flMaxFrames, float flFrame )
 	{
 		if( m_pDriveEnt is null ) return 0;
 

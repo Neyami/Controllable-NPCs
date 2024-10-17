@@ -1,6 +1,7 @@
 #include "CBaseDriveWeaponQ2"
 #include "cnpcq2entities"
 
+#include "q2ironmaiden"
 #include "q2gladiator"
 #include "q2tank"
 #include "q2supertank"
@@ -11,15 +12,18 @@ namespace CNPC
 namespace Q2
 {
 
-const int Q2GLADIATOR_SLOT			= 5;
-const int Q2GLADIATOR_POSITION	= 10;
-const int Q2TANK_SLOT					= 5;
-const int Q2TANK_POSITION			= 11;
-const int Q2SUPERTANK_SLOT		= 5;
-const int Q2SUPERTANK_POSITION	= 12;
+const int Q2IRONMAIDEN_SLOT			= 5;
+const int Q2IRONMAIDEN_POSITION	= 10;
+const int Q2GLADIATOR_SLOT				= 5;
+const int Q2GLADIATOR_POSITION		= 11;
+const int Q2TANK_SLOT						= 5;
+const int Q2TANK_POSITION				= 12;
+const int Q2SUPERTANK_SLOT			= 5;
+const int Q2SUPERTANK_POSITION		= 13;
 
 const array<string> arrsCNPCQ2Weapons =
 {
+	"weapon_q2ironmaiden",
 	"weapon_q2gladiator",
 	"weapon_q2tank",
 	"weapon_q2supertank"
@@ -27,15 +31,33 @@ const array<string> arrsCNPCQ2Weapons =
 
 const array<string> arrsCNPCQ2Gibbable =
 {
+	"cnpc_q2ironmaiden",
 	"cnpc_q2gladiator",
 	"cnpc_q2tank"
 };
 
 enum cnpcq2_e
 {
-	CNPC_Q2GLADIATOR = CNPC::CNPC_LASTVANILLA + 1,
+	CNPC_Q2IRONMAIDEN = CNPC::CNPC_LASTVANILLA + 1,
+	CNPC_Q2GLADIATOR,
 	CNPC_Q2TANK,
 	CNPC_Q2SUPERTANK
+};
+
+enum steptype_e
+{
+	STEP_CONCRETE = 0, // default step sound
+	STEP_METAL, // metal floor
+	STEP_DIRT, // dirt, sand, rock
+	STEP_VENT, // ventilation duct
+	STEP_GRATE, // metal grating
+	STEP_TILE, // floor tiles
+	STEP_SLOSH, // shallow liquid puddle
+	STEP_WADE, // wading in liquid
+	STEP_LADDER, // climbing ladder
+	STEP_WOOD,
+	STEP_FLESH,
+	STEP_SNOW
 };
 
 void MapInitCNPCQ2()
@@ -48,6 +70,7 @@ void MapInitCNPCQ2()
     for( uint i = 0; i < arrsCNPCQ2Gibbable.length(); i++ )
       arrsCNPCGibbable.insertLast( arrsCNPCQ2Gibbable[i] );
 
+	cnpc_q2ironmaiden::Register();
 	cnpc_q2gladiator::Register();
 	cnpc_q2tank::Register();
 	cnpc_q2supertank::Register();
@@ -63,7 +86,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 	//prevent other players from triggering painsounds
 	if( pDamageInfo.pVictim !is pDamageInfo.pAttacker )
 	{
-		if( pDamageInfo.pVictim.GetClassname() == "player" and pDamageInfo.pAttacker.GetClassname() == "player" and (pDamageInfo.bitsDamageType & DMG_CLUB) == 0 )
+		if( pDamageInfo.pVictim.GetClassname() == "player" and pDamageInfo.pAttacker.GetClassname() == "player" )
 		{
 			if( pDamageInfo.pVictim.Classify() == pDamageInfo.pAttacker.Classify() )
 				return HOOK_CONTINUE;
@@ -72,21 +95,29 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 
 	switch( pCustom.GetKeyvalue(sCNPCKV).GetInteger() )
 	{
+		case CNPC_Q2IRONMAIDEN:
+		{
+			CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
+			cnpc_q2ironmaiden::weapon_q2ironmaiden@ pWeapon = cast<cnpc_q2ironmaiden::weapon_q2ironmaiden@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
+
+			if( pWeapon !is null and pWeapon.m_pDriveEnt !is null )
+			{
+				if( pWeapon.m_iState == 3 ) //STATE_DUCKING
+					pDamageInfo.flDamage *= 0.5;
+
+				pWeapon.HandlePain( pDamageInfo.flDamage );
+			}
+
+			break;
+		}
+
 		case CNPC_Q2GLADIATOR:
 		{
 			CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
 			cnpc_q2gladiator::weapon_q2gladiator@ pWeapon = cast<cnpc_q2gladiator::weapon_q2gladiator@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
 
 			if( pWeapon !is null and pWeapon.m_pDriveEnt !is null )
-				pWeapon.m_pDriveEnt.pev.dmg = pDamageInfo.flDamage;
-
-			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
-				return HOOK_CONTINUE;
-
-			float flNextPainTime = g_Engine.time + 3.0;
-			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
-
-			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_q2gladiator::pPainSounds[Math.RandomLong(0,(cnpc_q2gladiator::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+				pWeapon.HandlePain( pDamageInfo.flDamage );
 
 			break;
 		}
@@ -97,15 +128,7 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			cnpc_q2tank::weapon_q2tank@ pWeapon = cast<cnpc_q2tank::weapon_q2tank@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
 
 			if( pWeapon !is null and pWeapon.m_pDriveEnt !is null )
-				pWeapon.m_pDriveEnt.pev.dmg = pDamageInfo.flDamage;
-
-			if( pCustom.GetKeyvalue(sCNPCKVPainTime).GetFloat() > g_Engine.time )
-				return HOOK_CONTINUE;
-
-			float flNextPainTime = g_Engine.time + 3.0;
-			pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
-
-			g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_q2tank::pPainSounds[Math.RandomLong(0,(cnpc_q2tank::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+				pWeapon.HandlePain( pDamageInfo.flDamage );
 
 			break;
 		}
@@ -122,7 +145,12 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 				float flNextPainTime = g_Engine.time + 3.0;
 				pCustom.SetKeyvalue( sCNPCKVPainTime, flNextPainTime );
 
-				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_q2supertank::pPainSounds[Math.RandomLong(0,(cnpc_q2supertank::pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+			if( pDamageInfo.flDamage <= 10 )
+				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_q2supertank::pPainSounds[0], VOL_NORM, ATTN_NORM );
+			else if( pDamageInfo.flDamage <= 25 )
+				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_q2supertank::pPainSounds[2], VOL_NORM, ATTN_NORM );
+			else
+				g_SoundSystem.EmitSound( pDamageInfo.pVictim.edict(), CHAN_VOICE, cnpc_q2supertank::pPainSounds[1], VOL_NORM, ATTN_NORM );
 
 				break;
 			}

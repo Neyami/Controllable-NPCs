@@ -504,7 +504,7 @@ class weapon_pitdrone : CBaseDriveWeapon
 
 			m_pPlayer.SetMaxSpeedOverride( 0 );
 			m_pDriveEnt.pev.sequence = ANIM_JUMP;
-			m_pDriveEnt.pev.frame = SetFrame(10, 43);
+			m_pDriveEnt.pev.frame = SetFrame(43, 10);
 			m_pDriveEnt.ResetSequenceInfo();
 			Math.MakeVectors( m_pPlayer.pev.angles );
 

@@ -315,8 +315,8 @@ final class weapon_q2supertank : CBaseDriveWeaponQ2
 			DoIdleSound();
 			DoSearchSound();
 			HandleAnimEvent( m_pDriveEnt.pev.sequence );
-			KeepPlayerNonsolid();
 
+			KeepPlayerNonsolid();
 			StopShooting();
 			DoAmmoRegen();
 			CheckGrenadeInput();
@@ -503,9 +503,7 @@ final class weapon_q2supertank : CBaseDriveWeaponQ2
 
 		g_EngineFuncs.MakeVectors( vecAim );
 
-		vecAim = g_Engine.v_forward;
-
-		monster_fire_rocket( vecOrigin, vecAim, ROCKET_DMG, ROCKET_SPEED, 2.0 );
+		monster_fire_rocket( vecOrigin, g_Engine.v_forward, ROCKET_DMG, ROCKET_SPEED, 2.0 );
 	}
 
 	void CheckGrenadeInput()

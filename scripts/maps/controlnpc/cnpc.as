@@ -975,6 +975,236 @@ bool CanRepairRobot( CBaseEntity@ pEntity )
 	return true;
 }
 
+//from pm_shared.c
+void monster_footstep( EHandle eDriveEnt, EHandle ePlayer, int iStepLeft, int iPitch = PITCH_NORM, bool bSetOrigin = false, Vector vecSetOrigin = g_vecZero )
+{
+	int iRand;
+	float flVol = 1.0;
+
+	iRand = Math.RandomLong(0, 1) + (iStepLeft * 2);
+
+	CBaseEntity@ pDriveEnt = eDriveEnt.GetEntity();
+	Vector vecOrigin = pDriveEnt.pev.origin;
+
+	if( bSetOrigin )
+		vecOrigin = vecSetOrigin;
+
+	TraceResult tr;
+	g_Utility.TraceLine( vecOrigin, vecOrigin + Vector(0, 0, -64),  ignore_monsters, pDriveEnt.edict(), tr );
+
+	edict_t@ pWorld = g_EntityFuncs.Instance(0).edict();
+	if( tr.pHit !is null ) @pWorld = tr.pHit;
+
+	string sTexture = g_Utility.TraceTexture( pWorld, vecOrigin, vecOrigin + Vector(0, 0, -64) );
+	char chTextureType = g_SoundSystem.FindMaterialType( sTexture );
+	int iStep = MapTextureTypeStepType( chTextureType );
+
+	if( ePlayer.GetEntity().pev.waterlevel == WATERLEVEL_FEET ) iStep = CNPC::Q2::STEP_SLOSH;
+	else if( ePlayer.GetEntity().pev.waterlevel >= WATERLEVEL_WAIST ) iStep = CNPC::Q2::STEP_WADE;
+
+	switch( iStep )
+	{
+		case CNPC::Q2::STEP_VENT:
+		{
+			flVol = 0.7; //fWalking ? 0.4 : 0.7;
+
+			switch( iRand )
+			{
+				// right foot
+				case 0:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_duct1.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 1:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_duct3.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				// left foot
+				case 2:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_duct2.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 3:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_duct4.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+			}
+
+			break;
+		}
+
+		case CNPC::Q2::STEP_DIRT:
+		{
+			flVol = 0.55; //fWalking ? 0.25 : 0.55;
+
+			switch( iRand )
+			{
+				// right foot
+				case 0:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_dirt1.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 1:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_dirt3.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				// left foot
+				case 2:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_dirt2.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 3:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_dirt4.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+			}
+
+			break;
+		}
+
+		case CNPC::Q2::STEP_GRATE:
+		{
+			flVol = 0.5; //fWalking ? 0.2 : 0.5;
+
+			switch( iRand )
+			{
+				// right foot
+				case 0:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_grate1.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 1:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_grate3.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				// left foot
+				case 2:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_grate2.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 3:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_grate4.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+			}
+
+			break;
+		}
+
+		case CNPC::Q2::STEP_METAL:
+		{
+			flVol = 0.5; //fWalking ? 0.2 : 0.5;
+
+			switch( iRand )
+			{
+				// right foot
+				case 0:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_metal1.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 1:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_metal3.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				// left foot
+				case 2:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_metal2.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 3:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_metal4.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+			}
+
+			break;
+		}
+
+		case CNPC::Q2::STEP_SLOSH:
+		{
+			flVol = 0.5; //fWalking ? 0.2 : 0.5;
+
+			switch( iRand )
+			{
+				// right foot
+				case 0:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_slosh1.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 1:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_slosh3.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				// left foot
+				case 2:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_slosh2.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 3:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_slosh4.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+			}
+
+			break;
+		}
+
+		case CNPC::Q2::STEP_WADE: { break; }
+
+		case CNPC::Q2::STEP_TILE:
+		{
+			flVol = 0.5; //fWalking ? 0.2 : 0.5;
+
+			if( Math.RandomLong(0, 4) == 0 )
+				iRand = 4;
+
+			switch( iRand )
+			{
+				// right foot
+				case 0:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_tile1.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 1:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_tile3.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				// left foot
+				case 2:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_tile2.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 3:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_tile4.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 4: g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_tile5.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+			}
+
+			break;
+		}
+
+		case CNPC::Q2::STEP_WOOD:
+		{
+			switch( iRand )
+			{
+				// right foot
+				case 0:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_wood1.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 1:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_wood3.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				// left foot
+				case 2:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_wood2.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 3:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_wood4.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+			}
+
+			break;
+		}
+
+		case CNPC::Q2::STEP_FLESH:
+		{
+			flVol = 0.55; //fWalking ? 0.25 : 0.55;
+
+			switch( iRand )
+			{
+				// right foot
+				case 0:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_organic1.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 1:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_organic3.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				// left foot
+				case 2:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_organic2.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 3:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_organic4.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+			}
+
+			break;
+		}
+
+		case CNPC::Q2::STEP_SNOW:
+		{
+			flVol = 0.55; //fWalking ? 0.25 : 0.55;
+
+			if( Math.RandomLong(0, 1) == 1 )
+				iRand += 4;
+
+			switch( iRand )
+			{
+				case 0:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_snow1.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 1:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_snow3.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 2:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_snow2.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 3:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_snow4.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 4:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_snow5.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 5:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_snow6.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 6:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_snow7.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 7:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_snow8.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+			}
+
+			break;
+		}
+
+		case CNPC::Q2::STEP_CONCRETE:
+		default:
+		{
+			flVol = 0.5; //fWalking ? 0.2 : 0.5;
+
+			switch( iRand )
+			{
+				// right foot
+				case 0:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_step1.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 1:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_step3.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				// left foot
+				case 2:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_step2.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+				case 3:	g_SoundSystem.EmitSoundDyn( pDriveEnt.edict(), CHAN_BODY, "player/pl_step4.wav", flVol, ATTN_NORM, 0, iPitch );	break;
+			}
+
+			break;
+		}
+	}
+
+	//g_Game.AlertMessage( at_notice, "sTexture: %1\n", sTexture );
+	//g_Game.AlertMessage( at_notice, "chTextureType: %1\n", string(chTextureType) );
+	//g_Game.AlertMessage( at_notice, "iStep: %1\n", iStep );
+}
+
+int MapTextureTypeStepType( char chTextureType )
+{
+	if( chTextureType == 'C' ) return CNPC::Q2::STEP_CONCRETE;
+	else if( chTextureType == 'M' ) return CNPC::Q2::STEP_METAL;
+	else if( chTextureType == 'D' ) return CNPC::Q2::STEP_DIRT;
+	else if( chTextureType == 'V' ) return CNPC::Q2::STEP_VENT;
+	else if( chTextureType == 'G' ) return CNPC::Q2::STEP_GRATE;
+	else if( chTextureType == 'T' ) return CNPC::Q2::STEP_TILE;
+	else if( chTextureType == 'S' ) return CNPC::Q2::STEP_SLOSH;
+	else if( chTextureType == 'W' ) return CNPC::Q2::STEP_WOOD; //TODO
+	else if( chTextureType == 'F' ) return CNPC::Q2::STEP_FLESH;
+	else if( chTextureType == 'O' ) return CNPC::Q2::STEP_SNOW;
+
+	return CNPC::Q2::STEP_CONCRETE;
+}
 } //namespace CNPC END
 
 //thanks Outerbeast :ayaya:
