@@ -1,0 +1,4 @@
+3
+weapon				640		controlnpc/ui_q2berserker		0	170	0	45
+weapon_s			640		controlnpc/ui_q2berserker_sel		0	170	0	45
+ammo2				640		640hud7		144	84	24	24
