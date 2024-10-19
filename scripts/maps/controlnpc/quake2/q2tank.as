@@ -101,7 +101,8 @@ enum states_e
 {
 	STATE_IDLE = 0,
 	STATE_MOVING,
-	STATE_ATTACK
+	STATE_ATTACK,
+	STATE_PAIN
 };
 
 enum attach_e
@@ -313,7 +314,7 @@ final class weapon_q2tank : CBaseDriveWeaponQ2
 
 	void DoIdleAnimation()
 	{
-		if( GetState(STATE_ATTACK) and !m_pDriveEnt.m_fSequenceFinished ) return;
+		if( GetState() >= STATE_ATTACK and !m_pDriveEnt.m_fSequenceFinished ) return;
 
 		if( m_pPlayer.pev.velocity.Length() <= 10.0 )
 		{
@@ -343,6 +344,40 @@ final class weapon_q2tank : CBaseDriveWeaponQ2
 
 	void SearchSound()
 	{
+	}
+
+	void HandlePain( float flDamage )
+	{
+		m_pDriveEnt.pev.dmg = flDamage;
+
+		if( m_pPlayer.pev.health < (CNPC_HEALTH * 0.5) )
+			m_pDriveEnt.pev.skin = 1;
+
+		if( flDamage <= 10 )
+			return;
+
+		if( m_pDriveEnt.pev.pain_finished > g_Engine.time )
+			return;
+
+		if( flDamage <= 30 and Math.RandomFloat(0.0, 1.0) > 0.2 )
+				return;
+
+		if( GetAnim(ANIM_ROCKET) or GetAnim(ANIM_BLASTER) )
+			return;
+
+		m_pDriveEnt.pev.pain_finished = g_Engine.time + 3.0;
+
+		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, pPainSounds[Math.RandomLong(0,(pPainSounds.length() - 1))], VOL_NORM, ATTN_NORM );
+
+		if( flDamage <= 30 )
+			SetAnim( ANIM_PAIN1 );
+		else if( flDamage <= 60 )
+			SetAnim( ANIM_PAIN2 );
+		else
+			SetAnim( ANIM_PAIN3 );
+
+		SetSpeed( 0 );
+		SetState( STATE_PAIN );
 	}
 
 	void HandleAnimEvent( int iSequence )
@@ -409,6 +444,14 @@ final class weapon_q2tank : CBaseDriveWeaponQ2
 
 				break;
 			}
+
+			case ANIM_PAIN3:
+			{
+				if( GetFrame(16, 15) and m_uiAnimationState == 0 ) { FootStep(); m_uiAnimationState++; }
+				else if( m_pDriveEnt.m_fSequenceFinished and m_uiAnimationState == 1 ) { m_uiAnimationState = 0; }
+
+				break;
+			}
 		}
 	}
 
@@ -461,7 +504,7 @@ final class weapon_q2tank : CBaseDriveWeaponQ2
 			if( GetButton(IN_ATTACK) and Math.RandomFloat(0, 1) <= 0.6 )
 			{
 				m_uiAnimationState = 0; //shouldn't this be 1 ??
-				m_pDriveEnt.pev.frame = SetFrame( 10, 22 );
+				m_pDriveEnt.pev.frame = SetFrame( 22, 10 );
 			}
 		}
 	}
@@ -498,7 +541,7 @@ final class weapon_q2tank : CBaseDriveWeaponQ2
 			if( GetButton(IN_RELOAD) and Math.RandomFloat(0, 1) <= 0.4 )
 			{
 				m_uiAnimationState = 0; //shouldn't this be 1 ??
-				m_pDriveEnt.pev.frame = SetFrame( 21, 53 );
+				m_pDriveEnt.pev.frame = SetFrame( 53, 21 );
 				return;
 			}
 		}
@@ -653,8 +696,6 @@ final class weapon_q2tank : CBaseDriveWeaponQ2
 
 class cnpc_q2tank : CBaseDriveEntityQ2
 {
-	private uint m_uiAnimationState;
-
 	void Spawn()
 	{
 		g_EntityFuncs.SetModel( self, CNPC_MODEL );
@@ -866,8 +907,12 @@ final class info_cnpc_q2tank : CNPCSpawnEntity
 
 void Register()
 {
-	g_CustomEntityFuncs.RegisterCustomEntity( "CNPC::Q2::cnpcq2laser", "cnpcq2laser" );
-	g_CustomEntityFuncs.RegisterCustomEntity( "CNPC::Q2::cnpcq2rocket", "cnpcq2rocket" );
+	if( !g_CustomEntityFuncs.IsCustomEntity( "cnpcq2laser" ) )  
+		g_CustomEntityFuncs.RegisterCustomEntity( "CNPC::Q2::cnpcq2laser", "cnpcq2laser" );
+
+	if( !g_CustomEntityFuncs.IsCustomEntity( "cnpcq2rocket" ) )  
+		g_CustomEntityFuncs.RegisterCustomEntity( "CNPC::Q2::cnpcq2rocket", "cnpcq2rocket" );
+
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2tank::info_cnpc_q2tank", "info_cnpc_q2tank" );
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2tank::cnpc_q2tank", "cnpc_q2tank" );
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2tank::weapon_q2tank", CNPC_WEAPONNAME );
@@ -888,5 +933,5 @@ void Register()
 
 /* TODO
 	Use a think for the machinegun instead of HandleAnimEvent ??
-	NPC Hitbox
+	NPC Hitbox ??
 */

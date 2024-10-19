@@ -992,8 +992,12 @@ final class info_cnpc_q2supertank : CNPCSpawnEntity
 
 void Register()
 {
-	g_CustomEntityFuncs.RegisterCustomEntity( "CNPC::Q2::cnpcq2grenade", "cnpcq2grenade" );
-	g_CustomEntityFuncs.RegisterCustomEntity( "CNPC::Q2::cnpcq2rocket", "cnpcq2rocket" );
+	if( !g_CustomEntityFuncs.IsCustomEntity( "cnpcq2grenade" ) )  
+		g_CustomEntityFuncs.RegisterCustomEntity( "CNPC::Q2::cnpcq2grenade", "cnpcq2grenade" );
+
+	if( !g_CustomEntityFuncs.IsCustomEntity( "cnpcq2rocket" ) )  
+		g_CustomEntityFuncs.RegisterCustomEntity( "CNPC::Q2::cnpcq2rocket", "cnpcq2rocket" );
+
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2supertank::info_cnpc_q2supertank", "info_cnpc_q2supertank" );
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2supertank::cnpc_q2supertank", "cnpc_q2supertank" );
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2supertank::weapon_q2supertank", CNPC_WEAPONNAME );

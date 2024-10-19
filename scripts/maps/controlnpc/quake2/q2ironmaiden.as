@@ -816,6 +816,9 @@ final class info_cnpc_q2ironmaiden : CNPCSpawnEntity
 
 void Register()
 {
+	if( !g_CustomEntityFuncs.IsCustomEntity( "cnpcq2rocket" ) )  
+		g_CustomEntityFuncs.RegisterCustomEntity( "CNPC::Q2::cnpcq2rocket", "cnpcq2rocket" );
+
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2ironmaiden::info_cnpc_q2ironmaiden", "info_cnpc_q2ironmaiden" );
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2ironmaiden::cnpc_q2ironmaiden", "cnpc_q2ironmaiden" );
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2ironmaiden::weapon_q2ironmaiden", CNPC_WEAPONNAME );

@@ -722,7 +722,9 @@ final class info_cnpc_q2gladiator : CNPCSpawnEntity
 
 void Register()
 {
-	g_CustomEntityFuncs.RegisterCustomEntity( "CNPC::Q2::cnpcq2railbeam", "cnpcq2railbeam" );
+	if( !g_CustomEntityFuncs.IsCustomEntity( "cnpcq2railbeam" ) )  
+		g_CustomEntityFuncs.RegisterCustomEntity( "CNPC::Q2::cnpcq2railbeam", "cnpcq2railbeam" );
+
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2gladiator::info_cnpc_q2gladiator", "info_cnpc_q2gladiator" );
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2gladiator::cnpc_q2gladiator", "cnpc_q2gladiator" );
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2gladiator::weapon_q2gladiator", CNPC_WEAPONNAME );

@@ -448,7 +448,7 @@ class weapon_houndeye : CBaseDriveWeapon
 			m1.WriteCoord( m_pDriveEnt.pev.origin.z + 16 );
 			m1.WriteCoord( m_pDriveEnt.pev.origin.x );
 			m1.WriteCoord( m_pDriveEnt.pev.origin.y );
-			m1.WriteCoord( m_pDriveEnt.pev.origin.z + 16 + SONIC_RADIUS / .2); // reach damage radius over .3 seconds
+			m1.WriteCoord( m_pDriveEnt.pev.origin.z + 16 + SONIC_RADIUS / 0.2); // reach damage radius over .3 seconds
 			m1.WriteShort( m_iSpriteTexture );
 			m1.WriteByte( 0 ); // startframe
 			m1.WriteByte( 0 ); // framerate
@@ -469,7 +469,7 @@ class weapon_houndeye : CBaseDriveWeapon
 			m2.WriteCoord( m_pDriveEnt.pev.origin.z + 16 );
 			m2.WriteCoord( m_pDriveEnt.pev.origin.x );
 			m2.WriteCoord( m_pDriveEnt.pev.origin.y );
-			m2.WriteCoord( m_pDriveEnt.pev.origin.z + 16 + ( SONIC_RADIUS / 2 ) / .2); // reach damage radius over .3 seconds
+			m2.WriteCoord( m_pDriveEnt.pev.origin.z + 16 + ( SONIC_RADIUS / 2 ) / 0.2); // reach damage radius over .3 seconds
 			m2.WriteShort( m_iSpriteTexture );
 			m2.WriteByte( 0 ); // startframe
 			m2.WriteByte( 0 ); // framerate

@@ -410,6 +410,16 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 		return(m_pPlayer.m_afButtonPressed & iButton) != 0;
 	}
 
+	bool GetPushedDown( int iButton )
+	{
+		return (m_pPlayer.pev.button & iButton) != 0 and (m_pPlayer.pev.oldbuttons & iButton) == 0;
+	}
+
+	bool GetReleased( int iButton )
+	{
+		return (m_pPlayer.pev.oldbuttons & iButton) != 0 and (m_pPlayer.pev.button & iButton) == 0;
+	}
+
 	bool IsBetween( float flValue, float flMin, float flMax )
 	{
 		return (flValue > flMin and flValue < flMax);
