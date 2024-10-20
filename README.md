@@ -467,6 +467,20 @@ Duck: Duck to reduce incoming damage by 50% while holding
 <BR>
 
 
+# QUAKE 2 BERSERKER #  
+`weapon_q2berserker` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_q2berserker` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Club  
+Secondary Attack: Spike  
+Tertiary Attack: Toggle between first- and third-person view  
+Duck: Duck to reduce incoming damage by 50% while holding  
+Jump: Jumping attack, hold to charge for a longer leap  
+
+
+<BR>
+
+
 # QUAKE 2 GLADIATOR #  
 `weapon_q2gladiator` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_q2gladiator` - Usable entity that turns the player into the monster upon using. Mappers can place this  
