@@ -1,0 +1,4 @@
+3
+weapon				640		controlnpc/ui_q2enforcer		0	170	0	45
+weapon_s			640		controlnpc/ui_q2enforcer_sel		0	170	0	45
+crosshair			640		crosshairs	0	48	24	24
