@@ -184,6 +184,11 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 		m2.End();
 	}
 
+	void monster_fire_bullet( Vector vecStart, Vector vecDir, float flDamage, Vector vecSpread )
+	{
+		self.FireBullets( 1, vecStart, vecDir, vecSpread, 2048, BULLET_PLAYER_CUSTOMDAMAGE, 1, int(flDamage), m_pPlayer.pev );
+	}
+
 	void monster_fire_blaster( Vector vecStart, Vector vecDir, float flDamage, int flSpeed )
 	{
 		CBaseEntity@ pLaser = g_EntityFuncs.Create( "cnpcq2laser", vecStart, vecDir, false, m_pPlayer.edict() ); 
@@ -470,6 +475,11 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 		}
 		else
 			return BaseClass.KeyValue( szKey, szValue );
+	}
+
+	void monster_fire_bullet( Vector vecStart, Vector vecDir, float flDamage, Vector vecSpread )
+	{
+		self.FireBullets( 1, vecStart, vecDir, vecSpread, 2048, BULLET_PLAYER_CUSTOMDAMAGE, 1, int(flDamage) );
 	}
 
 	//More true to the original ??
