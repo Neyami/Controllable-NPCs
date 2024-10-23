@@ -494,6 +494,19 @@ Jump: Dance or something idk
 <BR>
 
 
+# QUAKE 2 ENFORCER #  
+`weapon_q2enforcer` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_q2enforcer` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Machine gun  
+Secondary Attack: Melee  
+Tertiary Attack: Toggle between first- and third-person view  
+Duck: Duck to reduce incoming damage by 50% while holding  
+
+
+<BR>
+
+
 # QUAKE 2 TANK #  
 `weapon_q2tank` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_q2tank` - Usable entity that turns the player into the monster upon using. Mappers can place this  
