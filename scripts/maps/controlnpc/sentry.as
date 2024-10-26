@@ -149,7 +149,7 @@ class weapon_sentry : CBaseDriveWeapon
 
 		m_hudParamsAmmo.color1 = HUD_COLOR_NORMAL;
 
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

@@ -161,7 +161,7 @@ class weapon_tentacle : CBaseDriveWeapon
 		m_flTapRadius = 336;
 		m_iMyLevel = 0;
 
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

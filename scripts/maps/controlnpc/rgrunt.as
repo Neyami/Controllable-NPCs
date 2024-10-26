@@ -259,7 +259,7 @@ class weapon_rgrunt : CBaseDriveWeapon
 			m_iMaxAmmo = AMMO_MAX;
 
 		self.m_iDefaultAmmo = m_iMaxAmmo;
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

@@ -109,7 +109,7 @@ class weapon_bullsquid : CBaseDriveWeapon
 
 		SetState( STATE_IDLE );
 
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

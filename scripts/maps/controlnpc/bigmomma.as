@@ -126,7 +126,7 @@ class weapon_bigmomma : CBaseDriveWeapon
 
 		m_iState = STATE_IDLE;
 
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

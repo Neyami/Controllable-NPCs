@@ -102,7 +102,7 @@ class weapon_barney : CBaseDriveWeapon
 		m_flResetHead = 0.0;
 
 		self.m_iDefaultAmmo = AMMO_MAX;
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

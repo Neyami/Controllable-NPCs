@@ -94,6 +94,14 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 
 	void SearchSound() {}
 
+	void Footstep( int iPitch = PITCH_NORM, bool bSetOrigin = false, Vector vecSetOrigin = g_vecZero )
+	{
+		if( m_iStepLeft == 0 ) m_iStepLeft = 1;
+			else m_iStepLeft = 0;
+
+		CNPC::monster_footstep( EHandle(m_pDriveEnt), EHandle(m_pPlayer), m_iStepLeft, iPitch, bSetOrigin, vecSetOrigin );
+	}
+
 	//Prevent weapon from being dropped manually
 	CBasePlayerItem@ DropItem() { return null; }
 
@@ -182,6 +190,22 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 			m2.WriteByte( 8 ); //lifetime
 			m2.WriteByte( 50 ); //decay
 		m2.End();
+	}
+
+	void monster_muzzleflash( Vector vecOrigin, int iRadius, int iR, int iG, int iB )
+	{
+		NetworkMessage m1( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecOrigin );
+			m1.WriteByte( TE_DLIGHT );
+			m1.WriteCoord( vecOrigin.x );
+			m1.WriteCoord( vecOrigin.y );
+			m1.WriteCoord( vecOrigin.z );
+			m1.WriteByte( iRadius + Math.RandomLong(0, 6) ); //radius
+			m1.WriteByte( iR ); //rgb
+			m1.WriteByte( iG );
+			m1.WriteByte( iB );
+			m1.WriteByte( 10 ); //lifetime
+			m1.WriteByte( 35 ); //decay
+		m1.End();
 	}
 
 	void monster_fire_bullet( Vector vecStart, Vector vecDir, float flDamage, Vector vecSpread )
@@ -289,6 +313,15 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 		pBeam.m_vecEnd = vecEnd;
 		g_EntityFuncs.SetOrigin( pBeam.self, vecStart );
 		g_EntityFuncs.DispatchSpawn( pBeam.self.edict() );
+	}
+
+//void monster_fire_bfg( int damage, int speed, int kick, float damage_radius, int flashtype )
+//monster_fire_bfg( 50, 300, 100, 300, MZ2_MAKRON_BFG );
+	void monster_fire_bfg( Vector vecStart, Vector vecDir, float flDamage, int flSpeed )
+	{
+		CBaseEntity@ pBFG = g_EntityFuncs.Create( "cnpcq2bfg", vecStart, vecDir, false, m_pPlayer.edict() );
+		pBFG.pev.velocity = vecDir * flSpeed;
+		pBFG.pev.dmg = flDamage;
 	}
 
 	//from h_ai.cpp
@@ -589,6 +622,11 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 		return pev.sequence == iAnim;
 	}
 
+	int GetFrame( int iMaxFrames )
+	{
+		return int( (pev.frame/255) * iMaxFrames );
+	}
+
 	bool GetFrame( int iMaxFrames, int iTargetFrame )
 	{
 		int iFrame = int( (pev.frame/255) * iMaxFrames );
@@ -700,6 +738,11 @@ abstract class CBaseDriveEntityHitboxQ2 : ScriptBaseMonsterEntity
 	bool GetAnim( int iAnim )
 	{
 		return pev.sequence == iAnim;
+	}
+
+	int GetFrame( int iMaxFrames )
+	{
+		return int( (pev.frame/255) * iMaxFrames );
 	}
 
 	bool GetFrame( int iMaxFrames, int iTargetFrame )

@@ -172,7 +172,7 @@ class weapon_kingpin : CBaseDriveWeapon
 		m_bSomeBool = true;
 		m_flShieldTime = 0.0;
 
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

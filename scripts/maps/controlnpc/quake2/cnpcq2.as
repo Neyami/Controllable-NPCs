@@ -7,6 +7,7 @@
 #include "q2gladiator" //400 HP
 #include "q2tank" //750 HP
 #include "q2supertank" //1500 HP
+#include "q2makron" //3000 HP
 
 namespace CNPC
 {
@@ -26,6 +27,8 @@ const int Q2TANK_SLOT						= 5;
 const int Q2TANK_POSITION				= 14;
 const int Q2SUPERTANK_SLOT			= 5;
 const int Q2SUPERTANK_POSITION		= 15;
+const int Q2MAKRON_SLOT					= 5;
+const int Q2MAKRON_POSITION			= 16;
 
 const array<string> arrsCNPCQ2Weapons =
 {
@@ -34,7 +37,8 @@ const array<string> arrsCNPCQ2Weapons =
 	"weapon_q2enforcer",
 	"weapon_q2gladiator",
 	"weapon_q2tank",
-	"weapon_q2supertank"
+	"weapon_q2supertank",
+	"weapon_q2makron"
 };
 
 const array<string> arrsCNPCQ2Gibbable =
@@ -53,7 +57,8 @@ enum cnpcq2_e
 	CNPC_Q2ENFORCER,
 	CNPC_Q2GLADIATOR,
 	CNPC_Q2TANK,
-	CNPC_Q2SUPERTANK
+	CNPC_Q2SUPERTANK,
+	CNPC_Q2MAKRON
 };
 
 enum steptype_e
@@ -88,6 +93,7 @@ void MapInitCNPCQ2()
 	cnpc_q2gladiator::Register();
 	cnpc_q2tank::Register();
 	cnpc_q2supertank::Register();
+	cnpc_q2makron::Register();
 }
 
 HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
@@ -202,6 +208,17 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 			}
 		}
 
+		case CNPC_Q2MAKRON:
+		{
+			CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
+			cnpc_q2makron::weapon_q2makron@ pWeapon = cast<cnpc_q2makron::weapon_q2makron@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
+
+			if( pWeapon !is null and pWeapon.m_pDriveEnt !is null )
+				pWeapon.HandlePain( pDamageInfo.flDamage );
+
+			break;
+		}
+
 		default: break;
 	}
 
@@ -214,7 +231,6 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 
 
 /* FIXME
-	Pain sounds get played at origin 0 0 0 for some reason
 */
 
 /* TODO

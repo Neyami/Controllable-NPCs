@@ -114,7 +114,7 @@ class weapon_otis : CBaseDriveWeapon
 		m_flResetHead = 0.0;
 
 		self.m_iDefaultAmmo = AMMO_MAX;
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

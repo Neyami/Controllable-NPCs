@@ -75,7 +75,7 @@ class weapon_gman : CBaseDriveWeapon
 		m_flCanExit = 0.0;
 		m_bPhoneOut = false;
 
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

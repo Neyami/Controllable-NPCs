@@ -211,7 +211,7 @@ class weapon_headcrab : CBaseDriveWeapon
 
 		if( pTarget !is null and pTarget.pev.FlagBitSet(FL_MONSTER) and pTarget.IsAlive() and pTarget.pev.takedamage != DAMAGE_NO )
 		{
-			g_EntityFuncs.SetOrigin( m_pPlayer, m_pPlayer.pev.origin + Vector(0, 0, 10) );// take him off ground so engine doesn't instantly reset onground 
+			g_EntityFuncs.SetOrigin( m_pPlayer, m_pPlayer.pev.origin + Vector(0, 0, 10) );// take him off ground so engine doesn't instantly reset onground
 
 			float gravity = g_EngineFuncs.CVarGetFloat( "sv_gravity" );
 			if( gravity <= 1 )

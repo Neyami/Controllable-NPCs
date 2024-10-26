@@ -135,7 +135,7 @@ class weapon_engineer : CBaseDriveWeapon
 		m_iVoicePitch = Math.RandomLong(95, 100);
 
 		self.m_iDefaultAmmo = AMMO_MAX;
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

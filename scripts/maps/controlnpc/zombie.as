@@ -95,7 +95,7 @@ class weapon_zombie : CBaseDriveWeapon
 
 		m_iState = STATE_IDLE;
 
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

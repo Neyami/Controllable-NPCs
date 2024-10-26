@@ -156,7 +156,7 @@ class weapon_babygarg : CBaseDriveWeapon
 		m_iState = STATE_IDLE;
 		m_uiAnimationState = 0;
 
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

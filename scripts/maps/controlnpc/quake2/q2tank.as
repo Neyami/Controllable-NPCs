@@ -334,7 +334,7 @@ final class weapon_q2tank : CBaseDriveWeaponQ2
 
 	void AlertSound()
 	{
-		g_SoundSystem.EmitSound( self.edict(), CHAN_VOICE, arrsCNPCSounds[SND_SIGHT], VOL_NORM, ATTN_NORM );
+		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[SND_SIGHT], VOL_NORM, ATTN_NORM );
 	}
 
 	void IdleSound()

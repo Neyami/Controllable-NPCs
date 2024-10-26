@@ -6,6 +6,10 @@ namespace Q2
 
 const string GRENADE_MODEL = "models/quake2/grenade1_hd.mdl";
 
+const string BFG_SPRITE = "sprites/quake2/bfg_sprite.spr";
+const string BFG_EXPLOSION = "sprites/quake2/bfg_explosion.spr";
+const string BFG_BEAM = "sprites/quake2/bfg_beam.spr";
+
 const array<string> pExplosionSprites = 
 {
 	"sprites/exp_a.spr",
@@ -178,9 +182,9 @@ class cnpcq2rocket : ScriptBaseEntity
 		g_EntityFuncs.SetModel( self, "models/quake2/rocket.mdl" );
 		g_EntityFuncs.SetSize( self.pev, g_vecZero, g_vecZero );
 		g_EntityFuncs.SetOrigin( self, pev.origin );
-		g_SoundSystem.EmitSound( self.edict(), CHAN_VOICE, "quake2/weapons/rocket_fly.wav", 1, ATTN_NORM );
+		g_SoundSystem.EmitSound( self.edict(), CHAN_VOICE, "quake2/weapons/rocket_fly.wav", VOL_NORM, ATTN_NORM );
 		pev.movetype = MOVETYPE_FLY;
-		
+
 		pev.solid = SOLID_BBOX;
 		pev.effects |= EF_DIMLIGHT;
 
@@ -309,7 +313,7 @@ class cnpcq2grenade : ScriptBaseEntity
 		if( pOther is null or pOther.IsBSPModel() or pOther.edict() is pev.owner or (pOther.GetClassname().StartsWith("cnpc_") and pOther.pev.owner is pev.owner) )
 		{
 			if( pev.velocity.Length() > 15.0 )
-				g_SoundSystem.EmitSound( self.edict(), CHAN_AUTO, "quake2/weapons/grenlb1b.wav", 1, ATTN_NORM );
+				g_SoundSystem.EmitSound( self.edict(), CHAN_AUTO, "quake2/weapons/grenlb1b.wav", VOL_NORM, ATTN_NORM );
 			else
 			{
 				pev.angles.x = 0;
@@ -345,7 +349,7 @@ class cnpcq2grenade : ScriptBaseEntity
 		TraceResult tr;
 		Vector vecSpot, vecEnd;
 
-		g_SoundSystem.EmitSound( self.edict(), CHAN_AUTO, "quake2/weapons/grenlx1a.wav", 1, ATTN_NORM );
+		g_SoundSystem.EmitSound( self.edict(), CHAN_AUTO, "quake2/weapons/grenlx1a.wav", VOL_NORM, ATTN_NORM );
 		g_Utility.TraceLine( pev.origin, pev.origin + Vector( 0, 0, -32 ),  ignore_monsters, self.edict(), tr );
 		g_Utility.DecalTrace( tr, DECAL_SCORCH1 + Math.RandomLong(0,1) );
 
@@ -476,6 +480,168 @@ class cnpcq2railbeam : ScriptBaseEntity
 		DestroyBeams();
 
 		g_EntityFuncs.Remove(self);
+	}
+}
+
+class cnpcq2bfg : ScriptBaseEntity
+{
+	private float m_fLaserDamageDelay;
+
+	void Spawn()
+	{
+		Precache();
+
+		g_EntityFuncs.SetModel( self, BFG_SPRITE );
+		g_EntityFuncs.SetSize( self.pev, g_vecZero, g_vecZero );
+		g_EntityFuncs.SetOrigin( self, pev.origin );
+
+		pev.solid = SOLID_BBOX;
+		pev.movetype = MOVETYPE_FLYMISSILE;
+
+		pev.rendermode = 3;
+		pev.rendercolor = Vector(0, 50, 20);
+		pev.renderamt = 255;
+		pev.renderfx = 14;
+		pev.scale = 2.0;
+		pev.effects |= EF_DIMLIGHT;
+		pev.effects |= EF_BRIGHTFIELD;
+
+		if( pev.dmg <= 0 )
+			pev.dmg = 200;
+
+		SetThink( ThinkFunction(this.FlyThink) );
+		pev.nextthink = g_Engine.time + 0.05;
+
+		g_SoundSystem.EmitSound( self.edict(), CHAN_VOICE, "quake2/weapons/bfg_fly.wav", VOL_NORM, ATTN_NORM );
+	}
+
+	void Precache()
+	{
+		g_Game.PrecacheModel( BFG_SPRITE );
+		g_Game.PrecacheModel( BFG_EXPLOSION );
+		g_Game.PrecacheModel( BFG_BEAM );
+
+		g_SoundSystem.PrecacheSound( "quake2/weapons/bfg_fly.wav" );
+		g_SoundSystem.PrecacheSound( "quake2/weapons/bfg_explode.wav" );
+	}
+
+	void FlyThink()
+	{
+		if( g_Engine.time > m_fLaserDamageDelay )
+		{
+			m_fLaserDamageDelay = g_Engine.time + 0.1;
+
+			CBaseEntity@ pEntity = null;
+
+			while( (@pEntity = g_EntityFuncs.FindEntityInSphere(pEntity, pev.origin, 256, "*", "classname")) !is null )
+			{
+				if( g_EntityFuncs.IsValidEntity(pEntity.edict()) and pEntity !is g_EntityFuncs.Instance(pev.owner) )
+				{
+					if( pEntity.pev.takedamage == DAMAGE_NO ) continue;
+
+					if( pEntity.pev.FlagBitSet(FL_MONSTER) or (pEntity.pev.FlagBitSet(FL_CLIENT) and CNPC::PVP) or pEntity.IsBSPModel() )
+					{
+						NetworkMessage m1( MSG_PVS, NetworkMessages::SVC_TEMPENTITY );
+							m1.WriteByte( TE_BEAMENTPOINT );
+							m1.WriteShort( g_EngineFuncs.IndexOfEdict(self.edict()) ); //start entity
+							m1.WriteCoord( pEntity.Center().x ); //end position X
+							m1.WriteCoord( pEntity.Center().y ); //end position Y
+							m1.WriteCoord( pEntity.Center().z ); //end position Z
+							m1.WriteShort( g_EngineFuncs.ModelIndex(BFG_BEAM) ); //sprite index
+							m1.WriteByte( 0 ); //starting frame
+							m1.WriteByte( 1 ); //framerate
+							m1.WriteByte( 1 ); //life
+							m1.WriteByte( 32 ); //line width
+							m1.WriteByte( 0 ); //noise amplitude
+							m1.WriteByte( 50 ); //r
+							m1.WriteByte( 255 ); //g
+							m1.WriteByte( 50 ); //b 80 ?
+							m1.WriteByte( 80 ); //brightness
+							m1.WriteByte( 1 ); //scroll speed
+						m1.End();
+
+						pEntity.TakeDamage( self.pev, pev.owner.vars, 10, DMG_ENERGYBEAM | DMG_ALWAYSGIB );
+					}
+				}
+			}
+		}
+
+		NetworkMessage m2( MSG_PVS, NetworkMessages::SVC_TEMPENTITY );
+			m2.WriteByte( TE_DLIGHT );
+			m2.WriteCoord( pev.origin.x );
+			m2.WriteCoord( pev.origin.y );
+			m2.WriteCoord( pev.origin.z );
+			m2.WriteByte( 16 );//radius
+			m2.WriteByte( 155 ); //r
+			m2.WriteByte( 255 ); //g
+			m2.WriteByte( 150 ); //b
+			m2.WriteByte( 4 );//life
+			m2.WriteByte( 255 );//decay
+		m2.End();
+
+		pev.nextthink = g_Engine.time;
+	}
+
+	void Touch( CBaseEntity@ pOther )
+	{
+		g_SoundSystem.StopSound( self.edict(), CHAN_VOICE, "quake2/weapons/bfg_fly.wav" );
+
+		if( g_EngineFuncs.PointContents(pev.origin) == CONTENTS_SKY )
+		{
+			SetThink( ThinkFunction(this.RemoveThink) );
+			pev.nextthink = g_Engine.time + 0.1;
+
+			return;
+		}
+
+		if( pOther is g_EntityFuncs.Instance(pev.owner) or pOther.pev.ClassNameIs("cnpcq2bfg") )
+			return;
+
+		if( pOther !is null )
+		{
+			NetworkMessage exp1( MSG_BROADCAST, NetworkMessages::SVC_TEMPENTITY );
+				exp1.WriteByte( TE_EXPLOSION );
+				exp1.WriteCoord( pev.origin.x );
+				exp1.WriteCoord( pev.origin.y );
+				exp1.WriteCoord( pev.origin.z );
+				exp1.WriteShort( g_EngineFuncs.ModelIndex(BFG_EXPLOSION) );
+				exp1.WriteByte( 10 );//scale
+				exp1.WriteByte( 10 );//framerate
+				exp1.WriteByte( TE_EXPLFLAG_NOSOUND|TE_EXPLFLAG_NOPARTICLES );
+			exp1.End();
+
+			g_SoundSystem.EmitSound( self.edict(), CHAN_AUTO, "quake2/weapons/bfg_explode.wav", VOL_NORM, ATTN_NORM );
+			pOther.TakeDamage( self.pev, g_EntityFuncs.Instance(pev.owner).pev, pev.dmg, DMG_BLAST|DMG_ALWAYSGIB );
+			g_WeaponFuncs.RadiusDamage( pev.origin, self.pev, g_EntityFuncs.Instance(pev.owner).pev, pev.dmg, 256, CLASS_NONE, DMG_BLAST|DMG_ALWAYSGIB ); //doesn't properly do aoe dmg (try spawning several mobs on the same spot)
+			//This doesn't deal damage to brushes though
+			/*CBaseEntity@ pEnt = null;
+
+			while( (@pEnt = g_EntityFuncs.FindEntityInSphere(pEnt, pev.origin, 256, "*", "classname")) !is null )
+			{
+				if( pEnt.pev.takedamage != 0 and pEnt !is self )
+				{
+					Vector vecOrg = pEnt.pev.origin + (pEnt.pev.mins + pEnt.pev.maxs) * 0.5;
+					TraceResult tr;
+					g_Utility.TraceLine( pev.origin, vecOrg, ignore_monsters, dont_ignore_glass, self.edict(), tr );
+					if( tr.flFraction <= 0.999 ) continue;
+					float flPoints = (vecOrg - pev.origin).Length() * 0.5;
+					if( flPoints < 0 ) flPoints = 0;
+					flPoints = pev.dmg - flPoints;
+					if( pEnt is g_EntityFuncs.Instance(pev.owner) ) flPoints *= 0.5;
+					if( flPoints > 0 )
+						pEnt.TakeDamage( self.pev, g_EntityFuncs.Instance(pev.owner).pev, flPoints, DMG_BLAST|DMG_ALWAYSGIB );
+				}
+			}*/
+		}
+
+		SetThink( ThinkFunction(this.RemoveThink) );
+		pev.nextthink = g_Engine.time + 0.01;
+	}
+
+	void RemoveThink()
+	{
+		g_SoundSystem.StopSound( self.edict(), CHAN_VOICE, "quake2/weapons/bfg_fly.wav" );
+		g_EntityFuncs.Remove( self );
 	}
 }
 

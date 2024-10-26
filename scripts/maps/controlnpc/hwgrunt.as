@@ -174,7 +174,7 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 
 		if( pev.weapons > 4 ) pev.weapons = 0; //invalid number, set to random
 
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

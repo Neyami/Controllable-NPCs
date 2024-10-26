@@ -114,7 +114,7 @@ class weapon_hwrgrunt : CBaseDriveWeapon
 
 		m_iVoicePitch = 115;
 
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()

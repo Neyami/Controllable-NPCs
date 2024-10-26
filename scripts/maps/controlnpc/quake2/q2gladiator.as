@@ -101,7 +101,7 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 
 		SetState( STATE_IDLE );
 
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()
@@ -312,7 +312,7 @@ class weapon_q2gladiator : CBaseDriveWeaponQ2
 
 	void AlertSound()
 	{
-		g_SoundSystem.EmitSound( self.edict(), CHAN_VOICE, arrsCNPCSounds[SND_SIGHT], VOL_NORM, ATTN_NORM );
+		g_SoundSystem.EmitSound( m_pDriveEnt.edict(), CHAN_VOICE, arrsCNPCSounds[SND_SIGHT], VOL_NORM, ATTN_NORM );
 	}
 
 	void IdleSound()

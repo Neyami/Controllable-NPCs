@@ -99,7 +99,7 @@ class weapon_apache : CBaseDriveWeapon
 		m_bFireRockets = false;
 		m_flSide = 1.0;
 
-		self.FallInit(); //needed??
+		self.FallInit();
 	}
 
 	void Precache()
