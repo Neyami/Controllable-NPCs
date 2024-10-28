@@ -529,3 +529,16 @@ Primary Attack: Rocket launcher
 Secondary Attack: Chaingun  
 Tertiary Attack: Toggle between first- and third-person view  
 Reload: Fire grenades  
+
+
+<BR>
+
+
+# QUAKE 2 MAKRON #  
+`weapon_q2makron` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_q2makron` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: BFG  
+Secondary Attack: Hyper Blaster  
+Tertiary Attack: Toggle between first- and third-person view  
+Reload: Railgun  
