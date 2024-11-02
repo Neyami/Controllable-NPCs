@@ -1,6 +1,7 @@
 #include "CBaseDriveWeaponQ2"
 #include "cnpcq2entities"
 
+#include "q2soldier" //20, 30, 40 HP
 #include "q2ironmaiden" //175 HP
 #include "q2berserker" //240 HP
 #include "q2enforcer" //240 HP
@@ -15,23 +16,26 @@ namespace CNPC
 namespace Q2
 {
 
+const int Q2SOLDIER_SLOT					= 5;
+const int Q2SOLDIER_POSITION			= 11;
 const int Q2IRONMAIDEN_SLOT			= 5;
-const int Q2IRONMAIDEN_POSITION	= 10;
+const int Q2IRONMAIDEN_POSITION	= 12;
 const int Q2BERSERKER_SLOT			= 5;
-const int Q2BERSERKER_POSITION		= 11;
+const int Q2BERSERKER_POSITION		= 13;
 const int Q2ENFORCER_SLOT				= 5;
-const int Q2ENFORCER_POSITION		= 12;
+const int Q2ENFORCER_POSITION		= 14;
 const int Q2GLADIATOR_SLOT				= 5;
-const int Q2GLADIATOR_POSITION		= 13;
+const int Q2GLADIATOR_POSITION		= 15;
 const int Q2TANK_SLOT						= 5;
-const int Q2TANK_POSITION				= 14;
+const int Q2TANK_POSITION				= 16;
 const int Q2SUPERTANK_SLOT			= 5;
-const int Q2SUPERTANK_POSITION		= 15;
+const int Q2SUPERTANK_POSITION		= 17;
 const int Q2MAKRON_SLOT					= 5;
-const int Q2MAKRON_POSITION			= 16;
+const int Q2MAKRON_POSITION			= 18;
 
 const array<string> arrsCNPCQ2Weapons =
 {
+	"weapon_q2soldier",
 	"weapon_q2ironmaiden",
 	"weapon_q2berserker",
 	"weapon_q2enforcer",
@@ -43,6 +47,7 @@ const array<string> arrsCNPCQ2Weapons =
 
 const array<string> arrsCNPCQ2Gibbable =
 {
+	//"cnpc_q2soldier",
 	"cnpc_q2ironmaiden",
 	"cnpc_q2berserker",
 	"cnpc_q2enforcer",
@@ -52,7 +57,8 @@ const array<string> arrsCNPCQ2Gibbable =
 
 enum cnpcq2_e
 {
-	CNPC_Q2IRONMAIDEN = CNPC::CNPC_LASTVANILLA + 1,
+	CNPC_Q2SOLDIER = CNPC::CNPC_LASTVANILLA + 1,
+	CNPC_Q2IRONMAIDEN,
 	CNPC_Q2BERSERKER,
 	CNPC_Q2ENFORCER,
 	CNPC_Q2GLADIATOR,
@@ -87,6 +93,7 @@ void MapInitCNPCQ2()
     for( uint i = 0; i < arrsCNPCQ2Gibbable.length(); i++ )
       arrsCNPCGibbable.insertLast( arrsCNPCQ2Gibbable[i] );
 
+	cnpc_q2soldier::Register();
 	cnpc_q2ironmaiden::Register();
 	cnpc_q2berserker::Register();
 	cnpc_q2enforcer::Register();
@@ -115,6 +122,22 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 
 	switch( pCustom.GetKeyvalue(sCNPCKV).GetInteger() )
 	{
+		case CNPC_Q2SOLDIER:
+		{
+			CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
+			cnpc_q2soldier::weapon_q2soldier@ pWeapon = cast<cnpc_q2soldier::weapon_q2soldier@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
+
+			if( pWeapon !is null and pWeapon.m_pDriveEnt !is null )
+			{
+				if( pWeapon.m_iState == 3 ) //STATE_DUCKING
+					pDamageInfo.flDamage *= 0.5;
+
+				pWeapon.HandlePain( pDamageInfo.flDamage );
+			}
+
+			break;
+		}
+
 		case CNPC_Q2IRONMAIDEN:
 		{
 			CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );

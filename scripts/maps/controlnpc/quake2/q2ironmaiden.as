@@ -475,7 +475,6 @@ final class weapon_q2ironmaiden : CBaseDriveWeaponQ2
 
 		Vector vecOrigin;
 		m_pDriveEnt.GetAttachment( 0, vecOrigin, void );
-		Math.MakeVectors( m_pDriveEnt.pev.angles );
 
 		Vector vecAim = m_pPlayer.pev.v_angle;
 		if( vecAim.x > CNPC_MAXPITCH )

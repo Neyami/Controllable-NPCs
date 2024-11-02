@@ -213,6 +213,15 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 		self.FireBullets( 1, vecStart, vecDir, vecSpread, 2048, BULLET_PLAYER_CUSTOMDAMAGE, 1, int(flDamage), m_pPlayer.pev );
 	}
 
+	void monster_fire_shotgun( Vector vecStart, Vector vecDir, float flDamage, Vector vecSpread, int iCount )
+	{
+		for( int i = 0; i < iCount; i++ )
+			self.FireBullets( 1, vecStart, vecDir, vecSpread, 2048, BULLET_PLAYER_CUSTOMDAMAGE, 1, int(flDamage), m_pPlayer.pev );
+
+		//too loud
+		//self.FireBullets( iCount, vecStart, vecDir, vecSpread, 2048, BULLET_PLAYER_CUSTOMDAMAGE, 1, int(flDamage), m_pPlayer.pev );
+	}
+
 	void monster_fire_blaster( Vector vecStart, Vector vecDir, float flDamage, int flSpeed )
 	{
 		CBaseEntity@ pLaser = g_EntityFuncs.Create( "cnpcq2laser", vecStart, vecDir, false, m_pPlayer.edict() ); 
@@ -322,6 +331,11 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 		CBaseEntity@ pBFG = g_EntityFuncs.Create( "cnpcq2bfg", vecStart, vecDir, false, m_pPlayer.edict() );
 		pBFG.pev.velocity = vecDir * flSpeed;
 		pBFG.pev.dmg = flDamage;
+	}
+
+	void WalkMove( float flDist )
+	{
+		g_EngineFuncs.WalkMove( self.edict(), pev.angles.y, flDist, WALKMOVE_WORLDONLY );
 	}
 
 	//from h_ai.cpp
@@ -510,18 +524,78 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 			return BaseClass.KeyValue( szKey, szValue );
 	}
 
+	void MachineGunEffects( Vector vecOrigin, int iScale = 5 )
+	{
+		NetworkMessage m1( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecOrigin );
+			m1.WriteByte( TE_SMOKE );
+			m1.WriteCoord( vecOrigin.x );
+			m1.WriteCoord( vecOrigin.y );
+			m1.WriteCoord( vecOrigin.z - 10.0 );
+			m1.WriteShort( g_EngineFuncs.ModelIndex("sprites/steam1.spr") );
+			m1.WriteByte( iScale ); // scale * 10
+			m1.WriteByte( 105 ); // framerate
+		m1.End();
+
+		NetworkMessage m2( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecOrigin );
+			m2.WriteByte( TE_DLIGHT );
+			m2.WriteCoord( vecOrigin.x );
+			m2.WriteCoord( vecOrigin.y );
+			m2.WriteCoord( vecOrigin.z );
+			m2.WriteByte( 16 ); //radius
+			m2.WriteByte( 240 ); //rgb
+			m2.WriteByte( 180 );
+			m2.WriteByte( 0 );
+			m2.WriteByte( 8 ); //lifetime
+			m2.WriteByte( 50 ); //decay
+		m2.End();
+	}
+
+	void monster_muzzleflash( Vector vecOrigin, int iRadius, int iR, int iG, int iB )
+	{
+		NetworkMessage m1( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecOrigin );
+			m1.WriteByte( TE_DLIGHT );
+			m1.WriteCoord( vecOrigin.x );
+			m1.WriteCoord( vecOrigin.y );
+			m1.WriteCoord( vecOrigin.z );
+			m1.WriteByte( iRadius + Math.RandomLong(0, 6) ); //radius
+			m1.WriteByte( iR ); //rgb
+			m1.WriteByte( iG );
+			m1.WriteByte( iB );
+			m1.WriteByte( 10 ); //lifetime
+			m1.WriteByte( 35 ); //decay
+		m1.End();
+	}
+
 	void monster_fire_bullet( Vector vecStart, Vector vecDir, float flDamage, Vector vecSpread )
 	{
 		self.FireBullets( 1, vecStart, vecDir, vecSpread, 2048, BULLET_PLAYER_CUSTOMDAMAGE, 1, int(flDamage) );
 	}
 
+	void monster_fire_shotgun( Vector vecStart, Vector vecDir, float flDamage, Vector vecSpread, int iCount )
+	{
+		for( int i = 0; i < iCount; i++ )
+			self.FireBullets( 1, vecStart, vecDir, vecSpread, 2048, BULLET_PLAYER_CUSTOMDAMAGE, 1, int(flDamage) );
+
+		//too loud
+		//self.FireBullets( iCount, vecStart, vecDir, vecSpread, 2048, BULLET_PLAYER_CUSTOMDAMAGE, 1, int(flDamage), m_pPlayer.pev );
+	}
+
+	void monster_fire_blaster( Vector vecStart, Vector vecDir, float flDamage, int flSpeed )
+	{
+		CBaseEntity@ pLaser = g_EntityFuncs.Create( "cnpcq2laser", vecStart, vecDir, false ); 
+		pLaser.pev.velocity = vecDir * flSpeed;
+		pLaser.pev.dmg = flDamage;
+		pLaser.pev.angles = Math.VecToAngles( vecDir.Normalize() );
+	}
+
 	//More true to the original ??
-	void ThrowGib( int iCount, const string &in sGibName, float flDamage, int iType = 0, bool bHead = false )
+	void ThrowGib( int iCount, const string &in sGibName, float flDamage, int iType = 0, bool bHead = false, int iSkin = 0 )
 	{
 		Vector vecOrigin = pev.origin;
 
 		CGib@ pGib = g_EntityFuncs.CreateGib( pev.origin, g_vecZero );
 		pGib.Spawn( sGibName );
+		pGib.pev.skin = iSkin;
 
 		if( bHead )
 		{
@@ -612,6 +686,20 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 		return Vector( Math.RandomFloat(-1.0, 1.0) * flDamage, Math.RandomFloat(-1.0, 1.0) * flDamage, Math.RandomFloat(-1.0, 1.0) * flDamage + 200.0 );
 	}*/
 
+	void WalkMove( float flDist )
+	{
+		g_EngineFuncs.WalkMove( self.edict(), pev.angles.y, flDist, WALKMOVE_WORLDONLY );
+	}
+
+	void SetAnim( int iAnim, float flFramerate = 1.0, float flFrame = 0.0 )
+	{
+			pev.sequence = iAnim;
+			self.ResetSequenceInfo();
+			pev.frame = flFrame;
+			pev.framerate = flFramerate;
+			m_uiAnimationState = 0;
+	}
+
 	int GetAnim()
 	{
 		return pev.sequence;
@@ -633,6 +721,11 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 		if( IsBetween2(iFrame, Math.clamp(0, iMaxFrames, iTargetFrame-1), iTargetFrame+1) ) return true;
  
 		return false;
+	}
+
+	float SetFrame( float flMaxFrames, float flFrame )
+	{
+		return float( (flFrame / flMaxFrames) * 255 );
 	}
 
 	bool IsBetween2( float flValue, float flMin, float flMax )
@@ -671,12 +764,13 @@ abstract class CBaseDriveEntityHitboxQ2 : ScriptBaseMonsterEntity
 			return BaseClass.KeyValue( szKey, szValue );
 	}
 
-	void ThrowGib( int iCount, const string &in sGibName, float flDamage, int iType = 0, bool bHead = false )
+	void ThrowGib( int iCount, const string &in sGibName, float flDamage, int iType = 0, bool bHead = false, int iSkin = 0 )
 	{
 		Vector vecOrigin = pev.origin;
 
 		CGib@ pGib = g_EntityFuncs.CreateGib( pev.origin, g_vecZero );
 		pGib.Spawn( sGibName );
+		pGib.pev.skin = iSkin;
 
 		if( bHead )
 		{
@@ -751,6 +845,11 @@ abstract class CBaseDriveEntityHitboxQ2 : ScriptBaseMonsterEntity
 		if( IsBetween2(iFrame, Math.clamp(0, iMaxFrames, iTargetFrame-1), iTargetFrame+1) ) return true;
  
 		return false;
+	}
+
+	float SetFrame( float flMaxFrames, float flFrame )
+	{
+		return float( (flFrame / flMaxFrames) * 255 );
 	}
 
 	bool IsBetween2( float flValue, float flMin, float flMax )

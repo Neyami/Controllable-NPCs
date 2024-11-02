@@ -297,7 +297,7 @@ class weapon_hgrunt : CBaseDriveWeapon
 			m1.WriteLong( g_ItemRegistry.GetIdForName(CNPC_WEAPONNAME) );
 		m1.End();
 
-		m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType, m_iMaxAmmo);
+		m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType, m_iMaxAmmo );
 
 		if( m_iAutoDeploy == 1 ) m_pPlayer.SwitchWeapon(self);
 

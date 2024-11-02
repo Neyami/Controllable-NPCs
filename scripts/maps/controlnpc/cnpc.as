@@ -1333,18 +1333,13 @@ abstract class CNPCSpawnEntity : ScriptBaseAnimating
 					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "body", "" + pev.body );
 				else if( self.GetClassname() == "info_cnpc_hgrunt" )
 				{
-					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "weapons", "" + pev.weapons );
 					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "skin", "" + pev.skin );
 					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "body", "" + pev.body );
 				}
 				else if( self.GetClassname() == "info_cnpc_rgrunt" )
-				{
-					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "weapons", "" + pev.weapons );
 					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "body", "" + pev.body );
-				}
-				else if( self.GetClassname() == "info_cnpc_hwgrunt" )
-					g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "weapons", "" + pev.weapons );
 
+				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "weapons", "" + pev.weapons );
 				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_iSpawnFlags", "" + m_iSpawnFlags );
 				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_iMaxAmmo", "" + m_iMaxAmmo );
 				g_EntityFuncs.DispatchKeyValue( m_pCNPCWeapon.edict(), "m_flFireRate", "" + m_flFireRate );

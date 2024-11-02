@@ -519,11 +519,7 @@ final class weapon_q2makron : CBaseDriveWeaponQ2
 		Vector vecAim = g_Engine.v_forward;
 
 		monster_muzzleflash( vecMuzzle, 20, 255, 255, 0 );
-
-		if( !GetButton(IN_USE) )
-			monster_fire_blaster( vecMuzzle, vecAim, BLASTER_DAMAGE, BLASTER_SPEED );
-		else
-			monster_fire_bfg( vecMuzzle, vecAim, BLASTER_DAMAGE, BLASTER_SPEED );
+		monster_fire_blaster( vecMuzzle, vecAim, BLASTER_DAMAGE, BLASTER_SPEED );
 	}
 
 	void MakronRailgun()
@@ -797,11 +793,6 @@ class cnpc_q2makron : CBaseDriveEntityQ2
 			SetThink( ThinkFunction(this.SUB_StartFadeOut) );
 			pev.nextthink = g_Engine.time + CNPC_FADETIME;
 		}
-	}
-
-	void WalkMove( float flDist )
-	{
-		g_EngineFuncs.WalkMove( self.edict(), pev.angles.y, flDist, WALKMOVE_WORLDONLY );
 	}
 
 	void makron_step_left()

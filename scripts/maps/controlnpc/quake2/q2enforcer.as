@@ -870,32 +870,6 @@ class cnpc_q2enforcer : CBaseDriveEntityQ2
 		monster_fire_bullet( vecMuzzle2, vecAim, GUN_DAMAGE, VECTOR_CONE_3DEGREES );
 	}
 
-	void MachineGunEffects( Vector vecOrigin )
-	{
-		NetworkMessage m1( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecOrigin );
-			m1.WriteByte( TE_SMOKE );
-			m1.WriteCoord( vecOrigin.x );
-			m1.WriteCoord( vecOrigin.y );
-			m1.WriteCoord( vecOrigin.z - 10.0 );
-			m1.WriteShort( g_EngineFuncs.ModelIndex("sprites/steam1.spr") );
-			m1.WriteByte( 3 ); // scale * 10
-			m1.WriteByte( 105 ); // framerate
-		m1.End();
-
-		NetworkMessage m2( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecOrigin );
-			m2.WriteByte( TE_DLIGHT );
-			m2.WriteCoord( vecOrigin.x );
-			m2.WriteCoord( vecOrigin.y );
-			m2.WriteCoord( vecOrigin.z );
-			m2.WriteByte( 16 ); //radius
-			m2.WriteByte( 240 ); //rgb
-			m2.WriteByte( 180 );
-			m2.WriteByte( 0 );
-			m2.WriteByte( 8 ); //lifetime
-			m2.WriteByte( 50 ); //decay
-		m2.End();
-	}
-
 	void SUB_StartFadeOut()
 	{
 		if( pev.rendermode == kRenderNormal )
