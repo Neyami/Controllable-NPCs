@@ -396,6 +396,8 @@ Rockets replenish automatically
 
 
 <BR>
+
+
 # SCIENTIST #  
 `weapon_scientist` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_scientist` - Usable entity that turns the player into the monster upon using. Mappers can place this  
@@ -455,7 +457,7 @@ Use: Plant the explosives in the sandstone map
 
 
 # QUAKE 2 SOLDIER #  
-`weapon_q2soldier` - Can be given to players, Primary Attack spawns the controllable monster. (not recommended, spawn the entity below instead)  
+`weapon_q2soldier` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_q2soldier` - Usable entity that turns the player into the monster upon using. Mappers can place this  
 
 Primary Attack: Blaster/Shotgun/Machinegun  
