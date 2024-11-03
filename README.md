@@ -454,6 +454,20 @@ Use: Plant the explosives in the sandstone map
 <BR>
 
 
+# QUAKE 2 SOLDIER #  
+`weapon_q2soldier` - Can be given to players, Primary Attack spawns the controllable monster. (not recommended, spawn the entity below instead)  
+`info_cnpc_q2soldier` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Blaster/Shotgun/Machinegun  
+Tertiary Attack: Toggle between first- and third-person view  
+Duck: Duck to reduce incoming damage by 50% while holding  
+
+Refer to `controlnpc.fgd` to see the keyvalues that set the weapons  
+
+
+<BR>
+
+
 # QUAKE 2 IRON MAIDEN #  
 `weapon_q2ironmaiden` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_q2ironmaiden` - Usable entity that turns the player into the monster upon using. Mappers can place this  
