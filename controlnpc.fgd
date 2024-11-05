@@ -210,6 +210,8 @@
 	]
 ]
 
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/quake2/monsters/gunner/gunner.mdl") = info_cnpc_q2gunner : "Controllable Quake 2 Gunner" []
+
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/quake2/monsters/ironmaiden/ironmaiden.mdl") = info_cnpc_q2ironmaiden : "Controllable Quake 2 Iron Maiden" []
 
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 88) studio("models/quake2/monsters/berserker/berserker.mdl") = info_cnpc_q2berserker : "Controllable Quake 2 Berserker" []
