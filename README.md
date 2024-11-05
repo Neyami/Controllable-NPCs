@@ -470,6 +470,22 @@ Refer to `controlnpc.fgd` to see the keyvalues that set the weapons
 <BR>
 
 
+# QUAKE 2 GUNNER #  
+`weapon_q2gunner` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_q2gunner` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Grenade launcher  
+Secondary Attack: Machine gun  
+Tertiary Attack: Toggle between first- and third-person view  
+Duck: Duck to reduce incoming damage by 50% while holding  
+Jump: Kick  
+
+Ammo replenishes automatically  
+
+
+<BR>
+
+
 # QUAKE 2 IRON MAIDEN #  
 `weapon_q2ironmaiden` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_q2ironmaiden` - Usable entity that turns the player into the monster upon using. Mappers can place this  
