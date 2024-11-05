@@ -634,13 +634,14 @@ class cnpc_q2gladiator : CBaseDriveEntityQ2
 
 	void SpawnGibs()
 	{
-		ThrowGib( 2, MODEL_GIB_BONE, pev.dmg );
-		ThrowGib( 2, MODEL_GIB_MEAT, pev.dmg, BREAK_FLESH );
-		ThrowGib( 2, MODEL_GIB_THIGH, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_LARM, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_RARM, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_CHEST, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_HEAD, pev.dmg, BREAK_FLESH, true );
+		CNPC::Q2::ThrowGib( EHandle(self), 2, MODEL_GIB_BONE, pev.dmg, -1 );
+		CNPC::Q2::ThrowGib( EHandle(self), 2, MODEL_GIB_MEAT, pev.dmg, -1, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_THIGH, pev.dmg, 3 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_THIGH, pev.dmg, 14 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_LARM, pev.dmg, 10 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_RARM, pev.dmg, 8 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_CHEST, pev.dmg, 5 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_HEAD, pev.dmg, 6, BREAK_FLESH );
 	}
 
 	void DieThink()

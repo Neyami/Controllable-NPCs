@@ -838,13 +838,13 @@ class cnpc_q2berserker : CBaseDriveEntityQ2
 
 	void SpawnGibs()
 	{
-		ThrowGib( 2, MODEL_GIB_BONE, pev.dmg );
-		ThrowGib( 3, MODEL_GIB_MEAT, pev.dmg, BREAK_FLESH );
-		ThrowGib( 1, MODEL_GIB_GEAR, pev.dmg, BREAK_METAL );
-		ThrowGib( 1, MODEL_GIB_CHEST, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_HAMMER, pev.dmg, BREAK_CONCRETE );
-		ThrowGib( 1, MODEL_GIB_THIGH, pev.dmg, BREAK_FLESH );
-		ThrowGib( 1, MODEL_GIB_HEAD, pev.dmg, BREAK_CONCRETE, true );
+		CNPC::Q2::ThrowGib( EHandle(self), 2, MODEL_GIB_BONE, pev.dmg, -1, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 3, MODEL_GIB_MEAT, pev.dmg, -1, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_GEAR, pev.dmg, -1, BREAK_METAL );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_CHEST, pev.dmg, 2, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_HAMMER, pev.dmg, 10, BREAK_CONCRETE );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_THIGH, pev.dmg, Math.RandomLong(0, 1) == 0 ? 11 : 15, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_HEAD, pev.dmg, 3, BREAK_FLESH );
 	}
 
 	void DieThink()

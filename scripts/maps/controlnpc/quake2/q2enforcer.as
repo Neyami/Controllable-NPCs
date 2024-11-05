@@ -774,7 +774,7 @@ class cnpc_q2enforcer : CBaseDriveEntityQ2
 
 		// don't always pop a head gib, it gets old
 		if( iRand != 2 and Math.RandomFloat(0.0, 1.0) <= 0.45 ) //0.25
-			ThrowGib( 1, MODEL_GIB_HEAD, pev.dmg, BREAK_FLESH, true );
+			CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_HEAD, pev.dmg, -1, BREAK_FLESH );
 
 		pev.frame = 0;
 		self.ResetSequenceInfo();
@@ -786,13 +786,15 @@ class cnpc_q2enforcer : CBaseDriveEntityQ2
 
 	void SpawnGibs()
 	{
-		ThrowGib( 1, MODEL_GIB_BONE, pev.dmg );
-		ThrowGib( 3, MODEL_GIB_MEAT, pev.dmg, BREAK_FLESH );
-		ThrowGib( 1, MODEL_GIB_CHEST, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_GUN, pev.dmg );
-		ThrowGib( 2, MODEL_GIB_FOOT, pev.dmg, BREAK_FLESH );
-		ThrowGib( 2, MODEL_GIB_ARM, pev.dmg, BREAK_FLESH );
-		ThrowGib( 1, MODEL_GIB_HEAD, pev.dmg, BREAK_FLESH, true );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_BONE, pev.dmg, -1, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 3, MODEL_GIB_MEAT, pev.dmg, -1, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_CHEST, pev.dmg, 5, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_GUN, pev.dmg, 9 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_FOOT, pev.dmg, 4, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_FOOT, pev.dmg, 17, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_ARM, pev.dmg, 8, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_ARM, pev.dmg, 12, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_HEAD, pev.dmg, 6, BREAK_FLESH );
 	}
 
 	void DieThink()

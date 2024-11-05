@@ -472,6 +472,32 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 		return (m_pPlayer.pev.oldbuttons & iButton) != 0 and (m_pPlayer.pev.button & iButton) == 0;
 	}
 
+	int GetAmmo( uint uiAmmoType )
+	{
+		if( uiAmmoType == 2 )
+			return m_pPlayer.m_rgAmmo( self.m_iSecondaryAmmoType );
+
+		return m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType );
+	}
+
+	void SetAmmo( uint uiAmmoType, int iAmount )
+	{
+		if( uiAmmoType == 2 )
+			m_pPlayer.m_rgAmmo( self.m_iSecondaryAmmoType, iAmount );
+		else
+			m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType, iAmount );
+	}
+
+	void IncreaseAmmo( uint uiAmmoType, int iAmount )
+	{
+		SetAmmo( uiAmmoType, GetAmmo(uiAmmoType) + iAmount );
+	}
+
+	void ReduceAmmo( uint uiAmmoType, int iAmount )
+	{
+		SetAmmo( uiAmmoType, GetAmmo(uiAmmoType) - iAmount );
+	}
+
 	bool IsBetween( float flValue, float flMin, float flMax )
 	{
 		return (flValue > flMin and flValue < flMax);
@@ -588,104 +614,6 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 		pLaser.pev.angles = Math.VecToAngles( vecDir.Normalize() );
 	}
 
-	//More true to the original ??
-	void ThrowGib( int iCount, const string &in sGibName, float flDamage, int iType = 0, bool bHead = false, int iSkin = 0 )
-	{
-		Vector vecOrigin = pev.origin;
-
-		CGib@ pGib = g_EntityFuncs.CreateGib( pev.origin, g_vecZero );
-		pGib.Spawn( sGibName );
-		pGib.pev.skin = iSkin;
-
-		if( bHead )
-		{
-			pGib.pev.origin.x = pev.origin.x;
-			pGib.pev.origin.y = pev.origin.y;
-			pGib.pev.origin.z = pev.origin.z + pev.size.z;
-		}
-		else
-		{
-			pGib.pev.origin.x = pev.absmin.x + pev.size.x * (Math.RandomFloat(0 , 1));
-			pGib.pev.origin.y = pev.absmin.y + pev.size.y * (Math.RandomFloat(0 , 1));
-			pGib.pev.origin.z = pev.absmin.z + pev.size.z * (Math.RandomFloat(0 , 1)) + 1;
-		}
-
-		pGib.pev.velocity = VelocityForDamage( flDamage );
-
-		pGib.pev.velocity.x += Math.RandomFloat( -0.15, 0.15 );
-		pGib.pev.velocity.y += Math.RandomFloat( -0.25, 0.15 );
-		pGib.pev.velocity.z += Math.RandomFloat( -0.2, 1.9 );
-
-		pGib.pev.avelocity.x = Math.RandomFloat( 70, 200 );
-		pGib.pev.avelocity.y = Math.RandomFloat( 70, 200 );
-
-		pGib.pev.solid = SOLID_NOT;
-		g_EntityFuncs.SetSize( pGib.pev, g_vecZero, g_vecZero );
-
-		pGib.LimitVelocity();
-
-		if( iType == BREAK_FLESH )
-		{
-			pGib.m_bloodColor = BLOOD_COLOR_RED;
-			pGib.m_cBloodDecals = 5;
-			pGib.m_material = matFlesh;
-			g_WeaponFuncs.SpawnBlood( pGib.pev.origin, BLOOD_COLOR_RED, 400 );
-		}
-		else
-			pGib.m_bloodColor = DONT_BLEED;
-	}
-
-	/*void ThrowGib( int iCount, const string &in sGibName, float flDamage, int iType, bool bHead = false )
-	{
-		Vector vecOrigin = pev.origin;
-		Vector vecVelocity = VelocityForDamage( flDamage );
-
-		if( bHead)
-			vecOrigin.z += pev.size.z;
-		else
-			vecOrigin.z += pev.size.z * 0.5;
-
-		NetworkMessage m1( MSG_BROADCAST, NetworkMessages::SVC_TEMPENTITY );
-			m1.WriteByte( TE_BREAKMODEL );
-			m1.WriteCoord( vecOrigin.x ); //position x y z
-			m1.WriteCoord( vecOrigin.y );
-			m1.WriteCoord( vecOrigin.z );
-			m1.WriteCoord( 1 ); //size x y z
-			m1.WriteCoord( 1 );
-			m1.WriteCoord( 1 );
-			m1.WriteCoord( vecVelocity.x ); //velocity x y z
-			m1.WriteCoord( vecVelocity.y );
-			m1.WriteCoord( vecVelocity.z );
-			m1.WriteByte( 3 ); //random velocity in 10's
-			m1.WriteShort( g_EngineFuncs.ModelIndex(sGibName) );
-			m1.WriteByte( iCount ); //count
-			m1.WriteByte( Math.RandomLong(100, 200) ); //life in 0.1 secs
-			m1.WriteByte( iType ); //flags
-		m1.End();
-
-		if( iType == BREAK_FLESH )
-			g_WeaponFuncs.SpawnBlood( vecOrigin, BLOOD_COLOR_RED, 400 );
-	}*/
-
-	Vector VelocityForDamage( float flDamage )
-	{
-		Vector vec( Math.RandomFloat(-200, 200), Math.RandomFloat(-200, 200), Math.RandomFloat(300, 400) );
-
-		if( flDamage > 50 )
-			vec = vec * 0.7;
-		else if( flDamage > 200 )
-			vec = vec * 2;
-		else
-			vec = vec * 10;
-
-		return vec;
-	}
-
-	/*Vector VelocityForDamage( float flDamage )
-	{
-		return Vector( Math.RandomFloat(-1.0, 1.0) * flDamage, Math.RandomFloat(-1.0, 1.0) * flDamage, Math.RandomFloat(-1.0, 1.0) * flDamage + 200.0 );
-	}*/
-
 	void WalkMove( float flDist )
 	{
 		g_EngineFuncs.WalkMove( self.edict(), pev.angles.y, flDist, WALKMOVE_WORLDONLY );
@@ -764,7 +692,7 @@ abstract class CBaseDriveEntityHitboxQ2 : ScriptBaseMonsterEntity
 			return BaseClass.KeyValue( szKey, szValue );
 	}
 
-	void ThrowGib( int iCount, const string &in sGibName, float flDamage, int iType = 0, bool bHead = false, int iSkin = 0 )
+	/*void ThrowGib( int iCount, const string &in sGibName, float flDamage, int iType = 0, bool bHead = false, int iSkin = 0 )
 	{
 		Vector vecOrigin = pev.origin;
 
@@ -808,7 +736,7 @@ abstract class CBaseDriveEntityHitboxQ2 : ScriptBaseMonsterEntity
 		}
 		else
 			pGib.m_bloodColor = DONT_BLEED;
-	}
+	}*/
 
 	Vector VelocityForDamage( float flDamage )
 	{

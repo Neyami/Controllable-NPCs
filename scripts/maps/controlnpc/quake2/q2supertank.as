@@ -845,15 +845,15 @@ class cnpc_q2supertank : CBaseDriveEntityHitboxQ2
 
 	void SpawnGibs()
 	{
-		ThrowGib( 2, MODEL_GIB_MEAT, 500, BREAK_FLESH );
-		ThrowGib( 2, MODEL_GIB_METAL, 500, BREAK_METAL );
-		ThrowGib( 1, MODEL_GIB_CHEST, 500 );
-		ThrowGib( 1, MODEL_GIB_CORE, 500 );
-		ThrowGib( 1, MODEL_GIB_LTREAD, 500 );
-		ThrowGib( 1, MODEL_GIB_RTREAD, 500 );
-		ThrowGib( 1, MODEL_GIB_RGUN, 500 );
-		ThrowGib( 1, MODEL_GIB_TUBE, 500 );
-		ThrowGib( 1, MODEL_GIB_HEAD, 500, BREAK_METAL, true );
+		CNPC::Q2::ThrowGib( EHandle(self), 2, MODEL_GIB_MEAT, 500, -1, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 2, MODEL_GIB_METAL, 500, -1, BREAK_METAL );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_CHEST, 500, 2 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_CORE, 500, 1 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_LTREAD, 500, 22 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_RTREAD, 500, 11 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_RGUN, 500, 6 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_TUBE, 500, -1 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_HEAD, 500, 3, BREAK_METAL );
 
 		Explosion( pev.origin, 90 );
 	}

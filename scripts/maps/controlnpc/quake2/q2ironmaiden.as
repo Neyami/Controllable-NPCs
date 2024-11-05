@@ -545,7 +545,7 @@ final class weapon_q2ironmaiden : CBaseDriveWeaponQ2
 		m_pPlayer.pev.fuser4 = 1; //disable jumping
 		m_pPlayer.pev.max_health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
 		m_pPlayer.pev.health = (m_flCustomHealth > 0.0) ? m_flCustomHealth : CNPC_HEALTH;
-		m_pPlayer.m_bloodColor = BLOOD_COLOR_RED;
+		m_pPlayer.m_bloodColor = DONT_BLEED;
 
 		self.m_bExclusiveHold = true;
 
@@ -705,13 +705,13 @@ class cnpc_q2ironmaiden : CBaseDriveEntityQ2
 
 	void SpawnGibs()
 	{
-		ThrowGib( 2, MODEL_GIB_BONE, pev.dmg );
-		ThrowGib( 3, MODEL_GIB_MEAT, pev.dmg, BREAK_FLESH );
-		ThrowGib( 1, MODEL_GIB_ARM, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_FOOT, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_TUBE, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_CHEST, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_HEAD, pev.dmg, BREAK_FLESH, true );
+		CNPC::Q2::ThrowGib( EHandle(self), 2, MODEL_GIB_BONE, pev.dmg, -1, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 3, MODEL_GIB_MEAT, pev.dmg, -1, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_ARM, pev.dmg, 24, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_FOOT, pev.dmg, Math.RandomLong(0, 1) == 0 ? 33 : 36, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_TUBE, pev.dmg, 5 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_CHEST, pev.dmg, 2, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_HEAD, pev.dmg, 3, BREAK_FLESH );
 	}
 
 	void DieThink()

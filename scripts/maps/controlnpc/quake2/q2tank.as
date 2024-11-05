@@ -790,13 +790,13 @@ class cnpc_q2tank : CBaseDriveEntityQ2
 
 	void SpawnGibs()
 	{
-		ThrowGib( 1, MODEL_GIB_MEAT, pev.dmg, BREAK_FLESH );
-		ThrowGib( 3, MODEL_GIB_METAL, pev.dmg, BREAK_METAL );
-		ThrowGib( 1, MODEL_GIB_GEAR, pev.dmg, BREAK_METAL );
-		ThrowGib( 2, MODEL_GIB_FOOT, pev.dmg, BREAK_CONCRETE );
-		ThrowGib( 2, MODEL_GIB_THIGH, pev.dmg, BREAK_CONCRETE );
-		ThrowGib( 1, MODEL_GIB_CHEST, pev.dmg, BREAK_CONCRETE );
-		ThrowGib( 1, MODEL_GIB_HEAD, pev.dmg, BREAK_CONCRETE, true );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_MEAT, pev.dmg, -1, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 3, MODEL_GIB_METAL, pev.dmg, -1, BREAK_METAL );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_GEAR, pev.dmg, -1, BREAK_METAL );
+		CNPC::Q2::ThrowGib( EHandle(self), 2, MODEL_GIB_FOOT, pev.dmg, 20, BREAK_CONCRETE );
+		CNPC::Q2::ThrowGib( EHandle(self), 2, MODEL_GIB_THIGH, pev.dmg, 14, BREAK_CONCRETE );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_CHEST, pev.dmg, 2, BREAK_CONCRETE );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_HEAD, pev.dmg, 10, BREAK_CONCRETE );
 		DropArm();
 	}
 
@@ -805,7 +805,8 @@ class cnpc_q2tank : CBaseDriveEntityQ2
 		Vector vecForward, vecRight, vecUp;
 		g_EngineFuncs.AngleVectors( pev.angles, vecForward, vecRight, vecUp );
 
-		Vector vecOrigin = pev.origin + vecRight * -16.0 + vecUp * 23.0;
+		Vector vecOrigin; //= pev.origin + vecRight * -16.0 + vecUp * 23.0;
+		g_EngineFuncs.GetBonePosition( self.edict(), 23, vecOrigin, void );
 		Vector vecVelocity = vecUp * 100.0 + vecRight * -120.0;
 
 		NetworkMessage m1( MSG_BROADCAST, NetworkMessages::SVC_TEMPENTITY );

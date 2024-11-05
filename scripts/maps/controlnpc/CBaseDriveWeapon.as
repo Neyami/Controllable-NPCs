@@ -336,6 +336,42 @@ class CBaseDriveWeapon : ScriptBasePlayerWeaponEntity
 		return(m_pPlayer.m_afButtonPressed & iButton) != 0;
 	}
 
+	bool GetPushedDown( int iButton )
+	{
+		return (m_pPlayer.pev.button & iButton) != 0 and (m_pPlayer.pev.oldbuttons & iButton) == 0;
+	}
+
+	bool GetReleased( int iButton )
+	{
+		return (m_pPlayer.pev.oldbuttons & iButton) != 0 and (m_pPlayer.pev.button & iButton) == 0;
+	}
+
+	int GetAmmo( uint uiAmmoType )
+	{
+		if( uiAmmoType == 2 )
+			return m_pPlayer.m_rgAmmo( self.m_iSecondaryAmmoType );
+
+		return m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType );
+	}
+
+	void SetAmmo( uint uiAmmoType, int iAmount )
+	{
+		if( uiAmmoType == 2 )
+			m_pPlayer.m_rgAmmo( self.m_iSecondaryAmmoType, iAmount );
+		else
+			m_pPlayer.m_rgAmmo( self.m_iPrimaryAmmoType, iAmount );
+	}
+
+	void IncreaseAmmo( uint uiAmmoType, int iAmount )
+	{
+		SetAmmo( uiAmmoType, GetAmmo(uiAmmoType) + iAmount );
+	}
+
+	void ReduceAmmo( uint uiAmmoType, int iAmount )
+	{
+		SetAmmo( uiAmmoType, GetAmmo(uiAmmoType) - iAmount );
+	}
+
 	bool IsBetween( float flValue, float flMin, float flMax )
 	{
 		return (flValue > flMin and flValue < flMax);

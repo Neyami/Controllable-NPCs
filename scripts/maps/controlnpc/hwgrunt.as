@@ -162,7 +162,7 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 	{
 		Precache();
 
-		m_iState = STATE_IDLE;
+		SetState( STATE_IDLE );
 		m_bHasMinigun = true;
 		m_bShouldDropMinigun = false;
 		m_bCrouching = false;
@@ -279,8 +279,8 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 
 				if( m_iState < STATE_SPINUP )
 				{
-					m_iState = STATE_SHOOT;
-					m_pPlayer.SetMaxSpeedOverride( 0 );
+					SetState( STATE_SHOOT );
+					SetSpeed( 0 );
 					SetAnim( ANIM_SPINUP );
 
 					if( CNPC_FIRSTPERSON )
@@ -291,7 +291,7 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 					self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = g_Engine.time + 1.0;
 					return;
 				}
-				else if( m_iState == STATE_SHOOT )
+				else if( GetState(STATE_SHOOT) )
 				{
 					if( m_pDriveEnt.pev.sequence != ANIM_SHOOT )
 						SetAnim( ANIM_SHOOT );
@@ -312,8 +312,8 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 					return;
 				}
 
-				m_iState = STATE_SHOOT;
-				m_pPlayer.SetMaxSpeedOverride( 0 );
+				SetState( STATE_SHOOT );
+				SetSpeed( 0 );
 
 				ShootSecondary();
 
@@ -395,7 +395,7 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 
 		if( m_pPlayer.pev.button & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT) == 0 or m_iState > STATE_RUN ) return;
 
-		m_pPlayer.SetMaxSpeedOverride( m_bHasMinigun ? int(SPEED_RUN_MG) : int(SPEED_RUN) );
+		SetSpeed( m_bHasMinigun ? int(SPEED_RUN_MG) : int(SPEED_RUN) );
 
 		float flMinWalkVelocity = m_bHasMinigun ? -VELOCITY_WALK_MG : -VELOCITY_WALK;
 		float flMaxWalkVelocity = m_bHasMinigun ? VELOCITY_WALK_MG : VELOCITY_WALK;
@@ -404,8 +404,8 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 		{
 			if( m_pDriveEnt.pev.sequence != ANIM_WALK and m_pDriveEnt.pev.sequence != ANIM_PISTOL_WALK )
 			{
-				m_iState = STATE_WALK;
-				m_pPlayer.SetMaxSpeedOverride( m_bHasMinigun ? int(SPEED_WALK_MG) : int(SPEED_WALK) );
+				SetState( STATE_WALK );
+				SetSpeed( m_bHasMinigun ? int(SPEED_WALK_MG) : int(SPEED_WALK) );
 				SetAnim( m_bHasMinigun ? ANIM_WALK : ANIM_PISTOL_WALK );
 			}
 
@@ -416,8 +416,8 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 		{
 			if( m_pDriveEnt.pev.sequence != ANIM_RUN and m_pDriveEnt.pev.sequence != ANIM_PISTOL_RUN )
 			{
-				m_iState = STATE_RUN;
-				m_pPlayer.SetMaxSpeedOverride( m_bHasMinigun ? int(SPEED_RUN_MG) : int(SPEED_RUN) );
+				SetState( STATE_RUN );
+				SetSpeed( m_bHasMinigun ? int(SPEED_RUN_MG) : int(SPEED_RUN) );
 				SetAnim( m_bHasMinigun ? ANIM_RUN : ANIM_PISTOL_RUN );
 			}
 			else
@@ -430,21 +430,21 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 		if( !bOverrideState )
 		{
 			if( (m_pDriveEnt.pev.sequence >= ANIM_SPINUP or m_pDriveEnt.pev.sequence == ANIM_SPINDOWN) and !m_pDriveEnt.m_fSequenceFinished ) return;
-			if( m_iState == STATE_SHOOT and m_bHasMinigun ) return;
-			if( m_iState == STATE_SHOOT and (m_pDriveEnt.pev.sequence == ANIM_PISTOL_SHOOT or m_pDriveEnt.pev.sequence == ANIM_PISTOL_CSHOOT) and !m_pDriveEnt.m_fSequenceFinished ) return;
-			if( m_iState == STATE_PICKUP and m_pDriveEnt.pev.sequence == ANIM_PICKUP and !m_pDriveEnt.m_fSequenceFinished ) return;
-			if( m_iState == STATE_RELOAD and m_pDriveEnt.pev.sequence == ANIM_PISTOL_RELOAD and !m_pDriveEnt.m_fSequenceFinished ) return;
+			if( GetState(STATE_SHOOT) and m_bHasMinigun ) return;
+			if( GetState(STATE_SHOOT) and (m_pDriveEnt.pev.sequence == ANIM_PISTOL_SHOOT or m_pDriveEnt.pev.sequence == ANIM_PISTOL_CSHOOT) and !m_pDriveEnt.m_fSequenceFinished ) return;
+			if( GetState(STATE_PICKUP) and m_pDriveEnt.pev.sequence == ANIM_PICKUP and !m_pDriveEnt.m_fSequenceFinished ) return;
+			if( GetState(STATE_RELOAD) and m_pDriveEnt.pev.sequence == ANIM_PISTOL_RELOAD and !m_pDriveEnt.m_fSequenceFinished ) return;
 		}
 
 		if( m_pPlayer.pev.velocity.Length() <= 10.0 )
 		{
 			if( m_iState != STATE_IDLE or bOverrideState )
 			{
-				m_pPlayer.SetMaxSpeedOverride( int(SPEED_RUN) );
-				m_iState = STATE_IDLE;
+				SetSpeed( int(SPEED_RUN) );
+				SetState( STATE_IDLE );
 				SetAnim( m_bHasMinigun ? ANIM_IDLE : ANIM_PISTOL_IDLE );
 			}
-			else if( m_iState == STATE_IDLE and CNPC_FIDGETANIMS and m_bHasMinigun )
+			else if( GetState(STATE_IDLE) and CNPC_FIDGETANIMS and m_bHasMinigun )
 			{
 				if( m_pDriveEnt.m_fSequenceFinished )
 					SetAnim( m_pDriveEnt.LookupActivity(ACT_IDLE) );
@@ -565,9 +565,9 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 	{
 		if( !m_bHasMinigun or m_iState < STATE_SPINUP or m_iState >= STATE_SPINDOWN ) return;
 
-		if( ((m_iState == STATE_SPINUP or m_iState == STATE_SHOOT) and (m_pPlayer.pev.button & IN_ATTACK) == 0) or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) or m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) <= 0 )
+		if( ((GetState(STATE_SPINUP) or GetState(STATE_SHOOT)) and (m_pPlayer.pev.button & IN_ATTACK) == 0) or !m_pPlayer.pev.FlagBitSet(FL_ONGROUND) or m_pPlayer.m_rgAmmo(self.m_iPrimaryAmmoType) <= 0 )
 		{
-			m_iState = STATE_SPINDOWN;
+			SetState( STATE_SPINDOWN );
 			SetAnim( ANIM_SPINDOWN );
 
 			if( CNPC_FIRSTPERSON )
@@ -714,8 +714,8 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 			CBaseEntity@ pWeapon = FindWeapon();
 			if( pWeapon is null ) return;
 
-			m_iState = STATE_PICKUP;
-			m_pPlayer.SetMaxSpeedOverride( 0 );
+			SetState( STATE_PICKUP );
+			SetSpeed( 0 );
 			SetAnim( ANIM_PICKUP );
 		}
 	}
@@ -760,8 +760,8 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 
 		if( (m_pPlayer.m_afButtonPressed & IN_RELOAD) != 0 )
 		{
-			m_iState = STATE_RELOAD;
-			m_pPlayer.SetMaxSpeedOverride( 0 );
+			SetState( STATE_RELOAD );
+			SetSpeed( 0 );
 
 			SetAnim( ANIM_PISTOL_RELOAD );
 
@@ -867,7 +867,7 @@ final class weapon_hwgrunt : CBaseDriveWeapon
 		m_pPlayer.pev.max_health = 100;
 
 		m_pPlayer.SetViewMode( ViewMode_FirstPerson );
-		m_pPlayer.SetMaxSpeedOverride( -1 );
+		SetSpeed( -1 );
 
 		NetworkMessage m1( MSG_ONE, NetworkMessages::SVC_STUFFTEXT, m_pPlayer.edict() );
 			m1.WriteString( "cam_idealdist 64\n" );

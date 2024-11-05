@@ -997,13 +997,13 @@ class cnpc_q2soldier : CBaseDriveEntityQ2
 
 	void SpawnGibs()
 	{
-		ThrowGib( 3, MODEL_GIB_MEAT, pev.dmg, BREAK_FLESH );
-		ThrowGib( 1, MODEL_GIB_BONE, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_BONE2, pev.dmg );
-		ThrowGib( 1, MODEL_GIB_ARM, pev.dmg, BREAK_FLESH, false, pev.skin / 2 ); //divide by 2 to get the proper gibskin, since the monster model has 6 skins but the gibs only have 3
-		ThrowGib( 1, MODEL_GIB_GUN, pev.dmg, 0, false, pev.skin / 2 );
-		ThrowGib( 1, MODEL_GIB_CHEST, pev.dmg, BREAK_FLESH, false, pev.skin / 2 );
-		ThrowGib( 1, MODEL_GIB_HEAD, pev.dmg, BREAK_FLESH, true, pev.skin / 2 );
+		CNPC::Q2::ThrowGib( EHandle(self), 3, MODEL_GIB_MEAT, pev.dmg, -1, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_BONE, pev.dmg, -1, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_BONE2, pev.dmg, -1, BREAK_FLESH );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_ARM, pev.dmg, 7, BREAK_FLESH, pev.skin / 2 ); //divide by 2 to get the proper gibskin, since the monster model has 6 skins but the gibs only have 3
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_GUN, pev.dmg, 5, 0, pev.skin / 2 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_CHEST, pev.dmg, 2, BREAK_FLESH, pev.skin / 2 );
+		CNPC::Q2::ThrowGib( EHandle(self), 1, MODEL_GIB_HEAD, pev.dmg, 3, BREAK_FLESH, pev.skin / 2 );
 	}
 
 	void DieThink()
@@ -1203,6 +1203,9 @@ final class info_cnpc_q2soldier : CNPCSpawnEntity
 
 void Register()
 {
+	if( !g_CustomEntityFuncs.IsCustomEntity( "cnpcq2laser" ) )  
+		g_CustomEntityFuncs.RegisterCustomEntity( "CNPC::Q2::cnpcq2laser", "cnpcq2laser" );
+
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2soldier::info_cnpc_q2soldier", "info_cnpc_q2soldier" );
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2soldier::cnpc_q2soldier", "cnpc_q2soldier" );
 	g_CustomEntityFuncs.RegisterCustomEntity( "cnpc_q2soldier::weapon_q2soldier", CNPC_WEAPONNAME );

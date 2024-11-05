@@ -288,7 +288,7 @@ class cnpcq2grenade : ScriptBaseEntity
 		g_EntityFuncs.SetSize( self.pev, Vector(-0.5, -0.5, -0.5), Vector(0.5, 0.5, 0.5) );
 		g_EntityFuncs.SetOrigin( self, self.pev.origin );
 
-		pev.movetype = MOVETYPE_TOSS;
+		pev.movetype = MOVETYPE_BOUNCE; //MOVETYPE_TOSS;
 		pev.solid = SOLID_BBOX;
 		pev.avelocity = Vector( 300, 300, 300 );
 
