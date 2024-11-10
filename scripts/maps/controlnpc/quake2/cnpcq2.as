@@ -1,11 +1,23 @@
 #include "CBaseDriveWeaponQ2"
 #include "cnpcq2entities"
 
+//#include "q2shark" //50 HP
+//#include "q2flyer" //50 HP
+//#include "q2human" //100 HP
+//#include "q2parasite" //175 HP
+//#include "q2technician" //200 HP
+//#include "q2icarus" //240 HP
+//#include "q2medic" //300 HP
+//#include "q2mutant" //300 HP
+//#include "q2hornet" //2000 HP
+//#include "q2jorg" //3000 HP
+
 #include "q2soldier" //20, 30, 40 HP
 #include "q2gunner" //175 HP
 #include "q2ironmaiden" //175 HP
 #include "q2berserker" //240 HP
 #include "q2enforcer" //240 HP
+#include "q2brains" //300 HP
 #include "q2gladiator" //400 HP
 #include "q2tank" //750 HP
 #include "q2supertank" //1500 HP
@@ -27,14 +39,16 @@ const int Q2BERSERKER_SLOT			= 5;
 const int Q2BERSERKER_POSITION		= 14;
 const int Q2ENFORCER_SLOT				= 5;
 const int Q2ENFORCER_POSITION		= 15;
+const int Q2BRAINS_SLOT					= 5;
+const int Q2BRAINS_POSITION			= 16;
 const int Q2GLADIATOR_SLOT				= 5;
-const int Q2GLADIATOR_POSITION		= 16;
+const int Q2GLADIATOR_POSITION		= 17;
 const int Q2TANK_SLOT						= 5;
-const int Q2TANK_POSITION				= 17;
+const int Q2TANK_POSITION				= 18;
 const int Q2SUPERTANK_SLOT			= 5;
-const int Q2SUPERTANK_POSITION		= 18;
+const int Q2SUPERTANK_POSITION		= 19;
 const int Q2MAKRON_SLOT					= 5;
-const int Q2MAKRON_POSITION			= 19;
+const int Q2MAKRON_POSITION			= 20;
 
 const array<string> arrsCNPCQ2Weapons =
 {
@@ -43,6 +57,7 @@ const array<string> arrsCNPCQ2Weapons =
 	"weapon_q2ironmaiden",
 	"weapon_q2berserker",
 	"weapon_q2enforcer",
+	"weapon_q2brains",
 	"weapon_q2gladiator",
 	"weapon_q2tank",
 	"weapon_q2supertank",
@@ -56,6 +71,7 @@ const array<string> arrsCNPCQ2Gibbable =
 	"cnpc_q2ironmaiden",
 	"cnpc_q2berserker",
 	"cnpc_q2enforcer",
+	"cnpc_q2brains",
 	"cnpc_q2gladiator",
 	"cnpc_q2tank"
 };
@@ -67,6 +83,7 @@ enum cnpcq2_e
 	CNPC_Q2IRONMAIDEN,
 	CNPC_Q2BERSERKER,
 	CNPC_Q2ENFORCER,
+	CNPC_Q2BRAINS,
 	CNPC_Q2GLADIATOR,
 	CNPC_Q2TANK,
 	CNPC_Q2SUPERTANK,
@@ -104,6 +121,7 @@ void MapInitCNPCQ2()
 	cnpc_q2ironmaiden::Register();
 	cnpc_q2berserker::Register();
 	cnpc_q2enforcer::Register();
+	cnpc_q2brains::Register();
 	cnpc_q2gladiator::Register();
 	cnpc_q2tank::Register();
 	cnpc_q2supertank::Register();
@@ -204,6 +222,60 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 					pDamageInfo.flDamage *= 0.5;
 
 				pWeapon.HandlePain( pDamageInfo.flDamage );
+			}
+
+			break;
+		}
+
+		case CNPC_Q2BRAINS:
+		{
+			CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
+			cnpc_q2brains::weapon_q2brains@ pWeapon = cast<cnpc_q2brains::weapon_q2brains@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
+
+			if( pWeapon !is null and pWeapon.m_pDriveEnt !is null )
+			{
+				if( pWeapon.m_iState == 3 ) //STATE_DUCKING
+					pDamageInfo.flDamage *= 0.5;
+
+				//For the power screen to be oriented correctly
+				Vector vecDir = (pDamageInfo.pInflictor.pev.origin - pDamageInfo.pVictim.pev.origin).Normalize();
+				float flYaw = Math.VecToAngles(vecDir).y;
+
+				//Only protect from frontal attacks
+				Math.MakeVectors( pWeapon.m_pDriveEnt.pev.angles );
+				float flDot = DotProduct( vecDir , g_Engine.v_forward );
+
+				pWeapon.HandlePain( pDamageInfo.flDamage, flYaw, flDot );
+
+				if( flDot > 0.3 )
+				{
+					TraceResult tr = g_Utility.GetGlobalTrace();
+					Vector vecDirSparks = ( pDamageInfo.pAttacker.Center() - Vector(0, 0, 10) - pDamageInfo.pVictim.Center() ).Normalize();
+					Vector vecOrigin = tr.vecEndPos - (vecDirSparks * pDamageInfo.pVictim.pev.scale) * -42.0;
+
+					//if( pWeapon.pev.dmgtime == 1 )
+					{
+						NetworkMessage m1( MSG_PVS, NetworkMessages::ShieldRic );
+							m1.WriteCoord( vecOrigin.x );
+							m1.WriteCoord( vecOrigin.y );
+							m1.WriteCoord( vecOrigin.z );
+						m1.End();
+					}
+					/*else if( pWeapon.pev.dmgtime == 2 )
+					{
+						NetworkMessage m2( MSG_PVS, NetworkMessages::SVC_TEMPENTITY, vecOrigin );
+							m2.WriteByte( TE_PARTICLEBURST );
+							m2.WriteCoord( vecOrigin.x );
+							m2.WriteCoord( vecOrigin.y );
+							m2.WriteCoord( vecOrigin.z );
+							m2.WriteShort( 1 );//radius
+							m2.WriteByte( 192 );//color
+							m2.WriteByte( 1 );//duration
+						m2.End();
+					}
+					else if( pWeapon.pev.dmgtime == 3 )
+						g_Utility.Sparks( vecOrigin );*/
+				}
 			}
 
 			break;
@@ -310,6 +382,10 @@ void ThrowGib( EHandle hEntity, int iCount, const string &in sGibName, float flD
 		pGib.pev.avelocity.y = Math.RandomFloat( 70, 200 );
 
 		pGib.LimitVelocity();
+		//TESTING
+		//pGib.pev.velocity = g_vecZero;
+		//pGib.pev.movetype = MOVETYPE_NONE;
+		//pGib.pev.solid = SOLID_NOT;
 
 		if( iType == BREAK_FLESH )
 		{

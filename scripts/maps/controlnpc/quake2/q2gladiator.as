@@ -659,14 +659,6 @@ class cnpc_q2gladiator : CBaseDriveEntityQ2
 		}
 	}
 
-	void Footstep( int iPitch = PITCH_NORM, bool bSetOrigin = false, Vector vecSetOrigin = g_vecZero )
-	{
-		if( m_iStepLeft == 0 ) m_iStepLeft = 1;
-			else m_iStepLeft = 0;
-
-		CNPC::monster_footstep( EHandle(self), EHandle(self), m_iStepLeft, iPitch, bSetOrigin, vecSetOrigin );
-	}
-
 	void SUB_StartFadeOut()
 	{
 		if( pev.rendermode == kRenderNormal )

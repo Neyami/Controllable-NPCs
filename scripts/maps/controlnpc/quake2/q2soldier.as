@@ -24,7 +24,6 @@ const float CNPC_VIEWOFS_TPV		= 38.0;
 const float CNPC_RESPAWNTIME		= 13.0; //from the point that the weapon is removed, not the soldier itself
 const float CNPC_MODEL_OFFSET	= 36.0; //sometimes the model floats above the ground
 const float CNPC_ORIGINUPDATE	= 0.1; //how often should the driveent's origin be updated? Lower values causes hacky looking movement when viewing other players
-const bool CNPC_FIDGETANIMS		= true; //does this monster have more than 1 idle animation?
 const float CNPC_FADETIME			= 0.5;
 
 const float SPEED_RUN					= -1;

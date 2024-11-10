@@ -645,6 +645,56 @@ class cnpcq2bfg : ScriptBaseEntity
 	}
 }
 
+class cnpcq2pscreen : ScriptBaseAnimating
+{
+	void Spawn()
+	{
+		Precache();
+
+		g_EntityFuncs.SetModel( self, "models/quake2/items/armor/effect/pscreen.mdl" );
+		g_EntityFuncs.SetSize( self.pev, g_vecZero, g_vecZero );
+		g_EntityFuncs.SetOrigin( self, pev.origin );
+
+		pev.movetype = MOVETYPE_NONE; //MOVETYPE_TOSS;
+		pev.solid = SOLID_NOT;
+
+		if( pev.dmg > 0 ) return;
+
+		SetThink( ThinkFunction(this.RemoveThink) );
+		pev.nextthink = g_Engine.time;
+	}
+
+	void Precache()
+	{
+		g_Game.PrecacheModel( "models/quake2/items/armor/effect/pscreen.mdl" );
+	}
+
+	void RemoveThink()
+	{
+		if( pev.renderamt > 7 )
+		{
+			pev.renderamt -= 7;
+			pev.nextthink = g_Engine.time + 0.05;
+		}
+		else 
+		{
+			pev.renderamt = 0;
+			pev.nextthink = g_Engine.time;
+			SetThink( ThinkFunction(this.SUB_Remove) );
+		}
+	}
+
+	void SUB_Remove()
+	{
+		self.UpdateOnRemove();
+
+		if( pev.health > 0 )
+			pev.health = 0;
+
+		g_EntityFuncs.Remove(self);
+	}
+}
+
 } //namespace Q2 END
 
 } //namespace CNPC END

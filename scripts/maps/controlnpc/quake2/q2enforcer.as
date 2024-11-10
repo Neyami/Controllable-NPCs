@@ -850,14 +850,6 @@ class cnpc_q2enforcer : CBaseDriveEntityQ2
 		}
 	}
 
-	void Footstep( int iPitch = PITCH_NORM, bool bSetOrigin = false, Vector vecSetOrigin = g_vecZero )
-	{
-		if( m_iStepLeft == 0 ) m_iStepLeft = 1;
-			else m_iStepLeft = 0;
-
-		CNPC::monster_footstep( EHandle(self), EHandle(self), m_iStepLeft, iPitch, bSetOrigin, vecSetOrigin );
-	}
-
 	void DeathShot()
 	{
 		g_SoundSystem.EmitSound( self.edict(), CHAN_WEAPON, arrsCNPCSounds[SND_SHOOT], VOL_NORM, ATTN_NORM );

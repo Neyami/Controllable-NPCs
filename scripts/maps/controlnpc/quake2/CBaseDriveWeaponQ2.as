@@ -614,6 +614,14 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 		pLaser.pev.angles = Math.VecToAngles( vecDir.Normalize() );
 	}
 
+	void Footstep( int iPitch = PITCH_NORM, bool bSetOrigin = false, Vector vecSetOrigin = g_vecZero )
+	{
+		if( m_iStepLeft == 0 ) m_iStepLeft = 1;
+			else m_iStepLeft = 0;
+
+		CNPC::monster_footstep( EHandle(self), EHandle(self), m_iStepLeft, iPitch, bSetOrigin, vecSetOrigin );
+	}
+
 	void WalkMove( float flDist )
 	{
 		g_EngineFuncs.WalkMove( self.edict(), pev.angles.y, flDist, WALKMOVE_WORLDONLY );
