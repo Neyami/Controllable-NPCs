@@ -513,6 +513,21 @@ Jump: Jumping attack, hold to charge for a longer leap
 <BR>
 
 
+# QUAKE 2 BRAINS #  
+`weapon_q2brains` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_q2brains` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Melee attack  
+Secondary Attack: Open chest to pull enemies closer and auto-attack  
+Tertiary Attack: Toggle between first- and third-person view  
+Duck: Duck to reduce incoming damage by 50% while holding  
+
+Is protected by a frontal power screen  
+
+
+<BR>
+
+
 # QUAKE 2 GLADIATOR #  
 `weapon_q2gladiator` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_q2gladiator` - Usable entity that turns the player into the monster upon using. Mappers can place this  
