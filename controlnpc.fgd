@@ -226,4 +226,6 @@
 
 @PointClass base(Mandatory, CNPC) size(-80 -80 0, 80 80 142) studio("models/quake2/monsters/supertank/supertank.mdl") = info_cnpc_q2supertank : "Controllable Quake 2 Super Tank" []
 
+@PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/quake2/monsters/jorg/jorg.mdl") = info_cnpc_q2jorg : "Controllable Quake 2 Jorg" []
+
 @PointClass base(Mandatory, CNPC) size(-16 -16 0, 16 16 72) studio("models/quake2/monsters/makron/makron.mdl") = info_cnpc_q2makron : "Controllable Quake 2 Makron" []
