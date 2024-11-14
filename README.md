@@ -581,6 +581,18 @@ Reload: Fire grenades
 <BR>
 
 
+# QUAKE 2 JORG #  
+`weapon_q2jorg` - Can be given to players, Primary Attack spawns the controllable monster.  
+`info_cnpc_q2jorg` - Usable entity that turns the player into the monster upon using. Mappers can place this  
+
+Primary Attack: Dual guns  
+Secondary Attack: BFG   
+Tertiary Attack: Toggle between first- and third-person view  
+
+
+<BR>
+
+
 # QUAKE 2 MAKRON #  
 `weapon_q2makron` - Can be given to players, Primary Attack spawns the controllable monster.  
 `info_cnpc_q2makron` - Usable entity that turns the player into the monster upon using. Mappers can place this  
