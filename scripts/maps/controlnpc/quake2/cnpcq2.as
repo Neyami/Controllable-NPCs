@@ -10,7 +10,6 @@
 //#include "q2medic" //300 HP
 //#include "q2mutant" //300 HP
 //#include "q2hornet" //2000 HP
-//#include "q2jorg" //3000 HP
 
 #include "q2soldier" //20, 30, 40 HP
 #include "q2gunner" //175 HP
@@ -21,6 +20,7 @@
 #include "q2gladiator" //400 HP
 #include "q2tank" //750 HP
 #include "q2supertank" //1500 HP
+#include "q2jorg" //3000 HP
 #include "q2makron" //3000 HP
 
 namespace CNPC
@@ -47,8 +47,10 @@ const int Q2TANK_SLOT						= 5;
 const int Q2TANK_POSITION				= 18;
 const int Q2SUPERTANK_SLOT			= 5;
 const int Q2SUPERTANK_POSITION		= 19;
+const int Q2JORG_SLOT						= 5;
+const int Q2JORG_POSITION				= 20;
 const int Q2MAKRON_SLOT					= 5;
-const int Q2MAKRON_POSITION			= 20;
+const int Q2MAKRON_POSITION			= 21;
 
 const array<string> arrsCNPCQ2Weapons =
 {
@@ -61,6 +63,7 @@ const array<string> arrsCNPCQ2Weapons =
 	"weapon_q2gladiator",
 	"weapon_q2tank",
 	"weapon_q2supertank",
+	"weapon_q2jorg",
 	"weapon_q2makron"
 };
 
@@ -73,7 +76,8 @@ const array<string> arrsCNPCQ2Gibbable =
 	"cnpc_q2enforcer",
 	"cnpc_q2brains",
 	"cnpc_q2gladiator",
-	"cnpc_q2tank"
+	"cnpc_q2tank",
+	"cnpc_q2jorg"
 };
 
 enum cnpcq2_e
@@ -87,6 +91,7 @@ enum cnpcq2_e
 	CNPC_Q2GLADIATOR,
 	CNPC_Q2TANK,
 	CNPC_Q2SUPERTANK,
+	CNPC_Q2JORG,
 	CNPC_Q2MAKRON
 };
 
@@ -125,6 +130,7 @@ void MapInitCNPCQ2()
 	cnpc_q2gladiator::Register();
 	cnpc_q2tank::Register();
 	cnpc_q2supertank::Register();
+	cnpc_q2jorg::Register();
 	cnpc_q2makron::Register();
 }
 
@@ -324,6 +330,17 @@ HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
 
 				break;
 			}
+		}
+
+		case CNPC_Q2JORG:
+		{
+			CBasePlayer@ pPlayer = cast<CBasePlayer@>( pDamageInfo.pVictim );
+			cnpc_q2jorg::weapon_q2jorg@ pWeapon = cast<cnpc_q2jorg::weapon_q2jorg@>( CastToScriptClass(pPlayer.m_hActiveItem.GetEntity()) );
+
+			if( pWeapon !is null and pWeapon.m_pDriveEnt !is null )
+				pWeapon.HandlePain( pDamageInfo.flDamage );
+
+			break;
 		}
 
 		case CNPC_Q2MAKRON:

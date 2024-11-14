@@ -270,7 +270,7 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 
 			CBaseEntity@ pHit = g_EntityFuncs.Instance( tr.pHit );
 			
-			if( pHit.IsMonster() or pHit.IsPlayer() or tr.pHit.vars.solid == SOLID_BBOX or (tr.pHit.vars.ClassNameIs( "func_breakable" ) and tr.pHit.vars.takedamage != DAMAGE_NO) )
+			if( pHit !is null and (pHit.IsMonster() or pHit.IsPlayer() or tr.pHit.vars.solid == SOLID_BBOX or (tr.pHit.vars.ClassNameIs( "func_breakable" ) and tr.pHit.vars.takedamage != DAMAGE_NO)) )
 				@ignore = tr.pHit;
 			else
 				@ignore = null;
@@ -335,7 +335,7 @@ class CBaseDriveWeaponQ2 : ScriptBasePlayerWeaponEntity
 
 	void WalkMove( float flDist )
 	{
-		g_EngineFuncs.WalkMove( self.edict(), pev.angles.y, flDist, WALKMOVE_WORLDONLY );
+		g_EngineFuncs.WalkMove( m_pPlayer.edict(), m_pDriveEnt.pev.angles.y, flDist, WALKMOVE_WORLDONLY );
 	}
 
 	//from h_ai.cpp
@@ -629,11 +629,11 @@ abstract class CBaseDriveEntityQ2 : ScriptBaseAnimating
 
 	void SetAnim( int iAnim, float flFramerate = 1.0, float flFrame = 0.0 )
 	{
-			pev.sequence = iAnim;
-			self.ResetSequenceInfo();
-			pev.frame = flFrame;
-			pev.framerate = flFramerate;
-			m_uiAnimationState = 0;
+		pev.sequence = iAnim;
+		self.ResetSequenceInfo();
+		pev.frame = flFrame;
+		pev.framerate = flFramerate;
+		m_uiAnimationState = 0;
 	}
 
 	int GetAnim()

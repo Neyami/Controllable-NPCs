@@ -67,7 +67,6 @@ void MapInit()
 	cnpc_hwrgrunt::Register();
 	cnpc_apache::Register();
 	
-
 	cnpc_scientist::Register();
 	cnpc_barney::Register();
 	cnpc_otis::Register();

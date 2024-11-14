@@ -899,4 +899,5 @@ void Register()
 
 /* TODO
 	Add laser attack
+	Use a custom variable and hud instead of pev.armorvalue for the power screen
 */
