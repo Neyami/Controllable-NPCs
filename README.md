@@ -10,6 +10,7 @@ A work in progress.
 7) PROFIT
 
 Download the Quake 2 models from https://github.com/Neyami/Quake-2-NPCS  
+CURRENTLY BEING WORKED ON SO THEY MIGHT BE GLITCHY UNTIL I UPDATE THE SCRIPTS  
 
 The only way to revert to a normal player is to die :ayaya:  
 Turrets can be exited with the Use-key  
