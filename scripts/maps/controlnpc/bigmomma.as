@@ -133,8 +133,11 @@ class weapon_bigmomma : CBaseDriveWeapon
 	{
 		g_Game.PrecacheModel( CNPC_MODEL );
 		g_Game.PrecacheModel( GIB_MODEL );
+
 		g_Game.PrecacheOther( "bmortar" );
 		m_iSpitSprite = g_Game.PrecacheModel( "sprites/mommaspout.spr" );
+		g_Game.PrecacheModel( "sprites/mommaspit.spr" );
+		g_Game.PrecacheModel( "sprites/mommablob.spr" ); //just in case :heh:
 
 		for( uint i = 0; i < arrsCNPCSounds.length(); i++ )
 			g_SoundSystem.PrecacheSound( arrsCNPCSounds[i] );
