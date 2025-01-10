@@ -134,6 +134,7 @@ class weapon_bigmomma : CBaseDriveWeapon
 		g_Game.PrecacheModel( CNPC_MODEL );
 		g_Game.PrecacheModel( GIB_MODEL );
 
+		g_Game.PrecacheOther( "monster_babycrab" );
 		g_Game.PrecacheOther( "bmortar" );
 		m_iSpitSprite = g_Game.PrecacheModel( "sprites/mommaspout.spr" );
 		g_Game.PrecacheModel( "sprites/mommaspit.spr" );
