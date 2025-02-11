@@ -9,7 +9,7 @@ A work in progress.
 6) ????
 7) PROFIT
 
-Download the Quake 2 models from https://github.com/Neyami/Quake-2-NPCS  
+Download the Quake 2 models from https://github.com/Neyami/SvenQuake2  
 CURRENTLY BEING WORKED ON SO THEY MIGHT BE GLITCHY UNTIL I UPDATE THE SCRIPTS  
 
 The only way to revert to a normal player is to die :ayaya:  
